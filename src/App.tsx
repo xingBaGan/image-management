@@ -3,7 +3,7 @@ import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar';
 import ImageGrid from './components/ImageGrid';
 import { Image, Category, ViewMode, SortBy } from './types';
-import { Trash2, FolderPlus, Tags } from 'lucide-react';
+import { Trash2, FolderPlus, Tags, Menu, Upload } from 'lucide-react';
 import { readDirectory, readFileMetadata } from './services/fileSystem';
 import path from 'path';
 
@@ -68,6 +68,7 @@ function App() {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [images, setImages] = useState<Image[]>(mockImages);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
 
   const sortedImages = useMemo(() => {
     return [...images].sort((a, b) => {
@@ -187,13 +188,21 @@ function App() {
     }
   };
 
+  const handleImport = async () => {
+    // 这里可以调用 electron 的文件选择对话框
+    console.log('Import images');
+    // 示例：loadLocalImages('/path/to/directory');
+  };
+
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
-      <Sidebar
-        selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
-        categories={mockCategories}
-      />
+      {isSidebarOpen && (
+        <Sidebar
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+          categories={mockCategories}
+        />
+      )}
       <div className="flex-1 flex flex-col overflow-hidden">
         <Toolbar
           viewMode={viewMode}
@@ -204,6 +213,9 @@ function App() {
           onSearch={handleSearch}
           selectedCount={selectedImages.size}
           bulkActions={selectedImages.size > 0 ? bulkActions : []}
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          onImport={handleImport}
+          isSidebarOpen={isSidebarOpen}
         />
         <div className="flex-1 overflow-y-auto">
           <ImageGrid 

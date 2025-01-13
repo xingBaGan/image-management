@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Grid, List, SortAsc, SortDesc, X } from 'lucide-react';
+import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import } from 'lucide-react';
 import { ViewMode, SortBy, BulkAction } from '../types';
 
 interface ToolbarProps {
@@ -11,6 +11,9 @@ interface ToolbarProps {
   onSearch: (query: string) => void;
   selectedCount: number;
   bulkActions: BulkAction[];
+  onToggleSidebar: () => void;
+  onImport: () => void;
+  isSidebarOpen: boolean;
 }
 
 interface SearchTag {
@@ -27,6 +30,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onSearch,
   selectedCount,
   bulkActions,
+  onToggleSidebar,
+  onImport,
+  isSidebarOpen,
 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -84,8 +90,23 @@ const Toolbar: React.FC<ToolbarProps> = ({
   };
 
   return (
-    <div className="relative h-16 bg-white dark:bg-gray-800 border-b dark:border-gray-700 px-6 flex items-center justify-between">
+    <div className="flex relative justify-between items-center px-6 h-16 bg-white border-b dark:bg-gray-800 dark:border-gray-700">
       <div className="flex items-center space-x-4">
+        <button
+          onClick={onToggleSidebar}
+          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+          title={isSidebarOpen ? "收起侧边栏" : "展开侧边栏"}
+        >
+          <Menu size={20} />
+        </button>
+        
+        <button
+          onClick={onImport}
+          className="flex items-center px-4 py-2 space-x-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
+        >
+          <Import size={20} />
+        </button>
+
         {selectedCount > 0 ? (
           <>
             <span className="text-sm text-gray-600 dark:text-gray-300">
@@ -97,7 +118,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 <button
                   key={index}
                   onClick={action.onClick}
-                  className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                  className="flex items-center px-3 py-2 space-x-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
                 >
                   {action.icon}
                   <span>{action.label}</span>
@@ -110,11 +131,11 @@ const Toolbar: React.FC<ToolbarProps> = ({
             <div ref={searchRef} className="relative">
               {isSearchOpen ? (
                 <div className="flex items-center bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600 p-2 min-w-[300px]">
-                  <div className="flex flex-wrap gap-2 flex-1">
+                  <div className="flex flex-wrap flex-1 gap-2">
                     {tags.map((tag) => (
                       <span
                         key={tag.id}
-                        className="inline-flex items-center bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-md text-sm"
+                        className="inline-flex items-center px-2 py-1 text-sm text-blue-800 bg-blue-100 rounded-md dark:bg-blue-900 dark:text-blue-200"
                       >
                         {tag.text}
                         <button
@@ -135,19 +156,19 @@ const Toolbar: React.FC<ToolbarProps> = ({
                       className="flex-1 min-w-[100px] bg-transparent border-none outline-none dark:text-white"
                     />
                   </div>
-                  <Search className="text-gray-400 flex-shrink-0" size={20} />
+                  <Search className="flex-shrink-0 text-gray-400" size={20} />
                 </div>
               ) : (
                 <button
                   onClick={handleSearchClick}
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
+                  className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
                 >
                   <Search size={20} />
                 </button>
               )}
             </div>
 
-            <div className="flex items-center space-x-2 border-l dark:border-gray-700 pl-4">
+            <div className="flex items-center pl-4 space-x-2 border-l dark:border-gray-700">
               <button
                 onClick={() => onViewModeChange('grid')}
                 className={`p-2 rounded-lg ${
@@ -170,15 +191,15 @@ const Toolbar: React.FC<ToolbarProps> = ({
               </button>
             </div>
 
-            <div className="flex items-center space-x-2 border-l dark:border-gray-700 pl-4">
+            <div className="flex items-center pl-4 space-x-2 border-l dark:border-gray-700">
               <div className="relative group">
                 <button
-                  className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="flex items-center px-3 py-2 space-x-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   {sortDirection === 'asc' ? <SortAsc size={20} /> : <SortDesc size={20} />}
                   <span>Sort by {getSortLabel()}</span>
                 </button>
-                <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 py-1 w-48 hidden group-hover:block z-50">
+                <div className="hidden absolute left-0 top-full z-50 py-1 mt-1 w-48 bg-white rounded-lg border shadow-lg dark:bg-gray-800 dark:border-gray-700 group-hover:block">
                   <button
                     onClick={() => onSortChange('name')}
                     className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${
