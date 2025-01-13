@@ -1,0 +1,162 @@
+import React from 'react';
+import Masonry from 'react-masonry-css';
+import { Heart, MoreVertical, FileText, Calendar, Check } from 'lucide-react';
+import { Image as ImageType, ViewMode } from '../types';
+
+interface ImageGridProps {
+  images: ImageType[];
+  onFavorite: (id: string) => void;
+  viewMode: ViewMode;
+  selectedImages: Set<string>;
+  onSelectImage: (id: string, isShiftKey: boolean) => void;
+}
+
+const ImageGrid: React.FC<ImageGridProps> = ({
+  images,
+  onFavorite,
+  viewMode,
+  selectedImages,
+  onSelectImage,
+}) => {
+  const breakpointColumns = {
+    default: 4,
+    1536: 3,
+    1280: 3,
+    1024: 2,
+    768: 2,
+    640: 1,
+  };
+
+  if (viewMode === 'list') {
+    return (
+      <div className="p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+          <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 border-b dark:border-gray-700 font-medium text-gray-500 dark:text-gray-400">
+            <div className="w-12"></div>
+            <div>Name</div>
+            <div>Size</div>
+            <div>Modified</div>
+            <div className="w-20">Actions</div>
+          </div>
+          {images.map((image) => (
+            <div
+              key={image.id}
+              className={`grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 items-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer ${
+                selectedImages.has(image.id) ? 'bg-blue-50 dark:bg-blue-900/30' : ''
+              }`}
+              onClick={(e) => onSelectImage(image.id, e.shiftKey)}
+            >
+              <div className="relative w-12 h-12">
+                <img
+                  src={image.path}
+                  alt={image.name}
+                  className="w-12 h-12 object-cover rounded"
+                />
+                {selectedImages.has(image.id) && (
+                  <div className="absolute inset-0 bg-blue-500/50 rounded flex items-center justify-center">
+                    <Check className="text-white" size={20} />
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center">
+                <FileText size={16} className="mr-2 text-gray-400" />
+                <span className="text-gray-700 dark:text-gray-200">{image.name}</span>
+              </div>
+              <div className="text-gray-500 dark:text-gray-400">
+                {(image.size / 1024 / 1024).toFixed(2)} MB
+              </div>
+              <div className="text-gray-500 dark:text-gray-400 flex items-center">
+                <Calendar size={16} className="mr-2" />
+                {new Date(image.modified).toLocaleDateString()}
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onFavorite(image.id);
+                  }}
+                  className={`p-2 rounded-full ${
+                    image.favorite
+                      ? 'bg-red-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  <Heart size={16} />
+                </button>
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                >
+                  <MoreVertical size={16} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      <Masonry
+        breakpointCols={breakpointColumns}
+        className="flex -ml-6"
+        columnClassName="pl-6"
+      >
+        {images.map((image) => (
+          <div
+            key={image.id}
+            className={`mb-6 relative group cursor-pointer ${
+              selectedImages.has(image.id) ? 'ring-4 ring-blue-500 rounded-lg' : ''
+            }`}
+            onClick={(e) => onSelectImage(image.id, e.shiftKey)}
+          >
+            <img
+              src={image.path}
+              alt={image.name}
+              className="w-full h-auto rounded-lg"
+            />
+            <div className={`absolute inset-0 bg-black transition-opacity duration-200 rounded-lg ${
+              selectedImages.has(image.id) ? 'bg-opacity-30' : 'bg-opacity-0 group-hover:bg-opacity-30'
+            }`} />
+            {selectedImages.has(image.id) && (
+              <div className="absolute top-4 left-4 bg-blue-500 rounded-full p-1">
+                <Check className="text-white" size={20} />
+              </div>
+            )}
+            <div className="absolute top-4 right-4 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFavorite(image.id);
+                }}
+                className={`p-2 rounded-full ${
+                  image.favorite
+                    ? 'bg-red-500 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Heart size={20} />
+              </button>
+              <button
+                onClick={(e) => e.stopPropagation()}
+                className="p-2 rounded-full bg-white text-gray-700 hover:bg-gray-100"
+              >
+                <MoreVertical size={20} />
+              </button>
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <h3 className="text-white font-medium truncate">{image.name}</h3>
+              <p className="text-gray-300 text-sm">
+                {new Date(image.modified).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+        ))}
+      </Masonry>
+    </div>
+  );
+};
+
+export default ImageGrid;
