@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "outDir": "../dist-electron",
+    "rootDir": ".",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "module": "ESNext"
+  },
+  "include": ["./**/*"]
+} 
