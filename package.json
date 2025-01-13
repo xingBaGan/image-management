@@ -9,7 +9,7 @@
     "build": "tsc && vite build",
     "lint": "eslint .",
     "electron:dev": "tsc -p electron/tsconfig.json && concurrently \"vite\" \"electron .\"",
-    "electron:build": "tsc -p electron/tsconfig.json && vite build && electron-builder",
+    "electron:build": "tsc -p electron/tsconfig.json && vite build && xcopy /y electron\\*.cjs dist-electron\\ && electron-builder",
     "electron:preview": "electron ."
   },
   "dependencies": {
@@ -48,8 +48,12 @@
     },
     "files": [
       "dist/**/*",
-      "dist-electron/**/*"
+      "electron/**/*"
     ],
+    "extraMetadata": {
+      "main": "electron/main.cjs"
+    },
+    "asar": true,
     "mac": {
       "category": "public.app-category.photography"
     },
