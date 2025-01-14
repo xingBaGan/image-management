@@ -9,7 +9,7 @@
     "build": "tsc && vite build",
     "lint": "eslint .",
     "electron:dev": "tsc -p electron/tsconfig.json && concurrently \"vite\" \"electron .\"",
-    "electron:build": "tsc -p electron/tsconfig.json && vite build && xcopy /y electron\\*.cjs dist-electron\\ && electron-builder",
+    "electron:build": "tsc -p electron/tsconfig.json && vite build && node -e \"require('fs').cpSync('electron', 'dist-electron', {recursive: true})\" && electron-builder",
     "electron:preview": "electron ."
   },
   "dependencies": {
