@@ -103,6 +103,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
         <button
           onClick={onImport}
           className="flex items-center px-4 py-2 space-x-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
+          title="导入图片"
         >
           <Import size={20} />
         </button>

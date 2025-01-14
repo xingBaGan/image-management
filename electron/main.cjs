@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const fs = require('fs').promises;
+const fs = require('fs/promises');
 
 const isDev = !app.isPackaged;
 
@@ -59,6 +59,17 @@ ipcMain.handle('read-file-metadata', async (event, filePath) => {
     };
   } catch (error) {
     console.error('Error reading file metadata:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('load-images-from-json', async (event, jsonPath) => {
+  try {
+    const jsonContent = await fs.readFile(jsonPath, 'utf-8');
+    const data = JSON.parse(jsonContent);
+    return data;
+  } catch (error) {
+    console.error('Error loading images from JSON:', error);
     throw error;
   }
 });

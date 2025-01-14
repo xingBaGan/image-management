@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar';
 import ImageGrid from './components/ImageGrid';
-import { Image, Category, ViewMode, SortBy } from './types';
+import { Image, Category, ViewMode, SortBy, ImageData, ImageInfo } from './types';
 import { Trash2, FolderPlus, Tags, Menu, Upload } from 'lucide-react';
 import { readDirectory, readFileMetadata } from './services/fileSystem';
 import path from 'path';
@@ -14,59 +14,12 @@ const mockCategories: Category[] = [
   { id: 'vacation', name: 'Vacation', count: 32 },
 ];
 
-const mockImages: Image[] = [
-  {
-    id: '1',
-    path: 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131',
-    name: 'Cute cat',
-    size: 1024000,
-    dimensions: { width: 1920, height: 1080 },
-    created: new Date('2024-01-01'),
-    modified: new Date('2024-01-01'),
-    tags: ['animals', 'cats'],
-    favorite: true,
-  },
-  {
-    id: '2',
-    path: 'https://images.unsplash.com/photo-1579353977828-2a4eab540b9a',
-    name: 'Sunset view',
-    size: 2048000,
-    dimensions: { width: 2560, height: 1440 },
-    created: new Date('2024-01-02'),
-    modified: new Date('2024-01-02'),
-    tags: ['nature', 'sunset'],
-    favorite: false,
-  },
-  {
-    id: '3',
-    path: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d',
-    name: 'Workspace',
-    size: 1536000,
-    dimensions: { width: 1920, height: 1280 },
-    created: new Date('2024-01-03'),
-    modified: new Date('2024-01-03'),
-    tags: ['work', 'desk'],
-    favorite: false,
-  },
-  {
-    id: '4',
-    path: 'https://images.unsplash.com/photo-1484723091739-30a097e8f929',
-    name: 'Food photography',
-    size: 3072000,
-    dimensions: { width: 3840, height: 2160 },
-    created: new Date('2024-01-04'),
-    modified: new Date('2024-01-04'),
-    tags: ['food', 'photography'],
-    favorite: true,
-  },
-];
-
 function App() {
   const [selectedCategory, setSelectedCategory] = useState<string>('photos');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortBy>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [images, setImages] = useState<Image[]>(mockImages);
+  const [images, setImages] = useState<ImageInfo[]>([]);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
 
@@ -79,7 +32,7 @@ function App() {
           comparison = a.name.localeCompare(b.name);
           break;
         case 'date':
-          comparison = new Date(b.modified).getTime() - new Date(a.modified).getTime();
+          comparison = new Date(b.dateModified).getTime() - new Date(a.dateModified).getTime();
           break;
         case 'size':
           comparison = b.size - a.size;
@@ -189,10 +142,44 @@ function App() {
   };
 
   const handleImport = async () => {
-    // 这里可以调用 electron 的文件选择对话框
-    console.log('Import images');
-    // 示例：loadLocalImages('/path/to/directory');
+    try {
+      const fileMetadata = await window.electron.showOpenDialog();
+      
+      if (fileMetadata.length === 0) return;
+      
+      const newImages: ImageData[] = fileMetadata.map(file => ({
+        id: crypto.randomUUID(),
+        name: file.path.split('/').pop() || '',
+        path: file.path,
+        size: file.size,
+        dateCreated: file.dateCreated,
+        dateModified: file.dateModified,
+        tags: [],
+        favorite: false
+      }));
+      
+      const updatedImages = [...images, ...newImages];
+      await window.electron.saveImagesToJson(updatedImages);
+      setImages(updatedImages);
+      
+    } catch (error) {
+      console.error('导入图片失败:', error);
+    }
   };
+
+  // 在组件加载时读取已保存的图片数据
+  useEffect(() => {
+    const loadImages = async () => {
+      try {
+        const result = await window.electron.loadImagesFromJson('./src/data/mockImages.json');
+        setImages(result.images);
+      } catch (error) {
+        console.error('加载图片数据失败:', error);
+      }
+    };
+
+    loadImages();
+  }, []);
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
@@ -203,7 +190,7 @@ function App() {
           categories={mockCategories}
         />
       )}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex overflow-hidden flex-col flex-1">
         <Toolbar
           viewMode={viewMode}
           sortBy={sortBy}
@@ -217,7 +204,7 @@ function App() {
           onImport={handleImport}
           isSidebarOpen={isSidebarOpen}
         />
-        <div className="flex-1 overflow-y-auto">
+        <div className="overflow-y-auto flex-1">
           <ImageGrid 
             images={sortedImages} 
             onFavorite={handleFavorite} 
