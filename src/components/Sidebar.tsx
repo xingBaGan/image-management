@@ -8,12 +8,14 @@ interface SidebarProps {
   categories: Category[];
   filter: FilterType;
   onFilterChange: (filter: FilterType) => void;
+  onAddCategory?: (category: Category) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   selectedCategory,
   onSelectCategory,
   categories,
+  onAddCategory,
 }) => {
   const fixedCategories = [
     { id: 'recent', name: 'Recent', icon: <Clock size={20} /> },
@@ -21,6 +23,17 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'favorites', name: 'Favorites', icon: <Heart size={20} /> },
     { id: 'videos', name: 'Videos', icon: <Video size={20} /> },
   ];
+
+  const handleAddCategory = () => {
+    if (onAddCategory) {
+      const newCategory = {
+        id: `category-${Date.now()}`,
+        name: "新分类",
+        count: 0
+      };
+      onAddCategory(newCategory);
+    }
+  };
 
   return (
     <div className="flex flex-col p-4 w-64 h-screen bg-white dark:bg-gray-800">
@@ -63,7 +76,10 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      <button className="flex justify-center items-center px-4 py-2 mt-auto space-x-2 w-full text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600">
+      <button 
+        onClick={handleAddCategory}
+        className="flex justify-center items-center px-4 py-2 mt-auto space-x-2 w-full text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600"
+      >
         <Plus size={20} />
         <span>New Category</span>
       </button>

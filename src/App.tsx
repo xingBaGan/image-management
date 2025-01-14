@@ -5,13 +5,6 @@ import ImageGrid from './components/ImageGrid';
 import { Category, ViewMode, SortBy, ImageInfo, FilterType } from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
 
-// Mock data for demonstration
-const mockCategories: Category[] = [
-  { id: 'home', name: 'Home', count: 24 },
-  { id: 'work', name: 'Work', count: 15 },
-  { id: 'vacation', name: 'Vacation', count: 32 },
-];
-
 function App() {
   const [selectedCategory, setSelectedCategory] = useState<string>('photos');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -21,6 +14,7 @@ function App() {
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [filter, setFilter] = useState<FilterType>('all');
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     // console.log('selectedCategory', selectedCategory);
@@ -71,12 +65,15 @@ function App() {
         img.id === id ? { ...img, favorite: !img.favorite } : img
       );
       
-      // 保存更新后的图片数据到 JSON 文件
-      await window.electron.saveImagesToJson(updatedImages.map(img => ({
-        ...img,
-        dateCreated: img.created,
-        dateModified: img.modified
-      })));
+      // 保存更新后的图片数据到 JSON 文件，同时保存categories
+      await window.electron.saveImagesToJson(
+        updatedImages.map(img => ({
+          ...img,
+          dateCreated: img.created,
+          dateModified: img.modified
+        })),
+        categories
+      );
       
       setImages(updatedImages);
     } catch (error) {
@@ -114,12 +111,15 @@ function App() {
       // 过滤掉被选中的图片
       const updatedImages = images.filter(img => !selectedImages.has(img.id));
       
-      // 保存更新后的图片数据到 JSON 文件
-      await window.electron.saveImagesToJson(updatedImages.map(img => ({
-        ...img,
-        dateCreated: img.created,
-        dateModified: img.modified
-      })));
+      // 保存更新后的图片数据到 JSON 文件，同时保存categories
+      await window.electron.saveImagesToJson(
+        updatedImages.map(img => ({
+          ...img,
+          dateCreated: img.created,
+          dateModified: img.modified
+        })),
+        categories
+      );
       
       // 更新状态
       setImages(updatedImages);
@@ -182,7 +182,7 @@ function App() {
       }));
       
       const updatedImages = [...images, ...newImages];
-      await window.electron.saveImagesToJson(updatedImages);
+      await window.electron.saveImagesToJson(updatedImages, categories);
       setImages(updatedImages);
       
     } catch (error) {
@@ -202,6 +202,7 @@ function App() {
           modified: img.dateModified
         }));
         setImages(convertedImages);
+        setCategories(result.categories || []);
       } catch (error) {
         console.error('加载图片数据失败:', error);
       }
@@ -210,15 +211,35 @@ function App() {
     loadImages();
   }, []);
 
+  const handleAddCategory = async (newCategory: Category) => {
+    const updatedCategories = [...categories, newCategory];
+    setCategories(updatedCategories);
+    
+    try {
+      // 保存更新后的categories到JSON文件
+      await window.electron.saveImagesToJson(
+        images.map(img => ({
+          ...img,
+          dateCreated: img.created,
+          dateModified: img.modified
+        })),
+        updatedCategories
+      );
+    } catch (error) {
+      console.error('保存分类失败:', error);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       {isSidebarOpen && (
         <Sidebar
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
-          categories={mockCategories}
+          categories={categories}
           filter={filter}
           onFilterChange={setFilter}
+          onAddCategory={handleAddCategory}
         />
       )}
       <div className="flex overflow-hidden flex-col flex-1">

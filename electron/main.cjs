@@ -82,10 +82,32 @@ const initializeUserData = async () => {
             "tags": ["food", "photography"],
             "favorite": true
           }
+        ],
+        "categories": [
+          {
+            "id": "1",
+            "name": "风景",
+            "color": "#4CAF50"
+          },
+          {
+            "id": "2",
+            "name": "人物",
+            "color": "#2196F3"
+          },
+          {
+            "id": "3",
+            "name": "美食",
+            "color": "#FF9800"
+          },
+          {
+            "id": "4",
+            "name": "建筑",
+            "color": "#9C27B0"
+          }
         ]
       };
       
-      await fs.writeFile(userDataPath, JSON.stringify(mockImagesContent, null, 2), 'utf-8');
+      await fsPromises.writeFile(userDataPath, JSON.stringify(mockImagesContent, null, 2), 'utf-8');
       console.log('Mock images data initialized in userData directory');
     }
   } catch (error) {
@@ -147,19 +169,20 @@ ipcMain.handle('read-file-metadata', async (event, filePath) => {
   }
 });
 
-ipcMain.handle('load-images-from-json', async (event, jsonPath) => {
-  if (!jsonPath) {
-    // 如果没有指定路径，使用 loadImagesData
-    return loadImagesData();
-  }
-  
+ipcMain.handle('load-images-from-json', async () => {
   try {
-    const jsonContent = await fs.readFile(jsonPath, 'utf-8');
-    const data = JSON.parse(jsonContent);
-    return data;
+    const userDataPath = app.getPath('userData');
+    const jsonPath = path.join(userDataPath, 'images.json');
+    
+    if (!fs.existsSync(jsonPath)) {
+      return { images: [], categories: [] };
+    }
+    
+    const data = await fs.promises.readFile(jsonPath, 'utf-8');
+    return JSON.parse(data);
   } catch (error) {
-    console.error('Error loading images from JSON:', error);
-    return { images: [] };
+    console.error('Error loading images:', error);
+    throw error;
   }
 });
 
@@ -197,15 +220,21 @@ ipcMain.handle('show-open-dialog', async () => {
   return fileMetadata;
 });
 
-ipcMain.handle('save-images-to-json', async (event, images) => {
+ipcMain.handle('save-images-to-json', async (event, images, categories) => {
   try {
-    const savePath = path.join(app.getPath('userData'), 'images.json');
-    const jsonContent = JSON.stringify({ images }, null, 2);
-    await fs.writeFile(savePath, jsonContent, 'utf-8');
+    const userDataPath = app.getPath('userData');
+    const jsonPath = path.join(userDataPath, 'images.json');
+    
+    await fs.promises.writeFile(
+      jsonPath,
+      JSON.stringify({ images, categories }, null, 2),
+      'utf-8'
+    );
+    
     return true;
   } catch (error) {
-    console.error('Error saving images to JSON:', error);
-    return false;
+    console.error('Error saving images:', error);
+    throw error;
   }
 });
 
@@ -253,6 +282,11 @@ function loadImagesData() {
   try {
     const imagesJsonPath = path.join(app.getPath('userData'), 'images.json');
     let data = JSON.parse(fs.readFileSync(imagesJsonPath, 'utf8'));
+    // 确保 categories 字段存在
+    if (!data.categories) {
+      data.categories = [];
+    }
+    
     
     // 检查并更新没有 modified 时间的图片
     let hasUpdates = false;
@@ -283,6 +317,6 @@ function loadImagesData() {
     return data;
   } catch (error) {
     console.error('Error loading images data:', error);
-    return { images: [] };
+    return { images: [], categories: [] };
   }
 }

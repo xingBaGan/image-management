@@ -14,8 +14,8 @@ export type Image = ImageData;
 export interface Category {
   id: string;
   name: string;
-  icon?: string;
-  count: number;
+  count?: number;
+  icon?: React.ReactNode;
 }
 
 export type ViewMode = 'grid' | 'list';
@@ -46,8 +46,11 @@ interface ElectronAPI {
     dateCreated: string;
     dateModified: string;
   }[]>;
-  saveImagesToJson: (images: ImageData[]) => Promise<boolean>;
-  loadImagesFromJson: (jsonPath: string) => Promise<{ images: ImageInfo[] }>;
+  saveImagesToJson: (images: ImageData[], categories: Category[]) => Promise<boolean>;
+  loadImagesFromJson: (jsonPath: string) => Promise<{ 
+    images: ImageInfo[];
+    categories: Category[];
+  }>;
   openImageJson: () => Promise<{ 
     success: boolean;
     error?: string;
