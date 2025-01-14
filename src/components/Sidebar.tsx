@@ -118,9 +118,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
           {categories.map((category) => (
             <div key={category.id} className="relative">
-              <button
-                onClick={() => onSelectCategory(category.id)}
-                className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition-colors ${
+              <div
+                title={category.name}
+                onClick={() => {
+                  onSelectCategory(category.id);
+                  setEditingCategoryId(null);
+                  setShowDeleteConfirm(null);
+                }}
+                className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition-colors cursor-pointer ${
                   selectedCategory === category.id
                     ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -151,7 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <>
                     <span>{category.name}</span>
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-500">{category.count}</span>
+                      <span className="text-sm text-gray-500">{category.count || 0}</span>
                       <button
                         title="编辑分类"
                         onClick={(e) => {
@@ -175,7 +180,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     </div>
                   </>
                 )}
-              </button>
+              </div>
 
               {/* 删除确认弹窗 */}
               {showDeleteConfirm === category.id && (

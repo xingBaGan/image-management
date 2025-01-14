@@ -28,7 +28,7 @@ function App() {
   }, [selectedCategory]);
 
   const filteredAndSortedImages = useMemo(() => {
-    // 首先根据 filter 过滤图片
+    // 首先根据 filter 和 selectedCategory 过滤图片
     let filtered = images;
     
     if (filter === 'favorites') {
@@ -37,6 +37,18 @@ function App() {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       filtered = images.filter(img => new Date(img.modified) >= sevenDaysAgo);
+    } else if (selectedCategory !== 'photos') {
+      // 如果选中的不是 'photos'（所有图片），且不是特殊过滤器（favorites/recent）
+      // 查找选中分类下的所有图片
+      const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
+      if (selectedCategoryData) {
+        filtered = images.filter(img => 
+          // 检查图片是否属于当前选中的分类
+          img.categories?.includes(selectedCategory) ||
+          // 或者检查图片 ID 是否在分类的 images 数组中
+          selectedCategoryData.images?.includes(img.id)
+        );
+      }
     }
 
     // 然后对过滤后的结果进行排序
@@ -57,7 +69,7 @@ function App() {
 
       return sortDirection === 'asc' ? -comparison : comparison;
     });
-  }, [images, sortBy, sortDirection, filter]);
+  }, [images, sortBy, sortDirection, filter, selectedCategory, categories]);
 
   const handleFavorite = async (id: string) => {
     try {
@@ -129,10 +141,54 @@ function App() {
     }
   };
 
-  const handleAddToCategory = (categoryId: string) => {
-    // Implement category assignment logic
-    console.log('Adding to category:', categoryId, 'Images:', Array.from(selectedImages));
-    setSelectedImages(new Set());
+  const handleAddToCategory = async (selectedCategories: string[]) => {
+    try {
+      // 更新图片的分类信息
+      const updatedImages = images.map(img => {
+        if (selectedImages.has(img.id)) {
+          return {
+            ...img,
+            categories: Array.from(new Set([...(img.categories || []), ...selectedCategories]))
+          };
+        }
+        return img;
+      });
+
+      // 更新分类中的图片信息
+      const updatedCategories = categories.map(category => {
+        if (selectedCategories.includes(category.id)) {
+          // 获取当前分类下所有图片 ID
+          const existingImages = category.images || [];
+          // 添加新选中的图片 ID
+          const newImages = Array.from(selectedImages);
+          // 合并并去重
+          const allImages = Array.from(new Set([...existingImages, ...newImages]));
+          
+          return {
+            ...category,
+            images: allImages,
+            count: allImages.length // 直接更新 count
+          };
+        }
+        return category;
+      });
+
+      // 保存更新后的图片数据和分类数据
+      await window.electron.saveImagesToJson(
+        updatedImages.map(img => ({
+          ...img,
+          dateCreated: img.created,
+          dateModified: img.modified
+        })),
+        updatedCategories
+      );
+
+      setImages(updatedImages);
+      setCategories(updatedCategories);
+      setSelectedImages(new Set());
+    } catch (error) {
+      console.error('添加分类失败:', error);
+    }
   };
 
   const handleAddTags = () => {
@@ -150,7 +206,9 @@ function App() {
     {
       icon: <FolderPlus size={20} />,
       label: 'Add to Category',
-      onClick: () => handleAddToCategory(selectedCategory)
+      onClick: () => {},
+      categories: categories,
+      onSelectCategories: handleAddToCategory
     },
     {
       icon: <Tags size={20} />,
@@ -177,8 +235,11 @@ function App() {
         size: file.size,
         dateCreated: file.dateCreated,
         dateModified: file.dateModified,
+        created: file.dateCreated,
+        modified: file.dateModified,
         tags: [],
-        favorite: false
+        favorite: false,
+        categories: []
       }));
       
       const updatedImages = [...images, ...newImages];
@@ -212,11 +273,17 @@ function App() {
   }, []);
 
   const handleAddCategory = async (newCategory: Category) => {
-    const updatedCategories = [...categories, newCategory];
+    // 确保新分类包含 images 数组
+    const categoryWithImages = {
+      ...newCategory,
+      images: [],
+      count: 0
+    };
+    
+    const updatedCategories = [...categories, categoryWithImages];
     setCategories(updatedCategories);
     
     try {
-      // 保存更新后的categories到JSON文件
       await window.electron.saveImagesToJson(
         images.map(img => ({
           ...img,

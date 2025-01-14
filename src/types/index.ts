@@ -7,6 +7,7 @@ export interface ImageData {
   dateModified: string;
   tags: string[];
   favorite: boolean;
+  categories: string[];
 }
 
 export type Image = ImageData;
@@ -16,6 +17,7 @@ export interface Category {
   name: string;
   count?: number;
   icon?: React.ReactNode;
+  images: string[];
 }
 
 export type ViewMode = 'grid' | 'list';

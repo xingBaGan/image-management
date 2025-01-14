@@ -31,11 +31,10 @@ const initializeUserData = async () => {
     const userDataPath = path.join(app.getPath('userData'), 'images.json');
     console.log('用户数据目录路径:', userDataPath);
     
-    // 检查用户数据目录中是否已存在 images.json
     try {
-      await fs.access(userDataPath);
+      await fsPromises.access(userDataPath);
     } catch {
-      // 如果文件不存在，则复制 mockImages 数据
+      console.log('images.json 文件不存在');
       const mockImagesContent = {
         "images": [
           {
@@ -43,66 +42,66 @@ const initializeUserData = async () => {
             "path": "https://images.unsplash.com/photo-1518791841217-8f162f1e1131",
             "name": "Cute cat",
             "size": 1024000,
-            "dimensions": { "width": 1920, "height": 1080 },
-            "created": "2024-01-01",
-            "modified": "2024-01-01",
+            "dateCreated": "2024-01-01T00:00:00.000Z",
+            "dateModified": "2024-01-01T00:00:00.000Z",
             "tags": ["animals", "cats"],
-            "favorite": true
+            "favorite": true,
+            "categories": []
           },
           {
             "id": "2",
             "path": "https://images.unsplash.com/photo-1579353977828-2a4eab540b9a",
             "name": "Sunset view",
             "size": 2048000,
-            "dimensions": { "width": 2560, "height": 1440 },
-            "created": "2024-01-02",
-            "modified": "2024-01-02",
+            "dateCreated": "2024-01-02T00:00:00.000Z",
+            "dateModified": "2024-01-02T00:00:00.000Z",
             "tags": ["nature", "sunset"],
-            "favorite": false
+            "favorite": false,
+            "categories": []
           },
           {
             "id": "3",
             "path": "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
             "name": "Workspace",
             "size": 1536000,
-            "dimensions": { "width": 1920, "height": 1280 },
-            "created": "2024-01-03",
-            "modified": "2024-01-03",
+            "dateCreated": "2024-01-03T00:00:00.000Z",
+            "dateModified": "2024-01-03T00:00:00.000Z",
             "tags": ["work", "desk"],
-            "favorite": false
+            "favorite": false,
+            "categories": []
           },
           {
             "id": "4",
             "path": "https://images.unsplash.com/photo-1484723091739-30a097e8f929",
             "name": "Food photography",
             "size": 3072000,
-            "dimensions": { "width": 3840, "height": 2160 },
-            "created": "2024-01-04",
-            "modified": "2024-01-04",
+            "dateCreated": "2024-01-04T00:00:00.000Z",
+            "dateModified": "2024-01-04T00:00:00.000Z",
             "tags": ["food", "photography"],
-            "favorite": true
+            "favorite": true,
+            "categories": []
           }
         ],
         "categories": [
           {
             "id": "1",
             "name": "风景",
-            "color": "#4CAF50"
+            "images": []
           },
           {
             "id": "2",
             "name": "人物",
-            "color": "#2196F3"
+            "images": []
           },
           {
             "id": "3",
             "name": "美食",
-            "color": "#FF9800"
+            "images": []
           },
           {
             "id": "4",
             "name": "建筑",
-            "color": "#9C27B0"
+            "images": []
           }
         ]
       };
@@ -204,15 +203,15 @@ ipcMain.handle('show-open-dialog', async () => {
       const localImageUrl = `local-image://${encodeURIComponent(filePath)}`;
       
       return {
-        id: Date.now().toString(), // 生成唯一ID
+        id: Date.now().toString(),
         path: localImageUrl,
         name: path.basename(filePath),
         size: stats.size,
-        dimensions: { width: 0, height: 0 }, // 实际应用中可能需要获取真实尺寸
-        created: stats.birthtime.toISOString(),
-        modified: stats.mtime.toISOString(),
+        dateCreated: stats.birthtime.toISOString(),
+        dateModified: stats.mtime.toISOString(),
         tags: [],
-        favorite: false
+        favorite: false,
+        categories: []
       };
     })
   );
@@ -300,34 +299,37 @@ function loadImagesData() {
   try {
     const imagesJsonPath = path.join(app.getPath('userData'), 'images.json');
     let data = JSON.parse(fs.readFileSync(imagesJsonPath, 'utf8'));
-    // 确保 categories 字段存在
+    
     if (!data.categories) {
       data.categories = [];
     }
     
-    
-    // 检查并更新没有 modified 时间的图片
+    // 更新图片数据结构
     let hasUpdates = false;
     data.images = data.images.map(img => {
       const updatedImg = { ...img };
       
-      // 确保必要的字段都存在
+      // 确保字段符合 ImageData 接口
       if (!updatedImg.id) updatedImg.id = Date.now().toString();
       if (!updatedImg.name) updatedImg.name = path.basename(updatedImg.path);
-      if (!updatedImg.created) updatedImg.created = new Date().toISOString();
-      if (!updatedImg.modified) {
+      if (!updatedImg.dateCreated) updatedImg.dateCreated = new Date().toISOString();
+      if (!updatedImg.dateModified) {
         hasUpdates = true;
-        updatedImg.modified = new Date().toISOString();
+        updatedImg.dateModified = new Date().toISOString();
       }
       if (!updatedImg.size) updatedImg.size = 0;
-      if (!updatedImg.dimensions) updatedImg.dimensions = { width: 0, height: 0 };
       if (!updatedImg.tags) updatedImg.tags = [];
       if (typeof updatedImg.favorite !== 'boolean') updatedImg.favorite = false;
+      if (!updatedImg.categories) updatedImg.categories = [];
+
+      // 删除不在接口中定义的字段
+      delete updatedImg.dimensions;
+      delete updatedImg.created;
+      delete updatedImg.modified;
 
       return updatedImg;
     });
 
-    // 如果有更新，保存回文件
     if (hasUpdates) {
       fs.writeFileSync(imagesJsonPath, JSON.stringify(data, null, 2));
     }

@@ -84,6 +84,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                   <Heart size={16} />
                 </button>
                 <button
+                  title="更多"
                   onClick={(e) => e.stopPropagation()}
                   className="p-2 text-gray-700 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                 >
@@ -127,6 +128,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
             )}
             <div className="flex absolute top-4 right-4 items-center space-x-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
               <button
+                title="收藏"
                 onClick={(e) => {
                   e.stopPropagation();
                   onFavorite(image.id);
@@ -140,6 +142,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                 <Heart size={20} />
               </button>
               <button
+                title="更多"
                 onClick={(e) => e.stopPropagation()}
                 className="p-2 text-gray-700 bg-white rounded-full hover:bg-gray-100"
               >

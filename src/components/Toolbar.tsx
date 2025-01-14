@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FolderOpen, Save, FileJson, Heart } from 'lucide-react';
-import { ViewMode, SortBy, BulkAction, FilterType } from '../types';
+import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FileJson } from 'lucide-react';
+import { ViewMode, SortBy, Category } from '../types';
+import type { BulkAction } from '../types';
 
 interface ToolbarProps {
   viewMode: ViewMode;
@@ -21,6 +22,14 @@ interface SearchTag {
   text: string;
 }
 
+interface BulkAction {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  categories?: Category[];
+  onSelectCategories?: (categories: string[]) => void;
+}
+
 const Toolbar: React.FC<ToolbarProps> = ({
   viewMode,
   sortBy,
@@ -39,6 +48,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   const [tags, setTags] = useState<SearchTag[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -116,14 +126,77 @@ const Toolbar: React.FC<ToolbarProps> = ({
             <div className="h-6 border-l dark:border-gray-600" />
             <div className="flex items-center space-x-2">
               {bulkActions.map((action, index) => (
-                <button
-                  key={index}
-                  onClick={action.onClick}
-                  className="flex items-center px-3 py-2 space-x-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
-                >
-                  {action.icon}
-                  <span>{action.label}</span>
-                </button>
+                <div key={index} className="relative group">
+                  {action.categories ? (
+                    <div className="relative">
+                      <button
+                        className="flex items-center px-3 py-2 space-x-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
+                        onClick={() => {
+                          const dropdown = document.getElementById(`category-dropdown-${index}`);
+                          if (dropdown) {
+                            dropdown.classList.toggle('hidden');
+                          }
+                        }}
+                        title={action.label}
+                      >
+                        {action.icon}
+                        <span>{action.label}</span>
+                      </button>
+                      
+                      <div 
+                        id={`category-dropdown-${index}`}
+                        className="hidden absolute left-0 top-full z-50 mt-1 w-48 bg-white rounded-lg border shadow-lg dark:bg-gray-800 dark:border-gray-700"
+                      >
+                        {action.categories.map(category => (
+                          <label
+                            key={category.id}
+                            className="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <input
+                              type="checkbox"
+                              className="mr-2"
+                              checked={selectedCategories.includes(category.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedCategories(prev => [...prev, category.id]);
+                                } else {
+                                  setSelectedCategories(prev => prev.filter(id => id !== category.id));
+                                }
+                              }}
+                            />
+                            <span>{category.name}</span>
+                          </label>
+                        ))}
+                        <div className="px-4 py-2 border-t dark:border-gray-700">
+                          <button
+                            className="px-3 py-1 w-full text-white bg-blue-500 rounded-lg hover:bg-blue-600"
+                            onClick={() => {
+                              if (action.onSelectCategories) {
+                                action.onSelectCategories(selectedCategories);
+                                setSelectedCategories([]);
+                                const dropdown = document.getElementById(`category-dropdown-${index}`);
+                                if (dropdown) {
+                                  dropdown.classList.add('hidden');
+                                }
+                              }
+                            }}
+                          >
+                            确认
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={action.onClick}
+                      className="flex items-center px-3 py-2 space-x-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
+                      title={action.label}
+                    >
+                      {action.icon}
+                      <span>{action.label}</span>
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           </>
@@ -140,6 +213,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                       >
                         {tag.text}
                         <button
+                          title="删除标签"
                           onClick={() => removeTag(tag.id)}
                           className="ml-1 hover:text-blue-600 dark:hover:text-blue-400"
                         >
@@ -163,6 +237,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 <button
                   onClick={handleSearchClick}
                   className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
+                  title="搜索"
                 >
                   <Search size={20} />
                 </button>
