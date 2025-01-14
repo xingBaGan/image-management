@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, protocol, shell } = require('electr
 const path = require('path');
 const fs = require('fs');
 const fsPromises = require('fs/promises');
+const { Menu } = require('electron');
 
 const isDev = !app.isPackaged;
 
@@ -15,6 +16,9 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.cjs')
     }
   });
+
+  // 完全移除菜单栏
+  Menu.setApplicationMenu(null);
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
