@@ -46,7 +46,8 @@ const initializeUserData = async () => {
             "dateModified": "2024-01-01T00:00:00.000Z",
             "tags": ["animals", "cats"],
             "favorite": true,
-            "categories": []
+            "categories": [],
+            "type": "image"
           },
           {
             "id": "2",
@@ -80,6 +81,20 @@ const initializeUserData = async () => {
             "tags": ["food", "photography"],
             "favorite": true,
             "categories": []
+          },
+          {
+            "id": "5", 
+            "path": "https://media.w3.org/2010/05/sintel/trailer.mp4",
+            "name": "示例视频",
+            "size": 5242880,
+            "dateCreated": "2024-01-05T00:00:00.000Z",
+            "dateModified": "2024-01-05T00:00:00.000Z",
+            "tags": ["视频", "示例"],
+            "favorite": false,
+            "categories": [],
+            "type": "video",
+            "duration": 52,
+            "thumbnail": "https://peach.blender.org/wp-content/uploads/title_anouncement.jpg"
           }
         ],
         "categories": [
@@ -189,7 +204,7 @@ ipcMain.handle('show-open-dialog', async () => {
   const result = await dialog.showOpenDialog({
     properties: ['openFile', 'multiSelections'],
     filters: [
-      { name: '图片文件', extensions: ['jpg', 'jpeg', 'png', 'gif'] }
+      { name: '媒体文件', extensions: ['jpg', 'jpeg', 'png', 'gif', 'mp4', 'mov', 'avi', 'webm'] }
     ]
   });
 
@@ -201,6 +216,8 @@ ipcMain.handle('show-open-dialog', async () => {
     result.filePaths.map(async (filePath) => {
       const stats = await fsPromises.stat(filePath);
       const localImageUrl = `local-image://${encodeURIComponent(filePath)}`;
+      const ext = path.extname(filePath).toLowerCase();
+      const isVideo = ['.mp4', '.mov', '.avi', '.webm'].includes(ext);
       
       return {
         id: Date.now().toString(),
@@ -211,7 +228,8 @@ ipcMain.handle('show-open-dialog', async () => {
         dateModified: stats.mtime.toISOString(),
         tags: [],
         favorite: false,
-        categories: []
+        categories: [],
+        type: isVideo ? 'video' : 'image',
       };
     })
   );
@@ -309,23 +327,20 @@ function loadImagesData() {
     data.images = data.images.map(img => {
       const updatedImg = { ...img };
       
-      // 确保字段符合 ImageData 接口
+      // 确保所有必需字段存在
       if (!updatedImg.id) updatedImg.id = Date.now().toString();
       if (!updatedImg.name) updatedImg.name = path.basename(updatedImg.path);
       if (!updatedImg.dateCreated) updatedImg.dateCreated = new Date().toISOString();
-      if (!updatedImg.dateModified) {
-        hasUpdates = true;
-        updatedImg.dateModified = new Date().toISOString();
-      }
+      if (!updatedImg.dateModified) updatedImg.dateModified = new Date().toISOString();
       if (!updatedImg.size) updatedImg.size = 0;
       if (!updatedImg.tags) updatedImg.tags = [];
       if (typeof updatedImg.favorite !== 'boolean') updatedImg.favorite = false;
       if (!updatedImg.categories) updatedImg.categories = [];
-
-      // 删除不在接口中定义的字段
-      delete updatedImg.dimensions;
-      delete updatedImg.created;
-      delete updatedImg.modified;
+      if (!updatedImg.type) {
+        // 根据文件扩展名判断类型
+        const ext = path.extname(updatedImg.path).toLowerCase();
+        updatedImg.type = ['.mp4', '.mov', '.avi', '.webm'].includes(ext) ? 'video' : 'image';
+      }
 
       return updatedImg;
     });

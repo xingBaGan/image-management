@@ -8,6 +8,9 @@ export interface ImageData {
   tags: string[];
   favorite: boolean;
   categories: string[];
+  type: 'image' | 'video';
+  duration?: number;
+  thumbnail?: string;
 }
 
 export type Image = ImageData;
@@ -66,7 +69,7 @@ declare global {
   }
 }
 
-export type FilterType = 'all' | 'favorites' | 'recent';
+export type FilterType = 'all' | 'favorites' | 'recent' | 'videos';
 
 export interface AppState {
   filter: FilterType;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, Image as ImageIcon, Heart, Video, Plus, Edit, Trash } from 'lucide-react';
+import { Clock, Image as ImageIcon, Heart, Video, Plus, Edit, Trash, Film, LayoutGrid } from 'lucide-react';
 import { Category, FilterType } from '../types';
 
 interface SidebarProps {
@@ -33,6 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'favorites', name: 'Favorites', icon: <Heart size={20} /> },
     { id: 'videos', name: 'Videos', icon: <Video size={20} /> },
   ];
+
 
   const handleAddCategory = () => {
     if (onAddCategory) {

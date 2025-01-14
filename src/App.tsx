@@ -29,9 +29,10 @@ function App() {
 
   const filteredAndSortedImages = useMemo(() => {
     // 首先根据 filter 和 selectedCategory 过滤图片
-    let filtered = images;
-    
-    if (filter === 'favorites') {
+    let filtered = images.filter(img => img.type !== 'video');
+    if (selectedCategory === 'videos') {
+      filtered = images.filter(img => img.type === 'video');
+    } else if (filter === 'favorites') {
       filtered = images.filter(img => img.favorite);
     } else if (filter === 'recent') {
       const sevenDaysAgo = new Date();

@@ -1,6 +1,6 @@
 import React from 'react';
 import Masonry from 'react-masonry-css';
-import { Heart, MoreVertical, FileText, Calendar, Check } from 'lucide-react';
+import { Heart, MoreVertical, FileText, Calendar, Check, Play } from 'lucide-react';
 import { Image as ImageType, ViewMode } from '../types';
 
 interface ImageGridProps {
@@ -27,6 +27,38 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     640: 1,
   };
 
+  const renderMediaItem = (image: ImageType) => {
+    if (image.type === 'video') {
+      return (
+        <div className="relative w-full h-0 pb-[56.25%]">
+          <img
+            src={image.thumbnail || image.path}
+            alt={image.name}
+            className="object-cover absolute inset-0 w-full h-full rounded-lg"
+          />
+          <div className="flex absolute inset-0 justify-center items-center">
+            <div className="p-3 bg-black bg-opacity-50 rounded-full">
+              <Play className="w-8 h-8 text-white" />
+            </div>
+          </div>
+          {image.duration && (
+            <div className="absolute right-2 bottom-2 px-2 py-1 text-sm text-white bg-black bg-opacity-50 rounded">
+              {Math.floor(image.duration / 60)}:{(image.duration % 60).toString().padStart(2, '0')}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <img
+        src={image.path}
+        alt={image.name}
+        className="w-full h-auto rounded-lg"
+      />
+    );
+  };
+
   if (viewMode === 'list') {
     return (
       <div className="p-6">
@@ -47,11 +79,24 @@ const ImageGrid: React.FC<ImageGridProps> = ({
               onClick={(e) => onSelectImage(image.id, e.shiftKey)}
             >
               <div className="relative w-12 h-12">
-                <img
-                  src={image.path}
-                  alt={image.name}
-                  className="object-cover w-12 h-12 rounded"
-                />
+                {image.type === 'video' ? (
+                  <div className="relative w-12 h-12">
+                    <img
+                      src={image.thumbnail || image.path}
+                      alt={image.name}
+                      className="object-cover w-12 h-12 rounded"
+                    />
+                    <div className="flex absolute inset-0 justify-center items-center">
+                      <Play className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+                ) : (
+                  <img
+                    src={image.path}
+                    alt={image.name}
+                    className="object-cover w-12 h-12 rounded"
+                  />
+                )}
                 {selectedImages.has(image.id) && (
                   <div className="flex absolute inset-0 justify-center items-center rounded bg-blue-500/50">
                     <Check className="text-white" size={20} />
@@ -113,11 +158,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
             }`}
             onClick={(e) => onSelectImage(image.id, e.shiftKey)}
           >
-            <img
-              src={image.path}
-              alt={image.name}
-              className="w-full h-auto rounded-lg"
-            />
+            {renderMediaItem(image)}
             <div className={`absolute inset-0 bg-black transition-opacity duration-200 rounded-lg ${
               selectedImages.has(image.id) ? 'bg-opacity-30' : 'bg-opacity-0 group-hover:bg-opacity-30'
             }`} />
