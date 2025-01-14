@@ -60,4 +60,10 @@ declare global {
   }
 }
 
+export type FilterType = 'all' | 'favorites' | 'recent';
+
+export interface AppState {
+  filter: FilterType;
+}
+
 export {};

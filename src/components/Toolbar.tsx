@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FolderOpen, Save, FileJson } from 'lucide-react';
-import { ViewMode, SortBy, BulkAction } from '../types';
+import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FolderOpen, Save, FileJson, Heart } from 'lucide-react';
+import { ViewMode, SortBy, BulkAction, FilterType } from '../types';
 
 interface ToolbarProps {
   viewMode: ViewMode;

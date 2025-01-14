@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar';
 import ImageGrid from './components/ImageGrid';
-import { Category, ViewMode, SortBy, ImageInfo } from './types';
+import { Category, ViewMode, SortBy, ImageInfo, FilterType } from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
 
 // Mock data for demonstration
@@ -20,9 +20,33 @@ function App() {
   const [images, setImages] = useState<ImageInfo[]>([]);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+  const [filter, setFilter] = useState<FilterType>('all');
 
-  const sortedImages = useMemo(() => {
-    return [...images].sort((a, b) => {
+  useEffect(() => {
+    // console.log('selectedCategory', selectedCategory);
+    if (selectedCategory === 'favorites') {
+      setFilter('favorites');
+    } else if (selectedCategory === 'recent') {
+      setFilter('recent');
+    } else {
+      setFilter('all');
+    }
+  }, [selectedCategory]);
+
+  const filteredAndSortedImages = useMemo(() => {
+    // 首先根据 filter 过滤图片
+    let filtered = images;
+    
+    if (filter === 'favorites') {
+      filtered = images.filter(img => img.favorite);
+    } else if (filter === 'recent') {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      filtered = images.filter(img => new Date(img.modified) >= sevenDaysAgo);
+    }
+
+    // 然后对过滤后的结果进行排序
+    return [...filtered].sort((a, b) => {
       let comparison = 0;
       
       switch (sortBy) {
@@ -39,7 +63,7 @@ function App() {
 
       return sortDirection === 'asc' ? -comparison : comparison;
     });
-  }, [images, sortBy, sortDirection]);
+  }, [images, sortBy, sortDirection, filter]);
 
   const handleFavorite = async (id: string) => {
     try {
@@ -148,7 +172,7 @@ function App() {
       
       const newImages: ImageInfo[] = fileMetadata.map(file => ({
         id: crypto.randomUUID(),
-        name: getFileName(file.originalPath),
+        name: getFileName(file.path),
         path: file.path,
         size: file.size,
         dateCreated: file.dateCreated,
@@ -193,6 +217,8 @@ function App() {
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
           categories={mockCategories}
+          filter={filter}
+          onFilterChange={setFilter}
         />
       )}
       <div className="flex overflow-hidden flex-col flex-1">
@@ -211,7 +237,7 @@ function App() {
         />
         <div className="overflow-y-auto flex-1">
           <ImageGrid 
-            images={sortedImages} 
+            images={filteredAndSortedImages}
             onFavorite={handleFavorite} 
             viewMode={viewMode}
             selectedImages={selectedImages}

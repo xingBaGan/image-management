@@ -1,11 +1,13 @@
 import React from 'react';
 import { Clock, Image as ImageIcon, Heart, Video, Plus } from 'lucide-react';
-import { Category } from '../types';
+import { Category, FilterType } from '../types';
 
 interface SidebarProps {
   selectedCategory: string;
   onSelectCategory: (category: string) => void;
   categories: Category[];
+  filter: FilterType;
+  onFilterChange: (filter: FilterType) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -21,7 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <div className="w-64 bg-white dark:bg-gray-800 h-screen p-4 flex flex-col">
+    <div className="flex flex-col p-4 w-64 h-screen bg-white dark:bg-gray-800">
       <div className="space-y-2">
         {fixedCategories.map((category) => (
           <button
@@ -40,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       <div className="mt-8">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex justify-between items-center mb-4">
           <h3 className="font-semibold text-gray-600 dark:text-gray-300">Categories</h3>
         </div>
         <div className="space-y-2">
@@ -61,7 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      <button className="mt-auto flex items-center justify-center space-x-2 w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
+      <button className="flex justify-center items-center px-4 py-2 mt-auto space-x-2 w-full text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600">
         <Plus size={20} />
         <span>New Category</span>
       </button>
