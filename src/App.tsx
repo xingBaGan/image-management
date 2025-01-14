@@ -2,9 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar';
 import ImageGrid from './components/ImageGrid';
-import { Category, ViewMode, SortBy, ImageData, ImageInfo } from './types';
+import { Category, ViewMode, SortBy, ImageInfo } from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
-import { readDirectory, readFileMetadata } from './services/fileSystem';
 
 // Mock data for demonstration
 const mockCategories: Category[] = [
@@ -42,12 +41,23 @@ function App() {
     });
   }, [images, sortBy, sortDirection]);
 
-  const handleFavorite = (id: string) => {
-    setImages((prev) =>
-      prev.map((img) =>
+  const handleFavorite = async (id: string) => {
+    try {
+      const updatedImages = images.map((img) =>
         img.id === id ? { ...img, favorite: !img.favorite } : img
-      )
-    );
+      );
+      
+      // 保存更新后的图片数据到 JSON 文件
+      await window.electron.saveImagesToJson(updatedImages.map(img => ({
+        ...img,
+        dateCreated: img.created,
+        dateModified: img.modified
+      })));
+      
+      setImages(updatedImages);
+    } catch (error) {
+      console.error('更新收藏状态失败:', error);
+    }
   };
 
   const handleSearch = (query: string) => {
@@ -75,9 +85,24 @@ function App() {
     });
   };
 
-  const handleBulkDelete = () => {
-    setImages(prev => prev.filter(img => !selectedImages.has(img.id)));
-    setSelectedImages(new Set());
+  const handleBulkDelete = async () => {
+    try {
+      // 过滤掉被选中的图片
+      const updatedImages = images.filter(img => !selectedImages.has(img.id));
+      
+      // 保存更新后的图片数据到 JSON 文件
+      await window.electron.saveImagesToJson(updatedImages.map(img => ({
+        ...img,
+        dateCreated: img.created,
+        dateModified: img.modified
+      })));
+      
+      // 更新状态
+      setImages(updatedImages);
+      setSelectedImages(new Set());
+    } catch (error) {
+      console.error('删除图片失败:', error);
+    }
   };
 
   const handleAddToCategory = (categoryId: string) => {
@@ -141,43 +166,18 @@ function App() {
     }
   };
 
-  const loadLocalImages = async (directory: string) => {
-    try {
-      const files = await readDirectory(directory);
-      const imageFiles = files.filter(file => 
-        file.match(/\.(jpg|jpeg|png|gif)$/i)
-      );
-      
-      const imagesData = await Promise.all(
-        imageFiles.map(async file => {
-          const metadata = await readFileMetadata(file);
-          const localImageUrl = `local-image://${encodeURIComponent(file)}`;
-          return {
-            id: file,
-            path: localImageUrl,
-            name: getFileName(file),
-            size: metadata.size,
-            dimensions: metadata.dimensions,
-            created: new Date(metadata.created),
-            modified: new Date(metadata.modified),
-            tags: [],
-            favorite: false
-          };
-        })
-      );
-      
-      setImages(imagesData);
-    } catch (error) {
-      console.error('Error loading local images:', error);
-    }
-  };
-
   // 在组件加载时读取已保存的图片数据
   useEffect(() => {
     const loadImages = async () => {
       try {
-        const result = await window.electron.loadImagesFromJson();
-        setImages(result.images);
+        const result = await window.electron.loadImagesFromJson('images.json');
+        // 转换数据格式
+        const convertedImages = result.images.map(img => ({
+          ...img,
+          created: img.dateCreated,
+          modified: img.dateModified
+        }));
+        setImages(convertedImages);
       } catch (error) {
         console.error('加载图片数据失败:', error);
       }

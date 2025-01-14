@@ -1,12 +1,8 @@
 export interface ImageData {
   id: string;
-  path: string;
   name: string;
+  path: string;
   size: number;
-  dimensions?: {
-    width: number;
-    height: number;
-  };
   dateCreated: string;
   dateModified: string;
   tags: string[];
@@ -31,16 +27,9 @@ export interface BulkAction {
   onClick: () => void;
 }
 
-export interface ImageInfo {
-  id: string;
-  path: string;
-  name: string;
-  size: number;
-  dimensions?: { width: number; height: number };
+export interface ImageInfo extends ImageData {
   created: string;
   modified: string;
-  tags: string[];
-  favorite: boolean;
 }
 
 declare global {

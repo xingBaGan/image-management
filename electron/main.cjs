@@ -198,3 +198,36 @@ ipcMain.handle('save-images-to-json', async (event, images) => {
     return false;
   }
 });
+
+// 获取应用数据目录中的 JSON 文件路径
+const getJsonFilePath = () => {
+  return path.join(app.getPath('userData'), 'images.json');
+};
+
+// 处理保存图片数据的请求
+ipcMain.handle('save-images', async (event, images) => {
+  try {
+    const filePath = getJsonFilePath();
+    await fs.writeFile(filePath, JSON.stringify({ images }, null, 2));
+    return { success: true };
+  } catch (error) {
+    console.error('保存图片数据失败:', error);
+    throw error;
+  }
+});
+
+// 处理加载图片数据的请求
+ipcMain.handle('load-images', async () => {
+  try {
+    const filePath = getJsonFilePath();
+    const data = await fs.readFile(filePath, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    // 如果文件不存在，返回空数组
+    if (error.code === 'ENOENT') {
+      return { images: [] };
+    }
+    console.error('读取图片数据失败:', error);
+    throw error;
+  }
+});
