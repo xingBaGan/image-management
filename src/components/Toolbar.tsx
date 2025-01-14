@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import } from 'lucide-react';
+import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FolderOpen, Save, FileJson } from 'lucide-react';
 import { ViewMode, SortBy, BulkAction } from '../types';
 
 interface ToolbarProps {
@@ -228,6 +228,20 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 </div>
               </div>
             </div>
+
+            <button
+              onClick={async () => {
+                const result = await window.electron.openImageJson();
+                if (!result.success) {
+                  console.error('打开配置文件失败:', result.error);
+                }
+              }}
+              className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
+              title="打开配置文件"
+              aria-label="打开配置文件"
+            >
+              <FileJson className="w-4 h-4" />
+            </button>
           </>
         )}
       </div>

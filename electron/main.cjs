@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, protocol } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, protocol, shell } = require('electron');
 const path = require('path');
 const fs = require('fs/promises');
 
@@ -229,5 +229,16 @@ ipcMain.handle('load-images', async () => {
     }
     console.error('读取图片数据失败:', error);
     throw error;
+  }
+});
+
+ipcMain.handle('open-image-json', async () => {
+  try {
+    const userDataPath = path.join(app.getPath('userData'), 'images.json');
+    await shell.openPath(userDataPath);
+    return { success: true };
+  } catch (error) {
+    console.error('打开 images.json 失败:', error);
+    return { success: false, error: error.message };
   }
 });
