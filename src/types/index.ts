@@ -32,13 +32,15 @@ export interface BulkAction {
 }
 
 export interface ImageInfo {
-  id: number;
-  name: string;
+  id: string;
   path: string;
+  name: string;
   size: number;
+  dimensions?: { width: number; height: number };
   created: string;
   modified: string;
   tags: string[];
+  favorite: boolean;
 }
 
 declare global {
@@ -52,6 +54,7 @@ declare global {
       }>;
       showOpenDialog: () => Promise<{
         path: string;
+        originalPath: string;
         size: number;
         dateCreated: string;
         dateModified: string;

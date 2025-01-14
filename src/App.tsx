@@ -2,10 +2,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar';
 import ImageGrid from './components/ImageGrid';
-import { Image, Category, ViewMode, SortBy, ImageData, ImageInfo } from './types';
-import { Trash2, FolderPlus, Tags, Menu, Upload } from 'lucide-react';
+import { Category, ViewMode, SortBy, ImageData, ImageInfo } from './types';
+import { Trash2, FolderPlus, Tags } from 'lucide-react';
 import { readDirectory, readFileMetadata } from './services/fileSystem';
-import path from 'path';
 
 // Mock data for demonstration
 const mockCategories: Category[] = [
@@ -32,7 +31,7 @@ function App() {
           comparison = a.name.localeCompare(b.name);
           break;
         case 'date':
-          comparison = new Date(b.dateModified).getTime() - new Date(a.dateModified).getTime();
+          comparison = new Date(b.modified).getTime() - new Date(a.modified).getTime();
           break;
         case 'size':
           comparison = b.size - a.size;
@@ -111,6 +110,37 @@ function App() {
     }
   ];
 
+  const getFileName = (filePath: string) => {
+    // 简单的文件名提取函数
+    return filePath.split(/[/\\]/).pop() || '';
+  };
+
+  const handleImport = async () => {
+    try {
+      const fileMetadata = await window.electron.showOpenDialog();
+      
+      if (fileMetadata.length === 0) return;
+      
+      const newImages: ImageInfo[] = fileMetadata.map(file => ({
+        id: crypto.randomUUID(),
+        name: getFileName(file.originalPath),
+        path: file.path,
+        size: file.size,
+        created: file.dateCreated,
+        modified: file.dateModified,
+        tags: [],
+        favorite: false
+      }));
+      
+      const updatedImages = [...images, ...newImages];
+      await window.electron.saveImagesToJson(updatedImages);
+      setImages(updatedImages);
+      
+    } catch (error) {
+      console.error('导入图片失败:', error);
+    }
+  };
+
   const loadLocalImages = async (directory: string) => {
     try {
       const files = await readDirectory(directory);
@@ -121,10 +151,11 @@ function App() {
       const imagesData = await Promise.all(
         imageFiles.map(async file => {
           const metadata = await readFileMetadata(file);
+          const localImageUrl = `local-image://${encodeURIComponent(file)}`;
           return {
             id: file,
-            path: `file://${file}`,
-            name: path.basename(file),
+            path: localImageUrl,
+            name: getFileName(file),
             size: metadata.size,
             dimensions: metadata.dimensions,
             created: new Date(metadata.created),
@@ -141,37 +172,11 @@ function App() {
     }
   };
 
-  const handleImport = async () => {
-    try {
-      const fileMetadata = await window.electron.showOpenDialog();
-      
-      if (fileMetadata.length === 0) return;
-      
-      const newImages: ImageData[] = fileMetadata.map(file => ({
-        id: crypto.randomUUID(),
-        name: file.path.split('/').pop() || '',
-        path: file.path,
-        size: file.size,
-        dateCreated: file.dateCreated,
-        dateModified: file.dateModified,
-        tags: [],
-        favorite: false
-      }));
-      
-      const updatedImages = [...images, ...newImages];
-      await window.electron.saveImagesToJson(updatedImages);
-      setImages(updatedImages);
-      
-    } catch (error) {
-      console.error('导入图片失败:', error);
-    }
-  };
-
   // 在组件加载时读取已保存的图片数据
   useEffect(() => {
     const loadImages = async () => {
       try {
-        const result = await window.electron.loadImagesFromJson('./src/data/mockImages.json');
+        const result = await window.electron.loadImagesFromJson();
         setImages(result.images);
       } catch (error) {
         console.error('加载图片数据失败:', error);
