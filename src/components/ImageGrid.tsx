@@ -67,8 +67,14 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     onSelectImage(id, e.shiftKey);
   };
 
-  const handleClick = (image: ImageType) => {
-    setViewingMedia(image);
+  const handleClick = (e: React.MouseEvent, image: ImageType) => {
+    if (e.shiftKey) {
+      // 如果按住Shift键，则触发选择功能
+      onSelectImage(image.id, true);
+    } else if (!e.ctrlKey && !e.metaKey) {
+      // 普通点击时预览图片（除非按住Ctrl/Command键）
+      setViewingMedia(image);
+    }
   };
 
   if (viewMode === 'list') {
@@ -96,7 +102,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                 className={`grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 items-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer ${
                   selectedImages.has(image.id) ? 'bg-blue-50 dark:bg-blue-900/30' : ''
                 }`}
-                onClick={() => handleClick(image)}
+                onClick={(e) => handleClick(e, image)}
                 onContextMenu={(e) => handleContextMenu(e, image.id)}
               >
                 <div className="relative w-12 h-12">
@@ -137,6 +143,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
+                    title={image.favorite ? "取消收藏" : "收藏"}
                     onClick={(e) => {
                       e.stopPropagation();
                       onFavorite(image.id);
@@ -150,7 +157,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                     <Heart size={16} />
                   </button>
                   <button
-                    title="更多"
+                    title="更多选项"
                     onClick={(e) => e.stopPropagation()}
                     className="p-2 text-gray-700 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                   >
@@ -186,7 +193,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
               className={`mb-6 relative group cursor-pointer ${
                 selectedImages.has(image.id) ? 'ring-4 ring-blue-500 rounded-lg' : ''
               }`}
-              onClick={() => handleClick(image)}
+              onClick={(e) => handleClick(e, image)}
               onContextMenu={(e) => handleContextMenu(e, image.id)}
             >
               {renderMediaItem(image)}
@@ -200,7 +207,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
               )}
               <div className="flex absolute top-4 right-4 items-center space-x-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                 <button
-                  title="收藏"
+                  title={image.favorite ? "取消收藏" : "收藏"}
                   onClick={(e) => {
                     e.stopPropagation();
                     onFavorite(image.id);
@@ -214,7 +221,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                   <Heart size={20} />
                 </button>
                 <button
-                  title="更多"
+                  title="更多选项"
                   onClick={(e) => e.stopPropagation()}
                   className="p-2 text-gray-700 bg-white rounded-full hover:bg-gray-100"
                 >
