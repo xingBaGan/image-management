@@ -230,6 +230,36 @@ function App() {
     }
   };
 
+  const handleRenameCategory = async (categoryId: string, newName: string) => {
+    try {
+      // 更新内存中的分类数据
+      const updatedCategories = categories.map(category => 
+        category.id === categoryId 
+          ? { ...category, name: newName }
+          : category
+      );
+      setCategories(updatedCategories);
+
+      // 使用 saveCategories 保存更新后的分类
+      await window.electron.saveCategories(updatedCategories);
+    } catch (error) {
+      console.error('重命名分类失败:', error);
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    try {
+      // 从内存中移除分类
+      const updatedCategories = categories.filter(category => category.id !== categoryId);
+      setCategories(updatedCategories);
+
+      // 保存更新后的分类到文件系统
+      await window.electron.saveCategories(updatedCategories);
+    } catch (error) {
+      console.error('删除分类失败:', error);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       {isSidebarOpen && (
@@ -240,6 +270,8 @@ function App() {
           filter={filter}
           onFilterChange={setFilter}
           onAddCategory={handleAddCategory}
+          onRenameCategory={handleRenameCategory}
+          onDeleteCategory={handleDeleteCategory}
         />
       )}
       <div className="flex overflow-hidden flex-col flex-1">

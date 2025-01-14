@@ -21,4 +21,4 @@ export const readFileMetadata = async (path: string): Promise<any> => {
     return await window.electronAPI.readFileMetadata(path);
   }
   throw new Error('Electron API not available');
-}; 
+};

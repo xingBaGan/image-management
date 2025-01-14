@@ -55,6 +55,7 @@ interface ElectronAPI {
     success: boolean;
     error?: string;
   }>;
+  saveCategories: (categories: Category[]) => Promise<{ success: boolean }>;
 }
 
 declare global {

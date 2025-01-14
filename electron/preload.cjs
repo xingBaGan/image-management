@@ -8,4 +8,5 @@ contextBridge.exposeInMainWorld('electron', {
   saveImagesToJson: (images, categories) => 
     ipcRenderer.invoke('save-images-to-json', images, categories),
   openImageJson: () => ipcRenderer.invoke('open-image-json'),
+  saveCategories: (categories) => ipcRenderer.invoke('save-categories', categories),
 }); 

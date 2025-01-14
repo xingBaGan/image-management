@@ -255,6 +255,24 @@ ipcMain.handle('save-images', async (event, images) => {
   }
 });
 
+
+// 处理分类数据的请求
+ipcMain.handle('save-categories', async (event, categories) => {
+  try { 
+    const filePath = getJsonFilePath();
+    // 先读取现有数据
+    const existingData = JSON.parse(await fsPromises.readFile(filePath, 'utf8'));
+    // 更新分类数据
+    existingData.categories = categories;
+    // 写入更新后的数据
+    await fsPromises.writeFile(filePath, JSON.stringify(existingData, null, 2));
+    return { success: true };
+  } catch (error) {
+    console.error('保存分类数据失败:', error);
+    throw error;
+  }
+});
+
 // 处理加载图片数据的请求
 ipcMain.handle('load-images', async () => {
   try {
@@ -320,3 +338,4 @@ function loadImagesData() {
     return { images: [], categories: [] };
   }
 }
+
