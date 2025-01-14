@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog, protocol, shell } = require('electron');
 const path = require('path');
-const fs = require('fs/promises');
+const fs = require('fs');
+const fsPromises = require('fs/promises');
 
 const isDev = !app.isPackaged;
 
@@ -124,7 +125,7 @@ app.on('window-all-closed', () => {
 
 ipcMain.handle('read-directory', async (event, dirPath) => {
   try {
-    const files = await fs.readdir(dirPath);
+    const files = await fsPromises.readdir(dirPath);
     return files;
   } catch (error) {
     console.error('Error reading directory:', error);
@@ -134,7 +135,7 @@ ipcMain.handle('read-directory', async (event, dirPath) => {
 
 ipcMain.handle('read-file-metadata', async (event, filePath) => {
   try {
-    const stats = await fs.stat(filePath);
+    const stats = await fsPromises.stat(filePath);
     return {
       size: stats.size,
       created: stats.birthtime,
@@ -147,9 +148,13 @@ ipcMain.handle('read-file-metadata', async (event, filePath) => {
 });
 
 ipcMain.handle('load-images-from-json', async (event, jsonPath) => {
+  if (!jsonPath) {
+    // 如果没有指定路径，使用 loadImagesData
+    return loadImagesData();
+  }
+  
   try {
-    const loadPath = jsonPath || path.join(app.getPath('userData'), 'images.json');
-    const jsonContent = await fs.readFile(loadPath, 'utf-8');
+    const jsonContent = await fs.readFile(jsonPath, 'utf-8');
     const data = JSON.parse(jsonContent);
     return data;
   } catch (error) {
@@ -172,14 +177,19 @@ ipcMain.handle('show-open-dialog', async () => {
 
   const fileMetadata = await Promise.all(
     result.filePaths.map(async (filePath) => {
-      const stats = await fs.stat(filePath);
+      const stats = await fsPromises.stat(filePath);
       const localImageUrl = `local-image://${encodeURIComponent(filePath)}`;
+      
       return {
+        id: Date.now().toString(), // 生成唯一ID
         path: localImageUrl,
-        originalPath: filePath,
+        name: path.basename(filePath),
         size: stats.size,
-        dateCreated: stats.birthtime.toISOString(),
-        dateModified: stats.mtime.toISOString()
+        dimensions: { width: 0, height: 0 }, // 实际应用中可能需要获取真实尺寸
+        created: stats.birthtime.toISOString(),
+        modified: stats.mtime.toISOString(),
+        tags: [],
+        favorite: false
       };
     })
   );
@@ -208,7 +218,7 @@ const getJsonFilePath = () => {
 ipcMain.handle('save-images', async (event, images) => {
   try {
     const filePath = getJsonFilePath();
-    await fs.writeFile(filePath, JSON.stringify({ images }, null, 2));
+    await fsPromises.writeFile(filePath, JSON.stringify({ images }, null, 2));
     return { success: true };
   } catch (error) {
     console.error('保存图片数据失败:', error);
@@ -219,14 +229,10 @@ ipcMain.handle('save-images', async (event, images) => {
 // 处理加载图片数据的请求
 ipcMain.handle('load-images', async () => {
   try {
-    const filePath = getJsonFilePath();
-    const data = await fs.readFile(filePath, 'utf-8');
-    return JSON.parse(data);
+    // 使用 loadImagesData 替代原来的直接读取逻辑
+    const data = loadImagesData();
+    return data;
   } catch (error) {
-    // 如果文件不存在，返回空数组
-    if (error.code === 'ENOENT') {
-      return { images: [] };
-    }
     console.error('读取图片数据失败:', error);
     throw error;
   }
@@ -242,3 +248,41 @@ ipcMain.handle('open-image-json', async () => {
     return { success: false, error: error.message };
   }
 });
+
+function loadImagesData() {
+  try {
+    const imagesJsonPath = path.join(app.getPath('userData'), 'images.json');
+    let data = JSON.parse(fs.readFileSync(imagesJsonPath, 'utf8'));
+    
+    // 检查并更新没有 modified 时间的图片
+    let hasUpdates = false;
+    data.images = data.images.map(img => {
+      const updatedImg = { ...img };
+      
+      // 确保必要的字段都存在
+      if (!updatedImg.id) updatedImg.id = Date.now().toString();
+      if (!updatedImg.name) updatedImg.name = path.basename(updatedImg.path);
+      if (!updatedImg.created) updatedImg.created = new Date().toISOString();
+      if (!updatedImg.modified) {
+        hasUpdates = true;
+        updatedImg.modified = new Date().toISOString();
+      }
+      if (!updatedImg.size) updatedImg.size = 0;
+      if (!updatedImg.dimensions) updatedImg.dimensions = { width: 0, height: 0 };
+      if (!updatedImg.tags) updatedImg.tags = [];
+      if (typeof updatedImg.favorite !== 'boolean') updatedImg.favorite = false;
+
+      return updatedImg;
+    });
+
+    // 如果有更新，保存回文件
+    if (hasUpdates) {
+      fs.writeFileSync(imagesJsonPath, JSON.stringify(data, null, 2));
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error loading images data:', error);
+    return { images: [] };
+  }
+}

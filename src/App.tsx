@@ -151,8 +151,8 @@ function App() {
         name: getFileName(file.originalPath),
         path: file.path,
         size: file.size,
-        created: file.dateCreated,
-        modified: file.dateModified,
+        dateCreated: file.dateCreated,
+        dateModified: file.dateModified,
         tags: [],
         favorite: false
       }));

@@ -30,7 +30,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   if (viewMode === 'list') {
     return (
       <div className="p-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="bg-white rounded-lg shadow dark:bg-gray-800">
           <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 border-b dark:border-gray-700 font-medium text-gray-500 dark:text-gray-400">
             <div className="w-12"></div>
             <div>Name</div>
@@ -50,10 +50,10 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                 <img
                   src={image.path}
                   alt={image.name}
-                  className="w-12 h-12 object-cover rounded"
+                  className="object-cover w-12 h-12 rounded"
                 />
                 {selectedImages.has(image.id) && (
-                  <div className="absolute inset-0 bg-blue-500/50 rounded flex items-center justify-center">
+                  <div className="flex absolute inset-0 justify-center items-center rounded bg-blue-500/50">
                     <Check className="text-white" size={20} />
                   </div>
                 )}
@@ -65,9 +65,9 @@ const ImageGrid: React.FC<ImageGridProps> = ({
               <div className="text-gray-500 dark:text-gray-400">
                 {(image.size / 1024 / 1024).toFixed(2)} MB
               </div>
-              <div className="text-gray-500 dark:text-gray-400 flex items-center">
+              <div className="flex items-center text-gray-500 dark:text-gray-400">
                 <Calendar size={16} className="mr-2" />
-                {new Date(image.modified).toLocaleDateString()}
+                {new Date(image.dateModified).toLocaleDateString()}
               </div>
               <div className="flex items-center space-x-2">
                 <button
@@ -85,7 +85,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                 </button>
                 <button
                   onClick={(e) => e.stopPropagation()}
-                  className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  className="p-2 text-gray-700 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                 >
                   <MoreVertical size={16} />
                 </button>
@@ -121,11 +121,11 @@ const ImageGrid: React.FC<ImageGridProps> = ({
               selectedImages.has(image.id) ? 'bg-opacity-30' : 'bg-opacity-0 group-hover:bg-opacity-30'
             }`} />
             {selectedImages.has(image.id) && (
-              <div className="absolute top-4 left-4 bg-blue-500 rounded-full p-1">
+              <div className="absolute top-4 left-4 p-1 bg-blue-500 rounded-full">
                 <Check className="text-white" size={20} />
               </div>
             )}
-            <div className="absolute top-4 right-4 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <div className="flex absolute top-4 right-4 items-center space-x-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -141,15 +141,15 @@ const ImageGrid: React.FC<ImageGridProps> = ({
               </button>
               <button
                 onClick={(e) => e.stopPropagation()}
-                className="p-2 rounded-full bg-white text-gray-700 hover:bg-gray-100"
+                className="p-2 text-gray-700 bg-white rounded-full hover:bg-gray-100"
               >
                 <MoreVertical size={20} />
               </button>
             </div>
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <h3 className="text-white font-medium truncate">{image.name}</h3>
-              <p className="text-gray-300 text-sm">
-                {new Date(image.modified).toLocaleDateString()}
+            <div className="absolute right-0 bottom-0 left-0 p-4 bg-gradient-to-t from-black to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+              <h3 className="font-medium text-white truncate">{image.name}</h3>
+              <p className="text-sm text-gray-300">
+                {new Date(image.dateModified).toLocaleDateString()}
               </p>
             </div>
           </div>
