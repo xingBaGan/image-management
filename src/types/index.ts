@@ -32,9 +32,17 @@ export interface BulkAction {
   onClick: () => void;
 }
 
-export interface ImageInfo extends ImageData {
+export interface ImageInfo {
+  id: string;
+  name: string;
+  path: string;
+  size: number;
+  type?: string;
   created: string;
   modified: string;
+  tags: string[];
+  favorite: boolean;
+  categories: string[];
 }
 
 interface ElectronAPI {

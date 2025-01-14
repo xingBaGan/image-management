@@ -9,7 +9,7 @@ interface ToolbarProps {
   sortDirection: 'asc' | 'desc';
   onViewModeChange: (mode: ViewMode) => void;
   onSortChange: (sort: SortBy) => void;
-  onSearch: (query: string) => void;
+  onSearch: (tags: string[]) => void;
   selectedCount: number;
   bulkActions: BulkAction[];
   onToggleSidebar: () => void;
@@ -74,16 +74,17 @@ const Toolbar: React.FC<ToolbarProps> = ({
         id: Date.now().toString(),
         text: inputValue.trim()
       };
-      setTags([...tags, newTag]);
+      const newTags = [...tags, newTag];
+      setTags(newTags);
       setInputValue('');
-      onSearch([...tags.map(tag => tag.text), newTag.text].join(' '));
+      onSearch(newTags.map(tag => tag.text));
     }
   };
 
   const removeTag = (tagId: string) => {
     const newTags = tags.filter(tag => tag.id !== tagId);
     setTags(newTags);
-    onSearch(newTags.map(tag => tag.text).join(' '));
+    onSearch(newTags.map(tag => tag.text));
   };
 
   const getSortLabel = () => {

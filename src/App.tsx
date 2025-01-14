@@ -15,6 +15,7 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [filter, setFilter] = useState<FilterType>('all');
   const [categories, setCategories] = useState<Category[]>([]);
+  const [searchTags, setSearchTags] = useState<string[]>([]);
 
   useEffect(() => {
     // console.log('selectedCategory', selectedCategory);
@@ -30,10 +31,22 @@ function App() {
   const filteredAndSortedImages = useMemo(() => {
     // 首先根据 filter 和 selectedCategory 过滤图片
     let filtered = images.filter(img => img.type !== 'video');
+    
+    // 添加标签过滤逻辑
+    if (searchTags.length > 0) {
+      filtered = filtered.filter(img => 
+        searchTags.every(tag => 
+          img.tags?.some(imgTag => 
+            imgTag.toLowerCase().includes(tag.toLowerCase())
+          )
+        )
+      );
+    }
+    
     if (selectedCategory === 'videos') {
       filtered = images.filter(img => img.type === 'video');
     } else if (filter === 'favorites') {
-      filtered = images.filter(img => img.favorite);
+      filtered = filtered.filter(img => img.favorite);
     } else if (filter === 'recent') {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -70,7 +83,7 @@ function App() {
 
       return sortDirection === 'asc' ? -comparison : comparison;
     });
-  }, [images, sortBy, sortDirection, filter, selectedCategory, categories]);
+  }, [images, sortBy, sortDirection, filter, selectedCategory, categories, searchTags]);
 
   const handleFavorite = async (id: string) => {
     try {
@@ -94,8 +107,8 @@ function App() {
     }
   };
 
-  const handleSearch = (query: string) => {
-    console.log('Searching for:', query);
+  const handleSearch = (tags: string[]) => {
+    setSearchTags(tags);
   };
 
   const handleSort = (newSortBy: SortBy) => {
@@ -219,8 +232,14 @@ function App() {
   ];
 
   const getFileName = (filePath: string) => {
-    // 简单的文件名提取函数
-    return filePath.split(/[/\\]/).pop() || '';
+    // 解码文件路径并提取最后一个部分作为文件名
+    const encodedFileName = filePath.split(/[/\\]/).pop() || '';
+    const decodedFileName = decodeURIComponent(encodedFileName);
+    
+    // 移除文件扩展名
+    let fileNameWithoutExt = decodedFileName.replace(/\.[^/.]+$/, '');
+    fileNameWithoutExt = fileNameWithoutExt.split('\\').pop() || '';
+    return fileNameWithoutExt;
   };
 
   const handleImport = async () => {
