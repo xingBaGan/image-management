@@ -137,6 +137,14 @@ function App() {
       // 过滤掉被选中的图片
       const updatedImages = images.filter(img => !selectedImages.has(img.id));
       
+      const newCategories = categories.map(category => {
+        const newImages = category.images?.filter(id => !selectedImages.has(id)) || [];
+        return {
+          ...category,
+          images: newImages,
+          count: newImages.length
+        };
+      });
       // 保存更新后的图片数据到 JSON 文件，同时保存categories
       await window.electron.saveImagesToJson(
         updatedImages.map(img => ({
@@ -144,11 +152,11 @@ function App() {
           dateCreated: img.created,
           dateModified: img.modified
         })),
-        categories
-      );
-      
+        newCategories
+      );      
       // 更新状态
       setImages(updatedImages);
+      setCategories(newCategories);
       setSelectedImages(new Set());
     } catch (error) {
       console.error('删除图片失败:', error);
@@ -259,7 +267,9 @@ function App() {
         modified: file.dateModified,
         tags: [],
         favorite: false,
-        categories: []
+        categories: [],
+        type: ['jpg', 'png', 'gif', 'jpeg', 'webp', 'bmp','ico', 'svg'].includes(file.path.split('.').pop() || '') ? 'image' : 'video',
+        thumbnail: file.thumbnail || ''
       }));
       
       const updatedImages = [...images, ...newImages];

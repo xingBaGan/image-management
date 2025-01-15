@@ -58,6 +58,7 @@ interface ElectronAPI {
     size: number;
     dateCreated: string;
     dateModified: string;
+    type: string;
   }[]>;
   saveImagesToJson: (images: ImageData[], categories: Category[]) => Promise<boolean>;
   loadImagesFromJson: (jsonPath: string) => Promise<{ 
