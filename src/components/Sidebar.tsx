@@ -40,7 +40,8 @@ const Sidebar: React.FC<SidebarProps> = ({
       const newCategory = {
         id: `category-${Date.now()}`,
         name: "新分类",
-        count: 0
+        count: 0,
+        images: []
       };
       onAddCategory(newCategory);
     }
@@ -126,7 +127,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   setEditingCategoryId(null);
                   setShowDeleteConfirm(null);
                 }}
-                className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition-colors cursor-pointer ${
+                className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition-colors cursor-pointer group ${
                   selectedCategory === category.id
                     ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -157,27 +158,29 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <>
                     <span>{category.name}</span>
                     <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 opacity-0 transition-opacity group-hover:opacity-100">
+                        <button
+                          title="编辑分类"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingCategoryId(category.id);
+                          }}
+                          className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                        >
+                          <Edit size={20} />
+                        </button>
+                        <button
+                          title="删除分类"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowDeleteConfirm(category.id);
+                          }}
+                          className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                        >
+                          <Trash size={20} />
+                        </button>
+                      </div>
                       <span className="text-sm text-gray-500">{category.count || 0}</span>
-                      <button
-                        title="编辑分类"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingCategoryId(category.id);
-                        }}
-                        className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
-                      >
-                        <Edit size={20} />
-                      </button>
-                      <button
-                        title="删除分类"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowDeleteConfirm(category.id);
-                        }}
-                        className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
-                      >
-                        <Trash size={20} />
-                      </button>
                     </div>
                   </>
                 )}

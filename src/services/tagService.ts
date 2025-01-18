@@ -26,7 +26,7 @@ export async function generateImageTags(imagePath: string): Promise<string[]> {
     const result = await response.json();
     
     if (result.success && result.data?.outputs?.tags) {
-      return result.data.outputs.tags[0].split(',');
+      return result.data.outputs.tags[0].split(',').map((tag: string) => tag.trim());
     }
     
     return [];
@@ -49,6 +49,7 @@ export async function addTagsToImages(
     const updatedImages = await Promise.all(
       selectedImages.map(async (image) => {
         const newTags = await generateImageTags(image.path);
+        console.log('newTags', newTags);
         if (newTags.length > 0) {
           // 合并现有标签和新标签，去重
           return {

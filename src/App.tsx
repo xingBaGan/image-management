@@ -264,11 +264,39 @@ function App() {
     return fileNameWithoutExt;
   };
 
+  const generateHashId = (filePath: string, fileSize: number): string => {
+    // 使用路径和大小创建唯一字符串
+    const str = `${filePath}-${fileSize}`;
+    // 简单的哈希函数
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return Math.abs(hash).toString(16);
+  };
+
   const handleImportImages = async () => {
     try {
       const newImages = await window.electron.showOpenDialog();
       if (newImages.length > 0) {
-        const updatedImages = [...images, ...newImages];
+        // 过滤掉已存在的图片
+        const existingIds = new Set(images.map(img => img.id));
+        const filteredNewImages = newImages.filter(img => {
+          const newId = generateHashId(img.path, img.size);
+          return !existingIds.has(newId);
+        });
+
+        if (filteredNewImages.length === 0) {
+          console.log('所有图片都已经存在');
+          return;
+        }
+
+        const updatedImages = [...images, ...filteredNewImages.map(img => ({
+          ...img,
+          id: generateHashId(img.path, img.size)
+        }))];
         
         // 将 ImageInfo 转换为 LocalImageData
         const localImageDataList: LocalImageData[] = updatedImages.map(img => {
