@@ -9,4 +9,5 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.invoke('save-images-to-json', images, categories),
   openImageJson: () => ipcRenderer.invoke('open-image-json'),
   saveCategories: (categories) => ipcRenderer.invoke('save-categories', categories),
+  saveImageToLocal: (buffer, fileName, ext) => ipcRenderer.invoke('save-image-to-local', buffer, fileName, ext),
 }); 

@@ -93,7 +93,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
               <div className="w-12"></div>
               <div>Name</div>
               <div>Size</div>
-              <div>Modified</div>
+              <div>dateModified</div>
               <div className="w-20">Actions</div>
             </div>
             {images.map((image) => (

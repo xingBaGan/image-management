@@ -1,10 +1,8 @@
-export interface ImageData {
+export type BaseImage = {
   id: string;
   name: string;
   path: string;
   size: number;
-  dateCreated: string;
-  dateModified: string;
   tags: string[];
   favorite: boolean;
   categories: string[];
@@ -13,7 +11,17 @@ export interface ImageData {
   thumbnail?: string;
 }
 
-export type Image = ImageData;
+export interface LocalImageData extends BaseImage {
+  dateCreated: string;
+  dateModified: string;
+}
+
+export interface ImageInfo extends BaseImage {
+  dateCreated: string;
+  dateModified: string;
+}
+
+export type Image = LocalImageData;
 
 export interface Category {
   id: string;
@@ -26,41 +34,21 @@ export interface Category {
 export type ViewMode = 'grid' | 'list';
 export type SortBy = 'name' | 'date' | 'size';
 
-export interface BulkAction {
+export type BulkAction = {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
-}
-
-export interface ImageInfo {
-  id: string;
-  name: string;
-  path: string;
-  size: number;
-  type?: string;
-  created: string;
-  modified: string;
-  tags: string[];
-  favorite: boolean;
-  categories: string[];
 }
 
 interface ElectronAPI {
   readDirectory: (path: string) => Promise<string[]>;
   readFileMetadata: (path: string) => Promise<{
     size: number;
-    created: Date;
-    modified: Date;
+    dateCreated: Date;
+    dateModified: Date;
   }>;
-  showOpenDialog: () => Promise<{
-    path: string;
-    originalPath: string;
-    size: number;
-    dateCreated: string;
-    dateModified: string;
-    type: string;
-  }[]>;
-  saveImagesToJson: (images: ImageData[], categories: Category[]) => Promise<boolean>;
+  showOpenDialog: () => Promise<ImageInfo[]>;
+  saveImagesToJson: (images: LocalImageData[], categories: Category[]) => Promise<boolean>;
   loadImagesFromJson: (jsonPath: string) => Promise<{ 
     images: ImageInfo[];
     categories: Category[];
@@ -70,6 +58,7 @@ interface ElectronAPI {
     error?: string;
   }>;
   saveCategories: (categories: Category[]) => Promise<{ success: boolean }>;
+  saveImageToLocal: (imageBuffer: Uint8Array, fileName: string, ext: string) => Promise<string>;
 }
 
 declare global {

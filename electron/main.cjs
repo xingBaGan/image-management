@@ -28,108 +28,194 @@ function createWindow() {
   } else {
     mainWindow.loadFile(path.join(process.resourcesPath, 'app.asar/dist/index.html'));
   }
+
+  // 注册 IPC 处理器
+  ipcMain.handle('save-image-to-local', async (event, imageBuffer, fileName, ext) => {
+    return await saveImageToLocal(imageBuffer, fileName, ext);
+  });
 }
 
+const downloadRemoteImage = async (imageUrl, fileName) => {
+  try {
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    const arrayBuffer = await blob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    // 从 Content-Type 中获取文件扩展名
+    const contentType = response.headers.get('Content-Type');
+    const ext = contentType?.split('/').pop() || 'jpg';
+    
+    // 检查文件是否已存在
+    const imagesDir = path.join(app.getPath('userData'), 'images');
+    const filePath = path.join(imagesDir, `${fileName}.${ext}`);
+    if (fs.existsSync(filePath)) {
+      return `local-image://${filePath}`;
+    }
+
+    console.log('downloadRemoteImage', imageUrl, fileName);
+    // 保存图片到本地
+    return await saveImageToLocal(buffer, fileName, ext);
+  } catch (error) {
+    console.error(`下载图片失败: ${imageUrl}`, error);
+    return null;
+  }
+};
+
+// 添加后台下载远程图片的函数
+const downloadRemoteImagesInBackground = async (jsonPath) => {
+  try {
+    const data = JSON.parse(await fsPromises.readFile(jsonPath, 'utf-8'));
+    let hasUpdates = false;
+
+    await Promise.all(
+      data.images.map(async (img) => {
+        // 跳过视频和已经本地化的图片
+        if (img.type === 'video' || !img.path.startsWith('http')) {
+          return img;
+        }
+
+        const localPath = await downloadRemoteImage(img.path, img.name);
+        if (localPath) {
+          hasUpdates = true;
+          // 更新特定图片的路径
+          const currentData = JSON.parse(await fsPromises.readFile(jsonPath, 'utf-8'));
+          const updatedImagesList = currentData.images.map(currentImg => 
+            currentImg.id === img.id ? { ...currentImg, path: localPath } : currentImg
+          );
+          // 保存更新后的数据
+          await fsPromises.writeFile(
+            jsonPath,
+            JSON.stringify({ ...currentData, images: updatedImagesList }, null, 2),
+            'utf-8'
+          );
+        }
+      })
+    );
+
+    if (hasUpdates) {
+      console.log('远程图片下载和更新完成');
+    } else {
+      console.log('没有需要下载的远程图片');
+    }
+  } catch (error) {
+    console.error('后台下载图片时出错:', error);
+  }
+};
+
 const initializeUserData = async () => {
+  const mockImagesContent = {
+    "images": [
+      {
+        "id": "1",
+        "path": "https://images.unsplash.com/photo-1518791841217-8f162f1e1131",
+        "name": "Cute cat",
+        "size": 1024000,
+        "dateCreated": "2024-01-01T00:00:00.000Z",
+        "dateModified": "2024-01-01T00:00:00.000Z",
+        "tags": ["animals", "cats"],
+        "favorite": true,
+        "categories": [],
+        "type": "image"
+      },
+      {
+        "id": "2",
+        "path": "https://images.unsplash.com/photo-1579353977828-2a4eab540b9a",
+        "name": "Sunset view",
+        "size": 2048000,
+        "dateCreated": "2024-01-02T00:00:00.000Z",
+        "dateModified": "2024-01-02T00:00:00.000Z",
+        "tags": ["nature", "sunset"],
+        "favorite": false,
+        "categories": []
+      },
+      {
+        "id": "3",
+        "path": "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
+        "name": "Workspace",
+        "size": 1536000,
+        "dateCreated": "2024-01-03T00:00:00.000Z",
+        "dateModified": "2024-01-03T00:00:00.000Z",
+        "tags": ["work", "desk"],
+        "favorite": false,
+        "categories": []
+      },
+      {
+        "id": "4",
+        "path": "https://images.unsplash.com/photo-1484723091739-30a097e8f929",
+        "name": "Food photography",
+        "size": 3072000,
+        "dateCreated": "2024-01-04T00:00:00.000Z",
+        "dateModified": "2024-01-04T00:00:00.000Z",
+        "tags": ["food", "photography"],
+        "favorite": true,
+        "categories": []
+      },
+      {
+        "id": "5", 
+        "path": "https://media.w3.org/2010/05/sintel/trailer.mp4",
+        "name": "示例视频",
+        "size": 5242880,
+        "dateCreated": "2024-01-05T00:00:00.000Z",
+        "dateModified": "2024-01-05T00:00:00.000Z",
+        "tags": ["视频", "示例"],
+        "favorite": false,
+        "categories": [],
+        "type": "video",
+        "duration": 52,
+        "thumbnail": "https://peach.blender.org/wp-content/uploads/title_anouncement.jpg"
+      }
+    ],
+    "categories": [
+      {
+        "id": "1",
+        "name": "风景",
+        "images": []
+      },
+      {
+        "id": "2",
+        "name": "人物",
+        "images": []
+      },
+      {
+        "id": "3",
+        "name": "美食",
+        "images": []
+      },
+      {
+        "id": "4",
+        "name": "建筑",
+        "images": []
+      }
+    ]
+  };
   try {
     const userDataPath = path.join(app.getPath('userData'), 'images.json');
     console.log('用户数据目录路径:', userDataPath);
     
+    // 检查文件是否存在
     try {
       await fsPromises.access(userDataPath);
+      // 即使文件存在，也启动后台下载检查
+      downloadRemoteImagesInBackground(userDataPath);
+      return;
     } catch {
-      console.log('images.json 文件不存在');
-      const mockImagesContent = {
-        "images": [
-          {
-            "id": "1",
-            "path": "https://images.unsplash.com/photo-1518791841217-8f162f1e1131",
-            "name": "Cute cat",
-            "size": 1024000,
-            "dateCreated": "2024-01-01T00:00:00.000Z",
-            "dateModified": "2024-01-01T00:00:00.000Z",
-            "tags": ["animals", "cats"],
-            "favorite": true,
-            "categories": [],
-            "type": "image"
-          },
-          {
-            "id": "2",
-            "path": "https://images.unsplash.com/photo-1579353977828-2a4eab540b9a",
-            "name": "Sunset view",
-            "size": 2048000,
-            "dateCreated": "2024-01-02T00:00:00.000Z",
-            "dateModified": "2024-01-02T00:00:00.000Z",
-            "tags": ["nature", "sunset"],
-            "favorite": false,
-            "categories": []
-          },
-          {
-            "id": "3",
-            "path": "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
-            "name": "Workspace",
-            "size": 1536000,
-            "dateCreated": "2024-01-03T00:00:00.000Z",
-            "dateModified": "2024-01-03T00:00:00.000Z",
-            "tags": ["work", "desk"],
-            "favorite": false,
-            "categories": []
-          },
-          {
-            "id": "4",
-            "path": "https://images.unsplash.com/photo-1484723091739-30a097e8f929",
-            "name": "Food photography",
-            "size": 3072000,
-            "dateCreated": "2024-01-04T00:00:00.000Z",
-            "dateModified": "2024-01-04T00:00:00.000Z",
-            "tags": ["food", "photography"],
-            "favorite": true,
-            "categories": []
-          },
-          {
-            "id": "5", 
-            "path": "https://media.w3.org/2010/05/sintel/trailer.mp4",
-            "name": "示例视频",
-            "size": 5242880,
-            "dateCreated": "2024-01-05T00:00:00.000Z",
-            "dateModified": "2024-01-05T00:00:00.000Z",
-            "tags": ["视频", "示例"],
-            "favorite": false,
-            "categories": [],
-            "type": "video",
-            "duration": 52,
-            "thumbnail": "https://peach.blender.org/wp-content/uploads/title_anouncement.jpg"
-          }
-        ],
-        "categories": [
-          {
-            "id": "1",
-            "name": "风景",
-            "images": []
-          },
-          {
-            "id": "2",
-            "name": "人物",
-            "images": []
-          },
-          {
-            "id": "3",
-            "name": "美食",
-            "images": []
-          },
-          {
-            "id": "4",
-            "name": "建筑",
-            "images": []
-          }
-        ]
-      };
+      console.log('images.json 文件不存在，开始初始化');
       
-      await fsPromises.writeFile(userDataPath, JSON.stringify(mockImagesContent, null, 2), 'utf-8');
-      console.log('Mock images data initialized in userData directory');
+      // 先保存初始数据
+      await fsPromises.writeFile(
+        userDataPath, 
+        JSON.stringify(mockImagesContent, null, 2), 
+        'utf-8'
+      );
+
+      // 启动后台下载
+      downloadRemoteImagesInBackground(userDataPath);
+      
+      console.log('用户数据初始化完成，图片将在后台继续下载');
     }
   } catch (error) {
-    console.error('Error initializing user data:', error);
+    console.error('初始化用户数据失败:', error);
   }
 };
 
@@ -178,8 +264,8 @@ ipcMain.handle('read-file-metadata', async (event, filePath) => {
     const stats = await fsPromises.stat(filePath);
     return {
       size: stats.size,
-      created: stats.birthtime,
-      modified: stats.mtime
+      dateCreated: stats.birthtime,
+      dateModified: stats.mtime
     };
   } catch (error) {
     console.error('Error reading file metadata:', error);
@@ -234,6 +320,8 @@ ipcMain.handle('show-open-dialog', async () => {
         favorite: false,
         categories: [],
         type: isVideo ? 'video' : 'image',
+        duration: undefined,
+        thumbnail: undefined
       };
     })
   );
@@ -359,4 +447,28 @@ function loadImagesData() {
     return { images: [], categories: [] };
   }
 }
+
+const saveImageToLocal = async (imageData, fileName, ext) => {
+  try {
+    // 确保 images 目录存在
+    const imagesDir = path.join(app.getPath('userData'), 'images');
+    if (!fs.existsSync(imagesDir)) {
+      fs.mkdirSync(imagesDir, { recursive: true });
+    }
+
+    // 缓存图片
+    const uniqueFileName = `${fileName}.${ext}`;
+    const filePath = path.join(imagesDir, uniqueFileName);
+
+    // 将 Uint8Array 转换为 Buffer 并写入文件
+    const buffer = Buffer.from(imageData);
+    await fs.promises.writeFile(filePath, buffer);
+
+    // 返回本地路径
+    return `local-image://${filePath}`;
+  } catch (error) {
+    console.error('保存图片失败:', error);
+    throw error;
+  }
+};
 

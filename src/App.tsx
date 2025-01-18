@@ -1,9 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar';
 import ImageGrid from './components/ImageGrid';
-import { Category, ViewMode, SortBy, ImageInfo, FilterType } from './types';
+import { Category, ViewMode, SortBy, ImageInfo, FilterType, LocalImageData } from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
+import { addTagsToImages } from './services/tagService';
 
 function App() {
   const [selectedCategory, setSelectedCategory] = useState<string>('photos');
@@ -50,7 +51,7 @@ function App() {
     } else if (filter === 'recent') {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      filtered = images.filter(img => new Date(img.modified) >= sevenDaysAgo);
+      filtered = images.filter(img => new Date(img.dateModified) >= sevenDaysAgo);
     } else if (selectedCategory !== 'photos') {
       // 如果选中的不是 'photos'（所有图片），且不是特殊过滤器（favorites/recent）
       // 查找选中分类下的所有图片
@@ -74,7 +75,7 @@ function App() {
           comparison = a.name.localeCompare(b.name);
           break;
         case 'date':
-          comparison = new Date(b.modified).getTime() - new Date(a.modified).getTime();
+          comparison = new Date(b.dateModified).getTime() - new Date(a.dateModified).getTime();
           break;
         case 'size':
           comparison = b.size - a.size;
@@ -95,8 +96,8 @@ function App() {
       await window.electron.saveImagesToJson(
         updatedImages.map(img => ({
           ...img,
-          dateCreated: img.created,
-          dateModified: img.modified
+          dateCreated: img.dateCreated,
+          dateModified: img.dateModified
         })),
         categories
       );
@@ -149,8 +150,8 @@ function App() {
       await window.electron.saveImagesToJson(
         updatedImages.map(img => ({
           ...img,
-          dateCreated: img.created,
-          dateModified: img.modified
+          dateCreated: img.dateCreated,
+          dateModified: img.dateModified
         })),
         newCategories
       );      
@@ -189,21 +190,24 @@ function App() {
           return {
             ...category,
             images: allImages,
-            count: allImages.length // 直接更新 count
+            count: allImages.length
           };
         }
         return category;
       });
 
+      // 将 ImageInfo 转换为 LocalImageData
+      const localImageDataList: LocalImageData[] = updatedImages.map(img => {
+        const { dateCreated, dateModified, ...rest } = img;
+        return {
+          ...rest,
+          dateCreated: dateCreated,
+          dateModified: dateModified
+        };
+      });
+
       // 保存更新后的图片数据和分类数据
-      await window.electron.saveImagesToJson(
-        updatedImages.map(img => ({
-          ...img,
-          dateCreated: img.created,
-          dateModified: img.modified
-        })),
-        updatedCategories
-      );
+      await window.electron.saveImagesToJson(localImageDataList, updatedCategories);
 
       setImages(updatedImages);
       setCategories(updatedCategories);
@@ -213,10 +217,20 @@ function App() {
     }
   };
 
-  const handleAddTags = () => {
-    // Implement tag addition logic
-    console.log('Adding tags to images:', Array.from(selectedImages));
-    setSelectedImages(new Set());
+  const handleAddTags = async () => {
+    // 获取选中的图片
+    const selectedImagesList = images.filter(img => selectedImages.has(img.id));
+    
+    const { updatedImages, success } = await addTagsToImages(
+      selectedImagesList,
+      images,
+      categories
+    );
+
+    if (success) {
+      setImages(updatedImages);
+      setSelectedImages(new Set());
+    }
   };
 
   const bulkActions = [
@@ -250,32 +264,25 @@ function App() {
     return fileNameWithoutExt;
   };
 
-  const handleImport = async () => {
+  const handleImportImages = async () => {
     try {
-      const fileMetadata = await window.electron.showOpenDialog();
-      
-      if (fileMetadata.length === 0) return;
-      
-      const newImages: ImageInfo[] = fileMetadata.map(file => ({
-        id: crypto.randomUUID(),
-        name: getFileName(file.path),
-        path: file.path,
-        size: file.size,
-        dateCreated: file.dateCreated,
-        dateModified: file.dateModified,
-        created: file.dateCreated,
-        modified: file.dateModified,
-        tags: [],
-        favorite: false,
-        categories: [],
-        type: ['jpg', 'png', 'gif', 'jpeg', 'webp', 'bmp','ico', 'svg'].includes(file.path.split('.').pop() || '') ? 'image' : 'video',
-        thumbnail: file.thumbnail || ''
-      }));
-      
-      const updatedImages = [...images, ...newImages];
-      await window.electron.saveImagesToJson(updatedImages, categories);
-      setImages(updatedImages);
-      
+      const newImages = await window.electron.showOpenDialog();
+      if (newImages.length > 0) {
+        const updatedImages = [...images, ...newImages];
+        
+        // 将 ImageInfo 转换为 LocalImageData
+        const localImageDataList: LocalImageData[] = updatedImages.map(img => {
+          const { dateCreated, dateModified, ...rest } = img;
+          return {
+            ...rest,
+            dateCreated: dateCreated,
+            dateModified: dateModified
+          };
+        });
+
+        await window.electron.saveImagesToJson(localImageDataList, categories);
+        setImages(updatedImages);
+      }
     } catch (error) {
       console.error('导入图片失败:', error);
     }
@@ -289,8 +296,8 @@ function App() {
         // 转换数据格式
         const convertedImages = result.images.map(img => ({
           ...img,
-          created: img.dateCreated,
-          modified: img.dateModified
+          dateCreated: img.dateCreated,
+          dateModified: img.dateModified
         }));
         setImages(convertedImages);
         setCategories(result.categories || []);
@@ -317,8 +324,8 @@ function App() {
       await window.electron.saveImagesToJson(
         images.map(img => ({
           ...img,
-          dateCreated: img.created,
-          dateModified: img.modified
+          dateCreated: img.dateCreated,
+          dateModified: img.dateModified
         })),
         updatedCategories
       );
@@ -382,7 +389,7 @@ function App() {
           selectedCount={selectedImages.size}
           bulkActions={selectedImages.size > 0 ? bulkActions : []}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-          onImport={handleImport}
+          onImport={handleImportImages}
           isSidebarOpen={isSidebarOpen}
         />
         <div className="overflow-y-auto flex-1">
