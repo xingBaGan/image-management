@@ -1,20 +1,36 @@
-import React from 'react';
-import { X, Tag } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { X, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Image as ImageType } from '../types';
 
 interface MediaViewerProps {
   media: ImageType | null;
   onClose: () => void;
+  onPrevious?: () => void;
+  onNext?: () => void;
 }
 
-const MediaViewer: React.FC<MediaViewerProps> = ({ media, onClose }) => {
+const MediaViewer: React.FC<MediaViewerProps> = ({ media, onClose, onPrevious, onNext }) => {
   if (!media) return null;
-
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' && onPrevious) {
+        onPrevious();
+      } else if (e.key === 'ArrowRight' && onNext) {
+        onNext();
+      } else if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onPrevious, onNext, onClose]);
 
   return (
     <div 
@@ -29,6 +45,28 @@ const MediaViewer: React.FC<MediaViewerProps> = ({ media, onClose }) => {
       >
         <X size={24} />
       </button>
+
+      {onPrevious && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onPrevious(); }}
+          className="absolute left-4 top-1/2 p-2 text-white rounded-full transition-colors -translate-y-1/2 hover:bg-white/10"
+          title="上一张"
+          aria-label="上一张"
+        >
+          <ChevronLeft size={32} />
+        </button>
+      )}
+
+      {onNext && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onNext(); }}
+          className="absolute right-4 top-1/2 p-2 text-white rounded-full transition-colors -translate-y-1/2 hover:bg-white/10"
+          title="下一张"
+          aria-label="下一张"
+        >
+          <ChevronRight size={32} />
+        </button>
+      )}
 
       <div className="max-w-[90vw] max-h-[90vh] relative flex flex-col items-center">
         {media.type === 'video' ? (

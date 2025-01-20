@@ -10,4 +10,8 @@ contextBridge.exposeInMainWorld('electron', {
   openImageJson: () => ipcRenderer.invoke('open-image-json'),
   saveCategories: (categories) => ipcRenderer.invoke('save-categories', categories),
   saveImageToLocal: (buffer, fileName, ext) => ipcRenderer.invoke('save-image-to-local', buffer, fileName, ext),
+  loadSettings: () => ipcRenderer.invoke('load-settings'),
+  saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
+  isRemoteComfyUI: () => ipcRenderer.invoke('is-remote-comfyui'),
+  readFile: (filePath) => ipcRenderer.invoke('read-file', filePath),
 }); 

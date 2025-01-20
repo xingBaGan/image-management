@@ -1,5 +1,5 @@
 import { ImageInfo, LocalImageData } from '../types';
-import { downloadImage, isRemoteUrl } from './fileSystem';
+import { compressImage } from './imageService';
 
 const baseUrl = 'http://localhost:3000';
 
@@ -8,7 +8,7 @@ async function getLocalImagePath(imagePath: string): Promise<string> {
   return decodeURIComponent(imagePath.replace('local-image://', ''));
 }
 
-export async function generateImageTags(imagePath: string): Promise<string[]> {
+export async function generateImageTags(imagePath: string, base64?: string): Promise<string[]> {
   try {
     // 获取本地图片路径
     const localPath = await getLocalImagePath(imagePath);
@@ -48,14 +48,17 @@ export async function addTagsToImages(
     // 对每个选中的图片调用 tagger API
     const updatedImages = await Promise.all(
       selectedImages.map(async (image) => {
-        const newTags = await generateImageTags(image.path);
-        console.log('newTags', newTags);
-        if (newTags.length > 0) {
+        const isRemoteComfyUI = await window.electron.isRemoteComfyUI();
+        if (!isRemoteComfyUI) {
+          const newTags = await generateImageTags(image.path);
+          console.log('newTags', newTags);
+          if (newTags.length > 0) {
           // 合并现有标签和新标签，去重
-          return {
-            ...image,
-            tags: [...new Set([...image.tags, ...newTags])]
-          };
+            return {
+              ...image,
+              tags: [...new Set([...image.tags, ...newTags])]
+            };
+          }
         }
         return image;
       })
@@ -63,7 +66,7 @@ export async function addTagsToImages(
 
     // 更新图片数据
     const finalImages = allImages.map(img => {
-      const updatedImg = updatedImages.find(updated => updated.id === img.id);
+      const updatedImg = updatedImages.find(updated => updated?.id === img.id);
       return updatedImg || img;
     });
 
@@ -91,4 +94,4 @@ export async function addTagsToImages(
       success: false
     };
   }
-} 
+}

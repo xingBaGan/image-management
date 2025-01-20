@@ -10,10 +10,11 @@
     "build": "tsc && vite build",
     "lint": "eslint .",
     "electron:dev": "tsc -p electron/tsconfig.json && concurrently \"vite\" \"electron .\"",
-    "electron:build": "tsc -p electron/tsconfig.json && vite build && node -e \"require('fs').cpSync('electron', 'dist-electron', {recursive: true})\" && electron-builder",
+    "electron:build": "cd comfyui_client && npm run build && cd .. && tsc -p electron/tsconfig.json && vite build && node -e \"require('fs').cpSync('electron', 'dist-electron', {recursive: true})\" && electron-builder",
     "electron:preview": "electron ."
   },
   "dependencies": {
+    "comfyui-client": "file:comfyui_client",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -49,7 +50,20 @@
     },
     "files": [
       "dist/**/*",
-      "electron/**/*"
+      "electron/**/*",
+      "comfyui_client/dist/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "comfyui_client/dist",
+        "to": "comfyui_client/dist",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "comfyui_client/workflows",
+        "to": "comfyui_client/workflows",
+        "filter": ["**/*"]
+      }
     ],
     "extraMetadata": {
       "main": "electron/main.cjs"

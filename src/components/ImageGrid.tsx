@@ -84,6 +84,18 @@ const ImageGrid: React.FC<ImageGridProps> = ({
           <MediaViewer
             media={viewingMedia}
             onClose={() => setViewingMedia(null)}
+            onPrevious={() => {
+              const index = images.findIndex(img => img.id === viewingMedia?.id);
+              if (index > 0) {
+                setViewingMedia(images[index - 1]);
+              }
+            }}
+            onNext={() => {
+              const index = images.findIndex(img => img.id === viewingMedia?.id);
+              if (index < images.length - 1) {
+                setViewingMedia(images[index + 1]);
+              }
+            }}
           />
         )}
         
@@ -178,6 +190,18 @@ const ImageGrid: React.FC<ImageGridProps> = ({
         <MediaViewer
           media={viewingMedia}
           onClose={() => setViewingMedia(null)}
+          onPrevious={() => {
+            const index = images.findIndex(img => img.id === viewingMedia?.id);
+            if (index > 0) {
+              setViewingMedia(images[index - 1]);
+            }
+          }}
+          onNext={() => {
+            const index = images.findIndex(img => img.id === viewingMedia?.id);
+            if (index < images.length - 1) {
+              setViewingMedia(images[index + 1]);
+            }
+          }}
         />
       )}
       

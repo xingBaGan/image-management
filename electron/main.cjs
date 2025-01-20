@@ -3,8 +3,127 @@ const path = require('path');
 const fs = require('fs');
 const fsPromises = require('fs/promises');
 const { Menu } = require('electron');
+const { spawn } = require('child_process');
 
 const isDev = !app.isPackaged;
+
+// 获取设置文件路径
+const getSettingsPath = () => {
+  return path.join(app.getPath('userData'), 'settings.json');
+};
+
+// 加载设置
+const loadSettings = async () => {
+  try {
+    const settingsPath = getSettingsPath();
+    if (fs.existsSync(settingsPath)) {
+      const data = await fsPromises.readFile(settingsPath, 'utf8');
+      return JSON.parse(data);
+    }
+    return {};
+  } catch (error) {
+    console.error('加载设置失败:', error);
+    return {};
+  }
+};
+
+// 保存设置
+const saveSettings = async (settings) => {
+  try {
+    const settingsPath = getSettingsPath();
+    await fsPromises.writeFile(
+      settingsPath,
+      JSON.stringify(settings, null, 2),
+      'utf8'
+    );
+    return true;
+  } catch (error) {
+    console.error('保存设置失败:', error);
+    return false;
+  }
+};
+
+// 读取 .env 文件
+const loadEnvConfig = () => {
+  try {
+    const envPath = isDev 
+      ? path.join(__dirname, '..', '.env')
+      : path.join(process.resourcesPath, '.env');
+    
+    if (fs.existsSync(envPath)) {
+      const envConfig = fs.readFileSync(envPath, 'utf8');
+      const config = {};
+      envConfig.split('\n').forEach(line => {
+        // 忽略注释和空行
+        if (line.startsWith('#') || !line.trim()) return;
+        
+        const [key, ...valueParts] = line.split('=');
+        if (key && valueParts.length > 0) {
+          // 处理值中可能包含 = 的情况
+          const value = valueParts.join('=').trim();
+          // 移除可能存在的引号
+          config[key.trim()] = value.replace(/^["'](.*)["']$/, '$1');
+        }
+      });
+      return config;
+    }
+    return {};
+  } catch (error) {
+    console.error('读取 .env 配置失败:', error);
+    return {};
+  }
+};
+
+// 加载 .env 配置
+const envConfig = loadEnvConfig();
+// 将配置添加到环境变量
+Object.assign(process.env, envConfig);
+let ComfyUI_URL = process.env.ComfyUI_URL;
+
+const isRemoteComfyUI = function(){
+  initializeSettings();
+  return !(ComfyUI_URL.includes('localhost') || ComfyUI_URL.includes('127.0.0.1'));
+}
+
+// 加载设置中的 ComfyUI_URL
+const initializeSettings = async () => {
+  const settings = await loadSettings();
+  if (settings.ComfyUI_URL) {
+    ComfyUI_URL = settings.ComfyUI_URL;
+  }
+};
+
+// 启动 ComfyUI 服务器
+async function _startComfyUIServer(comfyUI_url) {
+  const serverPath = isDev 
+    ? path.join(__dirname, '..', 'comfyui_client', 'dist', 'server.js')
+    : path.join(process.resourcesPath, 'comfyui_client', 'dist', 'server.js');
+
+  console.log('----ComfyUI_URL----', comfyUI_url);
+  console.log('ComfyUI 服务器路径:', serverPath);
+
+  const serverProcess = spawn('node', [serverPath, comfyUI_url], {
+    stdio: 'pipe',
+    env: {
+      ...process.env,
+      NODE_NO_WARNINGS: '1'
+    }
+  });
+
+  serverProcess.stdout.on('data', (data) => {
+    console.log(`ComfyUI 服务器输出: ${data}`);
+  });
+
+  serverProcess.stderr.on('data', (data) => {
+    console.error(`ComfyUI 服务器错误: ${data}`);
+  });
+
+  serverProcess.on('close', (code) => {
+    console.log(`ComfyUI 服务器已关闭，退出码: ${code}`);
+  });
+
+  return serverProcess;
+}
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -19,12 +138,12 @@ function createWindow() {
 
   // 完全移除菜单栏
   Menu.setApplicationMenu(null);
-
+  mainWindow.webContents.openDevTools({
+    mode: 'detach'
+  });
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
-    mainWindow.webContents.openDevTools({
-      mode: 'detach'
-    });
+ 
   } else {
     mainWindow.loadFile(path.join(process.resourcesPath, 'app.asar/dist/index.html'));
   }
@@ -32,6 +151,26 @@ function createWindow() {
   // 注册 IPC 处理器
   ipcMain.handle('save-image-to-local', async (event, imageBuffer, fileName, ext) => {
     return await saveImageToLocal(imageBuffer, fileName, ext);
+  });
+
+  // 注册设置相关的 IPC 处理器
+  ipcMain.handle('load-settings', async () => {
+    return await loadSettings();
+  });
+
+  ipcMain.handle('save-settings', async (event, settings) => {
+    const result = await saveSettings(settings);
+
+    if (serverProcess) {
+      serverProcess.kill();
+    }
+    // 重启ComfyUI服务器
+    serverProcess = await _startComfyUIServer(settings.ComfyUI_URL);
+    if (result) {
+      // 更新环境变量
+      ComfyUI_URL = settings.ComfyUI_URL;
+    }
+    return result;
   });
 }
 
@@ -219,7 +358,23 @@ const initializeUserData = async () => {
   }
 };
 
+let serverProcess = null;
+async function startComfyUIServer() {
+  // 初始化设置
+  await initializeSettings();
+  // 启动 ComfyUI 服务器
+  serverProcess = await _startComfyUIServer(ComfyUI_URL);
+  // 当应用退出时关闭服务器
+  app.on('before-quit', () => {
+    if (serverProcess) {
+      serverProcess.kill();
+    }
+  });
+}
+
 app.whenReady().then(async () => {
+
+  await startComfyUIServer();
   // 初始化用户数据
   await initializeUserData();
 
@@ -364,7 +519,6 @@ ipcMain.handle('save-images', async (event, images) => {
   }
 });
 
-
 // 处理分类数据的请求
 ipcMain.handle('save-categories', async (event, categories) => {
   try { 
@@ -402,6 +556,24 @@ ipcMain.handle('open-image-json', async () => {
   } catch (error) {
     console.error('打开 images.json 失败:', error);
     return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('is-remote-comfyui', async () => {
+  return isRemoteComfyUI();
+});
+
+// 读取文件并返回 base64 格式
+ipcMain.handle('read-file', async (event, filePath) => {
+  try {
+    if (filePath.includes('local-image://')) {
+      filePath = filePath.replace('local-image://', '');
+    }
+    const buffer = await fsPromises.readFile(filePath);
+    return buffer;
+  } catch (error) {
+    console.error('读取文件失败:', error);
+    throw error;
   }
 });
 

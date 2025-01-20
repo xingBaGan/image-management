@@ -121,7 +121,7 @@ function App() {
     }
   };
 
-  const handleImageSelect = (id: string, isShiftKey: boolean) => {
+  const handleImageSelect = (id: string) => {
     setSelectedImages(prev => {
       const newSelection = new Set(prev);
       if (newSelection.has(id)) {
@@ -252,17 +252,6 @@ function App() {
       onClick: handleAddTags
     }
   ];
-
-  const getFileName = (filePath: string) => {
-    // 解码文件路径并提取最后一个部分作为文件名
-    const encodedFileName = filePath.split(/[/\\]/).pop() || '';
-    const decodedFileName = decodeURIComponent(encodedFileName);
-    
-    // 移除文件扩展名
-    let fileNameWithoutExt = decodedFileName.replace(/\.[^/.]+$/, '');
-    fileNameWithoutExt = fileNameWithoutExt.split('\\').pop() || '';
-    return fileNameWithoutExt;
-  };
 
   const generateHashId = (filePath: string, fileSize: number): string => {
     // 使用路径和大小创建唯一字符串
