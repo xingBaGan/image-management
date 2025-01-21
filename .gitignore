@@ -26,3 +26,5 @@ dist-ssr
 # 添加 Electron 相关忽略项
 dist-electron/
 .electron/
+venv/
+models/

@@ -11,11 +11,13 @@
     "lint": "eslint .",
     "electron:dev": "tsc -p electron/tsconfig.json && concurrently \"vite\" \"electron .\"",
     "electron:build": "cd comfyui_client && npm run build && cd .. && tsc -p electron/tsconfig.json && vite build && node -e \"require('fs').cpSync('electron', 'dist-electron', {recursive: true})\" && electron-builder",
-    "electron:preview": "electron ."
+    "electron:preview": "electron .",
+    "tag": "node script/script.cjs"
   },
   "dependencies": {
     "comfyui-client": "file:comfyui_client",
     "lucide-react": "^0.344.0",
+    "python-shell": "^5.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-grid-layout": "^1.4.4",
@@ -51,18 +53,47 @@
     "files": [
       "dist/**/*",
       "electron/**/*",
-      "comfyui_client/dist/**/*"
+      "comfyui_client/dist/**/*",
+      "script/**/*"
     ],
     "extraResources": [
       {
         "from": "comfyui_client/dist",
         "to": "comfyui_client/dist",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       {
         "from": "comfyui_client/workflows",
         "to": "comfyui_client/workflows",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "requirements.txt",
+        "to": "requirements.txt"
+      },
+      {
+        "from": ".env",
+        "to": ".env"
+      },
+      {
+        "from": "install.bat",
+        "to": "install.bat"
+      },
+      {
+        "from": "install.command",
+        "to": "install.command"
+      },
+      {
+        "from": "install.sh",
+        "to": "install.sh"
+      },
+      {
+        "from": "script",
+        "to": "script"
       }
     ],
     "extraMetadata": {

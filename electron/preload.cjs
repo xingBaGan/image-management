@@ -14,4 +14,5 @@ contextBridge.exposeInMainWorld('electron', {
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
   isRemoteComfyUI: () => ipcRenderer.invoke('is-remote-comfyui'),
   readFile: (filePath) => ipcRenderer.invoke('read-file', filePath),
+  tagImage: (imagePath, modelName) => ipcRenderer.invoke('tag-image', imagePath, modelName),
 }); 

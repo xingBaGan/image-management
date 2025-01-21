@@ -48,17 +48,15 @@ export async function addTagsToImages(
     // 对每个选中的图片调用 tagger API
     const updatedImages = await Promise.all(
       selectedImages.map(async (image) => {
-        const isRemoteComfyUI = await window.electron.isRemoteComfyUI();
-        if (!isRemoteComfyUI) {
-          const newTags = await generateImageTags(image.path);
-          console.log('newTags', newTags);
-          if (newTags.length > 0) {
-          // 合并现有标签和新标签，去重
-            return {
-              ...image,
-              tags: [...new Set([...image.tags, ...newTags])]
-            };
-          }
+        const imagePath = await getLocalImagePath(image.path);
+        const newTags = await window.electron.tagImage(imagePath, "wd-v1-4-moat-tagger-v2");
+        console.log('newTags', newTags);
+        if (newTags.length > 0) {
+        // 合并现有标签和新标签，去重
+          return {
+            ...image,
+            tags: [...new Set([...image.tags, ...newTags])]
+          };
         }
         return image;
       })

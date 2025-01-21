@@ -63,6 +63,7 @@ interface ElectronAPI {
   saveSettings: (settings: { ComfyUI_URL: string }) => Promise<boolean>;
   isRemoteComfyUI: () => Promise<boolean>;
   readFile: (filePath: string) => Promise<Buffer>;
+  tagImage: (imagePath: string, modelName: string) => Promise<string[]>;
 }
 
 declare global {

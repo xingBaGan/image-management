@@ -4,9 +4,9 @@ const fs = require('fs');
 const fsPromises = require('fs/promises');
 const { Menu } = require('electron');
 const { spawn } = require('child_process');
+const { tagImage } = require(path.join(__dirname, '..', 'script', 'script.cjs'));
 
 const isDev = !app.isPackaged;
-
 // 获取设置文件路径
 const getSettingsPath = () => {
   return path.join(app.getPath('userData'), 'settings.json');
@@ -373,7 +373,6 @@ async function startComfyUIServer() {
 }
 
 app.whenReady().then(async () => {
-
   await startComfyUIServer();
   // 初始化用户数据
   await initializeUserData();
@@ -575,6 +574,10 @@ ipcMain.handle('read-file', async (event, filePath) => {
     console.error('读取文件失败:', error);
     throw error;
   }
+});
+
+ipcMain.handle('tag-image', async (event, imagePath, modelName) => {
+  return await tagImage(imagePath, modelName);
 });
 
 function loadImagesData() {
