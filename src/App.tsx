@@ -381,6 +381,14 @@ function App() {
     }
   };
 
+  const updateTagsByMediaId = (mediaId: string, newTags: string[]) => {
+    const updatedImages = images.map(img =>
+      img.id === mediaId ? { ...img, tags: newTags } : img
+    );
+    window.electron.saveImagesToJson(updatedImages, categories);
+    setImages(updatedImages);
+  };
+
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       {isSidebarOpen && (
@@ -416,6 +424,7 @@ function App() {
             viewMode={viewMode}
             selectedImages={selectedImages}
             onSelectImage={handleImageSelect}
+            updateTagsByMediaId={updateTagsByMediaId}
           />
         </div>
       </div>

@@ -1,21 +1,24 @@
 import React, { useEffect } from 'react';
-import { X, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Image as ImageType } from '../types';
+import MediaTags from './MediaTags';
 
 interface MediaViewerProps {
   media: ImageType | null;
   onClose: () => void;
   onPrevious?: () => void;
   onNext?: () => void;
+  onTagsUpdate?: (mediaId: string, newTags: string[]) => void;
 }
 
-const MediaViewer: React.FC<MediaViewerProps> = ({ media, onClose, onPrevious, onNext }) => {
+const MediaViewer: React.FC<MediaViewerProps> = ({
+  media,
+  onClose,
+  onPrevious,
+  onNext,
+  onTagsUpdate,
+}) => {
   if (!media) return null;
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -33,9 +36,8 @@ const MediaViewer: React.FC<MediaViewerProps> = ({ media, onClose, onPrevious, o
   }, [onPrevious, onNext, onClose]);
 
   return (
-    <div 
+    <div
       className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-90"
-      onClick={handleBackdropClick}
     >
       <button
         onClick={onClose}
@@ -86,19 +88,13 @@ const MediaViewer: React.FC<MediaViewerProps> = ({ media, onClose, onPrevious, o
             className="max-w-full max-h-[80vh] object-contain rounded-lg"
           />
         )}
-        
-        {media.tags && media.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 justify-center mt-4">
-            {media.tags.map((tag, index) => (
-              <div
-                key={index}
-                className="px-3 py-1 bg-white/10 text-white rounded-full flex items-center gap-1.5 text-sm"
-              >
-                <Tag size={14} />
-                <span>{tag}</span>
-              </div>
-            ))}
-          </div>
+
+        {onTagsUpdate && (
+          <MediaTags
+            tags={media.tags || []}
+            mediaId={media.id}
+            onTagsUpdate={onTagsUpdate}
+          />
         )}
       </div>
     </div>

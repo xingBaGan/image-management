@@ -10,6 +10,7 @@ interface ImageGridProps {
   viewMode: ViewMode;
   selectedImages: Set<string>;
   onSelectImage: (id: string, isShiftKey: boolean) => void;
+  updateTagsByMediaId: (mediaId: string, newTags: string[]) => void;
 }
 
 const ImageGrid: React.FC<ImageGridProps> = ({
@@ -18,6 +19,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   viewMode,
   selectedImages,
   onSelectImage,
+  updateTagsByMediaId,
 }) => {
   const [viewingMedia, setViewingMedia] = useState<ImageType | null>(null);
 
@@ -77,12 +79,24 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     }
   };
 
+  const handleTagsUpdate = (mediaId: string, newTags: string[]) => {
+    updateTagsByMediaId(mediaId, newTags);
+    // 如果当前正在查看的媒体被更新了，同步更新 viewingMedia
+    if (viewingMedia?.id === mediaId) {
+      const updatedMedia = images.find(img => img.id === mediaId);
+      if (updatedMedia) {
+        setViewingMedia({ ...updatedMedia, tags: newTags });
+      }
+    }
+  };
+
   if (viewMode === 'list') {
     return (
       <>
         {viewingMedia && (
           <MediaViewer
             media={viewingMedia}
+            onTagsUpdate={handleTagsUpdate}
             onClose={() => setViewingMedia(null)}
             onPrevious={() => {
               const index = images.findIndex(img => img.id === viewingMedia?.id);
@@ -189,6 +203,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
       {viewingMedia && (
         <MediaViewer
           media={viewingMedia}
+          onTagsUpdate={handleTagsUpdate}
           onClose={() => setViewingMedia(null)}
           onPrevious={() => {
             const index = images.findIndex(img => img.id === viewingMedia?.id);

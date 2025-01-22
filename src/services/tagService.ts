@@ -50,7 +50,6 @@ export async function addTagsToImages(
       selectedImages.map(async (image) => {
         const imagePath = await getLocalImagePath(image.path);
         const newTags = await window.electron.tagImage(imagePath, "wd-v1-4-moat-tagger-v2");
-        console.log('newTags', newTags);
         if (newTags.length > 0) {
         // 合并现有标签和新标签，去重
           return {
