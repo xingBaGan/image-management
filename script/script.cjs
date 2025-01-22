@@ -1,8 +1,9 @@
 const { PythonShell } = require('python-shell')
 const path = require('path')
 
-const isDev = false;
-
+// 判断是否是开发环境
+const isDev = process.env.npm_lifecycle_script.includes('development');
+console.log('isDev: %j', isDev)
 const pythonPath = isDev 
   ? path.join(__dirname, '../venv/Scripts/python.exe')
   : path.join(process.resourcesPath, 'venv', 'Scripts', 'python.exe');

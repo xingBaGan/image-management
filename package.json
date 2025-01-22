@@ -1,7 +1,7 @@
 {
-  "name": "itujji",
+  "name": "atujji",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "一个简洁优雅的本地图片管理工具",
   "author": {
     "name": "jzj",
@@ -14,7 +14,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint .",
-    "electron:dev": "tsc -p electron/tsconfig.json && concurrently \"vite\" \"electron .\"",
+    "electron:dev": "cross-env NODE_ENV=development tsc -p electron/tsconfig.json && concurrently \"vite\" \"electron .\"",
     "electron:build": "cd comfyui_client && npm run build && cd .. && tsc -p electron/tsconfig.json && vite build && node -e \"require('fs').cpSync('electron', 'dist-electron', {recursive: true})\" && electron-builder",
     "electron:preview": "electron .",
     "tag": "node script/script.cjs"
@@ -37,6 +37,7 @@
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.18",
     "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
     "electron": "^29.1.4",
     "electron-builder": "^24.13.3",
     "eslint": "^9.9.1",
@@ -50,8 +51,8 @@
     "vite": "^5.4.2"
   },
   "build": {
-    "appId": "com.itujji",
-    "productName": "itujji",
+    "appId": "com.atujji",
+    "productName": "atujji",
     "directories": {
       "output": "dist-electron"
     },
@@ -106,7 +107,47 @@
     },
     "asar": true,
     "mac": {
-      "category": "public.app-category.photography"
+      "category": "public.app-category.photography",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build/icon.icns",
+      "darkModeSupport": true,
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "window": {
+        "width": 540,
+        "height": 380
+      }
     },
     "win": {
       "target": [
@@ -125,10 +166,49 @@
       "perMachine": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "itujji"
+      "shortcutName": "atujji"
     },
     "linux": {
-      "target": "AppImage"
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "rpm",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build/icons",
+      "category": "Graphics",
+      "maintainer": "jzj",
+      "vendor": "atujji",
+      "synopsis": "图片管理工具",
+      "description": "一个简洁优雅的本地图片管理工具",
+      "desktop": {
+        "Name": "atujji",
+        "Comment": "图片管理工具",
+        "Categories": "Graphics;Photography;Utility;"
+      }
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "your-github-username",
+      "repo": "atujji",
+      "releaseType": "release"
     }
   }
 }

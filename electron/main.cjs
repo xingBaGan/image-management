@@ -138,9 +138,11 @@ function createWindow() {
 
   // 完全移除菜单栏
   Menu.setApplicationMenu(null);
-  mainWindow.webContents.openDevTools({
-    mode: 'detach'
-  });
+  if (isDev) {
+    mainWindow.webContents.openDevTools({
+      mode: 'detach'
+    });
+  }
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
  
