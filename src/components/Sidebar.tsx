@@ -104,7 +104,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div className="w-64 h-full bg-white border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div className="w-64 h-full bg-white bg-opacity-30 border-r border-gray-200 backdrop-blur-sm dark:bg-gray-800 dark:bg-opacity-30 dark:border-gray-700">
       <div className="p-4">
         <div className="space-y-2">
           {[
@@ -116,7 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             <button
               key={id}
               onClick={() => onSelectCategory(id)}
-              className={`flex w-full items-center px-1 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 ${
+              className={`flex w-full items-center px-1 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 hover:bg-opacity-80 dark:hover:bg-gray-700 dark:hover:bg-opacity-80 ${
                 selectedCategory === id ? 'bg-gray-100 dark:bg-gray-700' : ''
               }`}
             >
@@ -224,7 +224,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                                 >
                                   {category.name}
                                 </button>
-                                <span className="mr-2 text-xs text-gray-400">
+                                <span className="mr-2 text-xs text-black">
                                   {category.count || 0}
                                 </span>
                               </>

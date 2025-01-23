@@ -5,6 +5,7 @@ import ImageGrid from './components/ImageGrid';
 import { Category, ViewMode, SortBy, ImageInfo, FilterType, LocalImageData } from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
 import { addTagsToImages } from './services/tagService';
+import { generateHashId } from './utils';
 
 function App() {
   const [selectedCategory, setSelectedCategory] = useState<string>('photos');
@@ -32,18 +33,18 @@ function App() {
   const filteredAndSortedImages = useMemo(() => {
     // 首先根据 filter 和 selectedCategory 过滤图片
     let filtered = images.filter(img => img.type !== 'video');
-    
+
     // 添加标签过滤逻辑
     if (searchTags.length > 0) {
-      filtered = filtered.filter(img => 
-        searchTags.every(tag => 
-          img.tags?.some(imgTag => 
+      filtered = filtered.filter(img =>
+        searchTags.every(tag =>
+          img.tags?.some(imgTag =>
             imgTag.toLowerCase().includes(tag.toLowerCase())
           )
         )
       );
     }
-    
+
     if (selectedCategory === 'videos') {
       filtered = images.filter(img => img.type === 'video');
     } else if (filter === 'favorites') {
@@ -57,7 +58,7 @@ function App() {
       // 查找选中分类下的所有图片
       const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
       if (selectedCategoryData) {
-        filtered = images.filter(img => 
+        filtered = images.filter(img =>
           // 检查图片是否属于当前选中的分类
           img.categories?.includes(selectedCategory) ||
           // 或者检查图片 ID 是否在分类的 images 数组中
@@ -69,7 +70,7 @@ function App() {
     // 然后对过滤后的结果进行排序
     return [...filtered].sort((a, b) => {
       let comparison = 0;
-      
+
       switch (sortBy) {
         case 'name':
           comparison = a.name.localeCompare(b.name);
@@ -91,7 +92,7 @@ function App() {
       const updatedImages = images.map((img) =>
         img.id === id ? { ...img, favorite: !img.favorite } : img
       );
-      
+
       // 保存更新后的图片数据到 JSON 文件，同时保存categories
       await window.electron.saveImagesToJson(
         updatedImages.map(img => ({
@@ -101,7 +102,7 @@ function App() {
         })),
         categories
       );
-      
+
       setImages(updatedImages);
     } catch (error) {
       console.error('更新收藏状态失败:', error);
@@ -137,7 +138,7 @@ function App() {
     try {
       // 过滤掉被选中的图片
       const updatedImages = images.filter(img => !selectedImages.has(img.id));
-      
+
       const newCategories = categories.map(category => {
         const newImages = category.images?.filter(id => !selectedImages.has(id)) || [];
         return {
@@ -154,7 +155,7 @@ function App() {
           dateModified: img.dateModified
         })),
         newCategories
-      );      
+      );
       // 更新状态
       setImages(updatedImages);
       setCategories(newCategories);
@@ -186,7 +187,7 @@ function App() {
           const newImages = Array.from(selectedImages);
           // 合并并去重
           const allImages = Array.from(new Set([...existingImages, ...newImages]));
-          
+
           return {
             ...category,
             images: allImages,
@@ -220,7 +221,7 @@ function App() {
   const handleAddTags = async () => {
     // 获取选中的图片
     const selectedImagesList = images.filter(img => selectedImages.has(img.id));
-    
+
     const { updatedImages, success } = await addTagsToImages(
       selectedImagesList,
       images,
@@ -242,7 +243,7 @@ function App() {
     {
       icon: <FolderPlus size={20} />,
       label: 'Add to Category',
-      onClick: () => {},
+      onClick: () => { },
       categories: categories,
       onSelectCategories: handleAddToCategory
     },
@@ -252,19 +253,6 @@ function App() {
       onClick: handleAddTags
     }
   ];
-
-  const generateHashId = (filePath: string, fileSize: number): string => {
-    // 使用路径和大小创建唯一字符串
-    const str = `${filePath}-${fileSize}`;
-    // 简单的哈希函数
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return Math.abs(hash).toString(16);
-  };
 
   const handleImportImages = async () => {
     try {
@@ -286,7 +274,7 @@ function App() {
           ...img,
           id: generateHashId(img.path, img.size)
         }))];
-        
+
         // 将 ImageInfo 转换为 LocalImageData
         const localImageDataList: LocalImageData[] = updatedImages.map(img => {
           const { dateCreated, dateModified, ...rest } = img;
@@ -305,6 +293,14 @@ function App() {
     }
   };
 
+  const handleAddImages = async (newImages: ImageInfo[]) => {
+    const newImagesData = newImages.filter(img => !images.some(existingImg => existingImg.id === img.id));
+    await window.electron.saveImagesToJson(
+      [...images, ...newImagesData],
+      categories
+    );
+    setImages([...images, ...newImagesData]);
+  };
   // 在组件加载时读取已保存的图片数据
   useEffect(() => {
     const loadImages = async () => {
@@ -333,10 +329,10 @@ function App() {
       images: [],
       count: 0
     };
-    
+
     const updatedCategories = [...categories, categoryWithImages];
     setCategories(updatedCategories);
-    
+
     try {
       await window.electron.saveImagesToJson(
         images.map(img => ({
@@ -354,8 +350,8 @@ function App() {
   const handleRenameCategory = async (categoryId: string, newName: string) => {
     try {
       // 更新内存中的分类数据
-      const updatedCategories = categories.map(category => 
-        category.id === categoryId 
+      const updatedCategories = categories.map(category =>
+        category.id === categoryId
           ? { ...category, name: newName }
           : category
       );
@@ -390,49 +386,57 @@ function App() {
   };
 
   const handleReorderCategories = (newCategories: Category[]) => {
-    console.log('newCategories', newCategories); 
+    console.log('newCategories', newCategories);
     window.electron.saveCategories(newCategories);
     setCategories(newCategories);
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
-      {isSidebarOpen && (
-        <Sidebar
-          selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
-          categories={categories}
-          filter={filter}
-          onFilterChange={setFilter}
-          onAddCategory={handleAddCategory}
-          onRenameCategory={handleRenameCategory}
-          onDeleteCategory={handleDeleteCategory}
-          onUpdateCategories={handleReorderCategories}
-        />
-      )}
-      <div className="flex overflow-hidden flex-col flex-1">
-        <Toolbar
-          viewMode={viewMode}
-          sortBy={sortBy}
-          sortDirection={sortDirection}
-          onViewModeChange={setViewMode}
-          onSortChange={handleSort}
-          onSearch={handleSearch}
-          selectedCount={selectedImages.size}
-          bulkActions={selectedImages.size > 0 ? bulkActions : []}
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-          onImport={handleImportImages}
-          isSidebarOpen={isSidebarOpen}
-        />
-        <div className="overflow-y-auto flex-1">
-          <ImageGrid 
-            images={filteredAndSortedImages}
-            onFavorite={handleFavorite} 
-            viewMode={viewMode}
-            selectedImages={selectedImages}
-            onSelectImage={handleImageSelect}
-            updateTagsByMediaId={updateTagsByMediaId}
+    <div className="flex h-screen backdrop-blur-md dark:bg-gray-900 bg-white/20"
+      style={{
+        backgroundImage: "url('https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/%E8%8D%89%E5%8E%9F%E7%89%9B%E5%9B%BE%E7%94%9F%E6%88%90.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}>
+      <div className="flex w-full h-full bg-white bg-opacity-25 backdrop-blur-sm">
+        {isSidebarOpen && (
+          <Sidebar
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+            categories={categories}
+            filter={filter}
+            onFilterChange={setFilter}
+            onAddCategory={handleAddCategory}
+            onRenameCategory={handleRenameCategory}
+            onDeleteCategory={handleDeleteCategory}
+            onUpdateCategories={handleReorderCategories}
           />
+        )}
+        <div className="flex overflow-hidden relative flex-col flex-1">
+          <Toolbar
+            viewMode={viewMode}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onViewModeChange={setViewMode}
+            onSortChange={handleSort}
+            onSearch={handleSearch}
+            selectedCount={selectedImages.size}
+            bulkActions={selectedImages.size > 0 ? bulkActions : []}
+            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+            onImport={handleImportImages}
+            isSidebarOpen={isSidebarOpen}
+          />
+          <div className="overflow-y-auto flex-1">
+            <ImageGrid
+              images={filteredAndSortedImages}
+              onFavorite={handleFavorite}
+              viewMode={viewMode}
+              selectedImages={selectedImages}
+              onSelectImage={handleImageSelect}
+              updateTagsByMediaId={updateTagsByMediaId}
+              addImages={handleAddImages}
+            />
+          </div>
         </div>
       </div>
     </div>

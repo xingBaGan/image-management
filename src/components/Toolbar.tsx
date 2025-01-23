@@ -104,11 +104,11 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
   return (
     <>
-      <div className="flex relative justify-between items-center px-6 h-16 bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+      <div className="flex relative z-20 justify-between items-center px-6 h-16 bg-white bg-opacity-30 border-b backdrop-blur-sm dark:bg-gray-800 dark:bg-opacity-30 dark:border-gray-700">
         <div className="flex items-center space-x-4">
           <button
             onClick={onToggleSidebar}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="p-2 rounded-lg hover:bg-gray-100 hover:bg-opacity-80 dark:hover:bg-gray-700 dark:hover:bg-opacity-80"
             title={isSidebarOpen ? "收起侧边栏" : "展开侧边栏"}
           >
             <Menu size={20} />
