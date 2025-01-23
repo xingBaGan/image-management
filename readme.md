@@ -2,7 +2,7 @@
 
 一个简洁优雅的本地图片管理工具,帮助你轻松管理和组织图片资源。
 
-![atujii](./asserts/atujii.png)
+![atujii](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/soft1.png)
 ## 主要功能
 
 ### 图片管理
