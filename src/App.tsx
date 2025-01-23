@@ -389,6 +389,12 @@ function App() {
     setImages(updatedImages);
   };
 
+  const handleReorderCategories = (newCategories: Category[]) => {
+    console.log('newCategories', newCategories); 
+    window.electron.saveCategories(newCategories);
+    setCategories(newCategories);
+  };
+
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       {isSidebarOpen && (
@@ -401,6 +407,7 @@ function App() {
           onAddCategory={handleAddCategory}
           onRenameCategory={handleRenameCategory}
           onDeleteCategory={handleDeleteCategory}
+          onUpdateCategories={handleReorderCategories}
         />
       )}
       <div className="flex overflow-hidden flex-col flex-1">
