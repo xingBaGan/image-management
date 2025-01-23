@@ -40,16 +40,11 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     if (image.type === 'video') {
       return (
         <div className="relative w-full h-0 pb-[56.25%]">
-          <img
-            src={image.thumbnail || image.path}
-            alt={image.name}
+          <video
+            src={image.path}
             className="object-cover absolute inset-0 w-full h-full rounded-lg"
+            controls
           />
-          <div className="flex absolute inset-0 justify-center items-center">
-            <div className="p-3 bg-black bg-opacity-50 rounded-full">
-              <Play className="w-8 h-8 text-white" />
-            </div>
-          </div>
           {image.duration && (
             <div className="absolute right-2 bottom-2 px-2 py-1 text-sm text-white bg-black bg-opacity-50 rounded">
               {Math.floor(image.duration / 60)}:{(image.duration % 60).toString().padStart(2, '0')}
