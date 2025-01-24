@@ -21,6 +21,19 @@ export const getVideoDuration = async (file: File) => {
   return video.duration;
 };
 
+export const getImageSize = async (file: File) => {
+  let image = new Image();
+  image.src = URL.createObjectURL(file);
+  return new Promise<{ width: number; height: number }>((resolve, reject) => {
+    image.onload = () => {
+      resolve({ width: image.width, height: image.height })
+      // 释放内存
+      // image.src = '';
+    };
+    image.onerror = reject;
+  });
+};
+
 export const processImages = async (files: File[], existingImages: ImageInfo[], categories: Category[]): Promise<LocalImageData[]> => {
   const existingIds = new Set((existingImages || []).map(img => img.id));
   const filteredNewImages = files.filter(file => {
@@ -38,6 +51,12 @@ export const processImages = async (files: File[], existingImages: ImageInfo[], 
     const newId = generateHashId(file.path, file.size);
     const type = file.type.startsWith('video/') ? 'video' : 'image';
     const tags = autoTaggingEnabled ? await window.electron.tagImage(file.path, defaultModel) : [];
+    let imageSize = { width: 0, height: 0 };
+    try {
+      imageSize = await getImageSize(file);
+    } catch (error) {
+      console.error('获取图片尺寸失败', error);
+    }
     return {
       id: newId,
       path: 'local-image://' + file.path,
@@ -51,6 +70,9 @@ export const processImages = async (files: File[], existingImages: ImageInfo[], 
       type: type as 'image' | 'video',
       duration: type === 'video' ? await getVideoDuration(file) : undefined,
       thumbnail: type === 'video' ? await generateVideoThumbnail(file) : undefined,
+      width: type === 'image' ? imageSize.width : undefined,
+      height: type === 'image' ? imageSize.height : undefined,
+      rate: 0,
     };
   }));
 

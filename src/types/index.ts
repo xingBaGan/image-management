@@ -12,15 +12,13 @@ export interface BaseImageData {
 }
 
 export interface ImageInfo extends BaseImageData {
-  url: string;
-  width: number;
-  height: number;
+  url?: string;
 }
 
 export interface LocalImageData extends BaseImageData {
-  url: string;
-  width: number;
-  height: number;
+  url?: string;
+  width?: number;
+  height?: number;
 }
 
 export type BaseImage = {
@@ -34,6 +32,9 @@ export type BaseImage = {
   type: 'image' | 'video';
   duration?: number;
   thumbnail?: string;
+  rate?: number;
+  width?: number;
+  height?: number;
 }
 
 export type Image = LocalImageData;

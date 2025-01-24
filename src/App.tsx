@@ -459,7 +459,7 @@ function App() {
               <ImageInfoSidebar
                 image={selectedImageForInfo}
                 onTagsUpdate={updateTagsByMediaId}
-                totalImages={images.length}
+                totalImages={images.filter(img => img.type !== 'video').length}
               />
             </div>
           </div>
