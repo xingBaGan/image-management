@@ -166,7 +166,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className="space-y-1"
+                  className="overflow-y-auto space-y-1"
+                  style={{
+                    maxHeight: 'calc(100vh - 280px)',
+                    overflowY: 'auto',
+                  }}
                 >
                   {categories.map((category, index) => (
                     <Draggable
@@ -178,7 +182,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
-                          className={`relative group ${
+                          className={`group ${
                             selectedCategory === category.id ? 'bg-gray-100 dark:bg-gray-700' : ''
                           } rounded-lg`}
                         >
@@ -230,7 +234,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                               </>
                             )}
 
-                            <div className="relative">
+                            <div>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -244,7 +248,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                               </button>
 
                               {showDropdown === category.id && (
-                                <div className="absolute right-[-5] z-10 mt-2 w-48 bg-white rounded-md ring-1 ring-black ring-opacity-5 shadow-lg dark:bg-gray-700 dropdown-content">
+                                <div className="absolute
+                                 right-[-5] z-10 mt-2 w-48 bg-white rounded-md ring-1 ring-black ring-opacity-5 shadow-lg dark:bg-gray-700 dropdown-content">
                                   <div className="py-1">
                                     <button
                                       onClick={(e) => {

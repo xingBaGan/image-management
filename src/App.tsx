@@ -7,6 +7,7 @@ import { Trash2, FolderPlus, Tags } from 'lucide-react';
 import { addTagsToImages } from './services/tagService';
 import { generateHashId, processImages } from './utils';
 import DeleteConfirmDialog from './components/DeleteConfirmDialog';
+import './App.css';
 
 function App() {
   const [selectedCategory, setSelectedCategory] = useState<string>('photos');
