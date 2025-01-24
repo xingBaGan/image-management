@@ -5,7 +5,8 @@ import ImageGrid from './components/ImageGrid';
 import { Category, ViewMode, SortBy, ImageInfo, FilterType, LocalImageData } from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
 import { addTagsToImages } from './services/tagService';
-import { generateHashId } from './utils';
+import { generateHashId, processImages } from './utils';
+import DeleteConfirmDialog from './components/DeleteConfirmDialog';
 
 function App() {
   const [selectedCategory, setSelectedCategory] = useState<string>('photos');
@@ -19,7 +20,7 @@ function App() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchTags, setSearchTags] = useState<string[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-
+  const [isTagging, setIsTagging] = useState<boolean>(false);
   useEffect(() => {
     // console.log('selectedCategory', selectedCategory);
     if (selectedCategory === 'favorites') {
@@ -259,39 +260,10 @@ function App() {
     try {
       const newImages = await window.electron.showOpenDialog();
       if (newImages.length > 0) {
-        const existingIds = new Set(images.map(img => img.id));
-        const filteredNewImages = newImages.filter(img => {
-          const newId = generateHashId(img.path, img.size);
-          return !existingIds.has(newId);
-        });
-
-        if (filteredNewImages.length === 0) {
-          console.log('所有图片都已经存在');
-          return;
-        }
-
-        const autoTaggingEnabled = (await window.electron.loadSettings()).autoTagging;
-        const updatedImages = await Promise.all(filteredNewImages.map(async img => {
-          const newId = generateHashId(img.path, img.size);
-          const tags = autoTaggingEnabled ? await window.electron.tagImage(img.path, 'default-model') : [];
-          return {
-            ...img,
-            id: newId,
-            tags
-          };
-        }));
-
-        const localImageDataList: LocalImageData[] = [...images, ...updatedImages].map(img => {
-          const { dateCreated, dateModified, ...rest } = img;
-          return {
-            ...rest,
-            dateCreated: dateCreated,
-            dateModified: dateModified
-          };
-        });
-
-        await window.electron.saveImagesToJson(localImageDataList, categories);
+        setIsTagging(true);
+        const updatedImages = await processImages(newImages as any, images, categories);
         setImages([...images, ...updatedImages]);
+        setIsTagging(false);
       }
     } catch (error) {
       console.error('导入图片失败:', error);
@@ -446,35 +418,19 @@ function App() {
               onSelectImage={handleImageSelect}
               updateTagsByMediaId={updateTagsByMediaId}
               addImages={handleAddImages}
+              existingImages={images}
+              categories={categories}
+              setIsTagging={setIsTagging}
+              isTagging={isTagging}
             />
           </div>
         </div>
       </div>
       {showDeleteConfirm && (
-        <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50">
-          <div className="relative p-6 w-80 bg-white rounded-lg dark:bg-gray-800">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-              确认删除
-            </h3>
-            <p className="mb-6 text-gray-600 dark:text-gray-300">
-              确定要删除这个分类吗？此操作无法撤销。
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setShowDeleteConfirm(null)}
-                className="px-4 py-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                取消
-              </button>
-              <button
-                onClick={() => handleDeleteConfirm(showDeleteConfirm)}
-                className="px-4 py-2 text-white bg-red-500 rounded-md hover:bg-red-600"
-              >
-                删除
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteConfirmDialog
+          onCancel={() => setShowDeleteConfirm(null)}
+          onConfirm={() => handleDeleteConfirm(showDeleteConfirm)}
+        />
       )}
     </div>
   );

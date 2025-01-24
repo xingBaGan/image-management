@@ -1,4 +1,8 @@
-const defaultModel = 'wd-v1-4-moat-tagger-v2';
+import { defaultModel } from './config.ts';
+import { LocalImageData } from './types/index.ts';
+import { Category } from './types/index.ts';
+import { ImageInfo } from './types/index.ts';
+
 export const generateHashId = (filePath: string, fileSize: number): string => {
   const str = `${filePath}-${fileSize}`;
   let hash = 0;
@@ -17,39 +21,58 @@ export const getVideoDuration = async (file: File) => {
   return video.duration;
 };
 
-export const handleDrop = async (e: React.DragEvent, addImages: (newImages: any[]) => void) => {
-  e.preventDefault();
-  const files = e.dataTransfer.files;
-  const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'));
-  const autoTaggingEnabled = (await window.electron.loadSettings()).autoTagging;
-  if (imageFiles.length > 0) {
-    const newImages = await Promise.all(imageFiles.map(async (file) => {
-      let filePath = file.path;
-      const originFilePath = file.path;
-      const fileName = file.name;
-      const fileSize = file.size;
-      const dateModified = file.lastModified;
-      const dateCreated = new Date().toISOString();
-      filePath = `local-image://${filePath}`
-      const id = generateHashId(filePath, fileSize);
-      return {
-        id,
-        path: filePath,
-        name: fileName,
-        size: fileSize,
-        dateCreated: dateCreated,
-        dateModified: new Date(dateModified).toISOString(),
-        tags: autoTaggingEnabled ? await window.electron.tagImage(originFilePath, defaultModel) : [],
-        favorite: false,
-        categories: [],
-        type: file.type.startsWith('video/') ? 'video' : 'image',
-        duration: file.type.startsWith('video/') ? await getVideoDuration(file) : undefined,
-        thumbnail: file.type.startsWith('video/') ? await generateVideoThumbnail(file) : undefined,
-      };
-    }));
+export const processImages = async (files: File[], existingImages: ImageInfo[], categories: Category[]): Promise<LocalImageData[]> => {
+  const existingIds = new Set((existingImages || []).map(img => img.id));
+  const filteredNewImages = files.filter(file => {
+    const newId = generateHashId(file.path, file.size);
+    return !existingIds.has(newId);
+  });
 
-    addImages(newImages);
+  if (filteredNewImages.length === 0) {
+    console.log('所有图片都已经存在');
+    return [];
   }
+
+  const autoTaggingEnabled = (await window.electron.loadSettings()).autoTagging;
+  const updatedImages = await Promise.all(filteredNewImages.map(async file => {
+    const newId = generateHashId(file.path, file.size);
+    const type = file.type.startsWith('video/') ? 'video' : 'image';
+    const tags = autoTaggingEnabled ? await window.electron.tagImage(file.path, defaultModel) : [];
+    return {
+      id: newId,
+      path: 'local-image://' + file.path,
+      name: file.name,
+      size: file.size,
+      dateCreated: new Date().toISOString(),
+      dateModified: new Date(file.lastModified).toISOString(),
+      tags,
+      favorite: false,
+      categories: [],
+      type: type as 'image' | 'video',
+      duration: type === 'video' ? await getVideoDuration(file) : undefined,
+      thumbnail: type === 'video' ? await generateVideoThumbnail(file) : undefined,
+    };
+  }));
+
+  const localImageDataList: LocalImageData[] = [...(existingImages || []), ...updatedImages];
+
+  await window.electron.saveImagesToJson(localImageDataList, categories);
+  return updatedImages;
+};
+
+export const handleDrop = async (
+  e: React.DragEvent,
+  addImages: (newImages: LocalImageData[]) => void,
+  existingImages: ImageInfo[],
+  categories: Category[], 
+  setIsTagging: (isTagging: boolean) => void
+) => {
+  e.preventDefault();
+  const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'));
+  setIsTagging(true);
+  const newImages = await processImages(files, existingImages, categories);
+  addImages(newImages);
+  setIsTagging(false);
 };
 
 export const generateVideoThumbnail = async (file: File): Promise<string> => {

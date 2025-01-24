@@ -1,0 +1,1 @@
+export const defaultModel = 'wd-v1-4-moat-tagger-v2';

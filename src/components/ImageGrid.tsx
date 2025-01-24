@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import Masonry from 'react-masonry-css';
 import { Heart, MoreVertical, FileText, Calendar, Check, Play } from 'lucide-react';
-import { Image as ImageType, ViewMode } from '../types';
+import { Category, Image as ImageType, ViewMode } from '../types';
 import MediaViewer from './MediaViewer';
 import { handleDrop as handleDropUtil } from '../utils';
+import DragOverlay from './DragOverlay';
 
 interface ImageGridProps {
   images: ImageType[];
@@ -13,6 +14,10 @@ interface ImageGridProps {
   onSelectImage: (id: string, isShiftKey: boolean) => void;
   updateTagsByMediaId: (mediaId: string, newTags: string[]) => void;
   addImages: (newImages: ImageType[]) => void;
+  existingImages: ImageType[];
+  categories: Category[];
+  setIsTagging: (isTagging: boolean) => void;
+  isTagging: boolean;
 }
 
 const ImageGrid: React.FC<ImageGridProps> = ({
@@ -23,10 +28,14 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   onSelectImage,
   updateTagsByMediaId,
   addImages,
+  existingImages,
+  categories,
+  setIsTagging,
+  isTagging,
 }) => {
   const [viewingMedia, setViewingMedia] = useState<ImageType | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-
+  console.log("----isTagging", isTagging);
   const breakpointColumns = {
     default: 4,
     1536: 3,
@@ -115,13 +124,9 @@ const ImageGrid: React.FC<ImageGridProps> = ({
         <div className="p-6" 
              onDragEnter={() => setIsDragging(true)} 
              onDragOver={(e) => e.preventDefault()} 
-             onDrop={(e) => { handleDropUtil(e, addImages); setIsDragging(false); }}
+             onDrop={async (e) => { await handleDropUtil(e, addImages, existingImages, categories, setIsTagging); setIsDragging(false); }}
              onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false); }}>
-          {isDragging && (
-            <div className="flex absolute inset-0 z-10 justify-center items-center bg-black bg-opacity-30 backdrop-blur-sm">
-              <span className="text-lg text-white">Release to upload</span>
-            </div>
-          )}
+          <DragOverlay isDragging={isDragging} isTagging={isTagging} />
           <div className="bg-white bg-opacity-60 rounded-lg shadow dark:bg-gray-800">
             <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 border-b dark:border-gray-700 font-medium text-gray-500 dark:text-gray-400">
               <div className="w-12"></div>
@@ -237,13 +242,9 @@ const ImageGrid: React.FC<ImageGridProps> = ({
       <div className="p-6 w-full h-full" 
            onDragEnter={() => setIsDragging(true)} 
            onDragOver={(e) => e.preventDefault()} 
-           onDrop={(e) => { handleDropUtil(e, addImages); setIsDragging(false); }}
+           onDrop={async (e) => { await handleDropUtil(e, addImages, existingImages, categories, setIsTagging); setIsDragging(false); }}
            onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false); }}>
-          {isDragging && (
-            <div className="flex absolute inset-0 z-10 justify-center items-center bg-black bg-opacity-30 backdrop-blur-sm">
-              <span className="text-lg text-white">Release to upload</span>
-            </div>
-          )}
+          <DragOverlay isDragging={isDragging} isTagging={isTagging} />
           <Masonry
             breakpointCols={breakpointColumns}
             className="flex -ml-6 [&>*]:will-change-[transform,opacity] [&>*]:transition-all [&>*]:duration-500 [&>*]:ease-[cubic-bezier(0.4,0,0.2,1)]"
