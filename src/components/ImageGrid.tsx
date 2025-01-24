@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Masonry from 'react-masonry-css';
 import { Heart, MoreVertical, FileText, Calendar, Check, Play } from 'lucide-react';
-import { Category, Image as ImageType, ViewMode } from '../types';
+import { BaseImage, Category, Image as ImageType, ViewMode } from '../types';
 import MediaViewer from './MediaViewer';
 import { handleDrop as handleDropUtil } from '../utils';
 import DragOverlay from './DragOverlay';
@@ -18,6 +18,7 @@ interface ImageGridProps {
   categories: Category[];
   setIsTagging: (isTagging: boolean) => void;
   isTagging: boolean;
+  onRateChange: (mediaId: string, rate: number) => void;
 }
 
 const ImageGrid: React.FC<ImageGridProps> = ({
@@ -48,7 +49,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     640: 1,
   };
 
-  const renderMediaItem = (image: ImageType) => {
+  const renderMediaItem = (image: BaseImage) => {
     if (image.type === 'video') {
       return (
         <div className="relative w-full h-0 pb-[56.25%]">

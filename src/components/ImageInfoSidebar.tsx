@@ -1,15 +1,17 @@
 import React from 'react';
-import { ImageInfo } from '../types';
+import { LocalImageData, ImageInfo } from '../types';
 import { formatFileSize, formatDate } from '../utils';
 import MediaTags from './MediaTags';
+import Rating from './Rating';
 
 interface ImageInfoSidebarProps {
-    image: ImageInfo | null;
+    image: LocalImageData | null;
     onTagsUpdate: (mediaId: string, newTags: string[]) => void;
+    onRateChange: (mediaId: string, rate: number) => void;
     totalImages: number;
 }
 
-const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({ image, onTagsUpdate, totalImages }) => {
+const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({ image, onTagsUpdate, onRateChange, totalImages }) => {
     if (!image) return (
         <div className="overflow-y-auto p-4 w-60 border-l border-gray-200 backdrop-blur-md bg-white/30 dark:bg-gray-800/30 dark:border-gray-700"
             style={{
@@ -68,6 +70,14 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({ image, onTagsUpdate
                     <div>
                         <label className="text-sm text-gray-500 dark:text-gray-400">修改日期</label>
                         <p className="text-gray-900 dark:text-white">{formatDate(image.dateModified)}</p>
+                    </div>
+
+                    <div>
+                        <label className="text-sm text-gray-500 dark:text-gray-400">评分</label>
+                        <Rating
+                            value={image.rate || 0}
+                            onChange={(value) => onRateChange(image.id, value)}
+                        />
                     </div>
 
                     <div>

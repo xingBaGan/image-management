@@ -392,6 +392,15 @@ function App() {
     setImages(updatedImages);
   };
 
+  const handleRateChange = (mediaId: string, rate: number) => {
+    const updatedImages = images.map(img =>
+      img.id === mediaId ? { ...img, rate } : img
+    );
+    window.electron.saveImagesToJson(updatedImages, categories);
+    setImages(updatedImages);
+    setSelectedImageForInfo(updatedImages.find(img => img.id === mediaId) || null);
+  };
+
   const handleReorderCategories = (newCategories: Category[]) => {
     console.log('newCategories', newCategories);
     window.electron.saveCategories(newCategories);
@@ -459,6 +468,7 @@ function App() {
               <ImageInfoSidebar
                 image={selectedImageForInfo}
                 onTagsUpdate={updateTagsByMediaId}
+                onRateChange={handleRateChange}
                 totalImages={images.filter(img => img.type !== 'video').length}
               />
             </div>
