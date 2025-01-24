@@ -8,7 +8,6 @@ interface MediaViewerProps {
   onClose: () => void;
   onPrevious?: () => void;
   onNext?: () => void;
-  onTagsUpdate?: (mediaId: string, newTags: string[]) => void;
 }
 
 const MediaViewer: React.FC<MediaViewerProps> = ({
@@ -16,7 +15,6 @@ const MediaViewer: React.FC<MediaViewerProps> = ({
   onClose,
   onPrevious,
   onNext,
-  onTagsUpdate,
 }) => {
   if (!media) return null;
 
@@ -86,14 +84,6 @@ const MediaViewer: React.FC<MediaViewerProps> = ({
             src={media.path}
             alt={media.name}
             className="max-w-full max-h-[80vh] object-contain rounded-lg"
-          />
-        )}
-
-        {onTagsUpdate && (
-          <MediaTags
-            tags={media.tags || []}
-            mediaId={media.id}
-            onTagsUpdate={onTagsUpdate}
           />
         )}
       </div>

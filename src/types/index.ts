@@ -1,3 +1,28 @@
+export interface BaseImageData {
+  id: string;
+  name: string;
+  path: string;
+  size: number;
+  type: string;
+  dateCreated: string;
+  dateModified: string;
+  favorite?: boolean;
+  tags: string[];
+  categories?: string[];
+}
+
+export interface ImageInfo extends BaseImageData {
+  url: string;
+  width: number;
+  height: number;
+}
+
+export interface LocalImageData extends BaseImageData {
+  url: string;
+  width: number;
+  height: number;
+}
+
 export type BaseImage = {
   id: string;
   name: string;
@@ -9,16 +34,6 @@ export type BaseImage = {
   type: 'image' | 'video';
   duration?: number;
   thumbnail?: string;
-}
-
-export interface LocalImageData extends BaseImage {
-  dateCreated: string;
-  dateModified: string;
-}
-
-export interface ImageInfo extends BaseImage {
-  dateCreated: string;
-  dateModified: string;
 }
 
 export type Image = LocalImageData;

@@ -140,7 +140,7 @@ async function _startComfyUIServer(comfyUI_url) {
 
 async function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 1200,
+    width: 1520,
     height: 800,
     webPreferences: {
       nodeIntegration: true,

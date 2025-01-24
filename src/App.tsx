@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar';
 import ImageGrid from './components/ImageGrid';
+import ImageInfoSidebar from './components/ImageInfoSidebar';
 import { Category, ViewMode, SortBy, ImageInfo, FilterType, LocalImageData } from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
 import { addTagsToImages } from './services/tagService';
@@ -22,6 +23,8 @@ function App() {
   const [searchTags, setSearchTags] = useState<string[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [isTagging, setIsTagging] = useState<boolean>(false);
+  const [selectedImageForInfo, setSelectedImageForInfo] = useState<ImageInfo | null>(null);
+
   useEffect(() => {
     // console.log('selectedCategory', selectedCategory);
     if (selectedCategory === 'favorites') {
@@ -128,14 +131,13 @@ function App() {
   const handleImageSelect = (id: string, isShiftKey: boolean) => {
     setSelectedImages(prev => {
       const newSelection = new Set<string>();
-      
-      // 如果id为空，表示清除所有选中状态
+
       if (!id) {
+        setSelectedImageForInfo(null);
         return newSelection;
       }
 
       if (isShiftKey) {
-        // Shift + 左键：保持原有选择，并切换当前图片的选中状态
         prev.forEach(imageId => newSelection.add(imageId));
         if (newSelection.has(id)) {
           newSelection.delete(id);
@@ -143,16 +145,23 @@ function App() {
           newSelection.add(id);
         }
       } else {
-        // 普通左键：只选中当前图片
         if (prev.has(id) && prev.size === 1) {
-          // 如果只有当前图片被选中，则取消选中
           newSelection.clear();
         } else {
-          // 否则只选中当前图片
           newSelection.add(id);
         }
       }
-      
+
+      // 更新选中图片的信息显示
+      if (newSelection.size > 0) {
+        // 获取第一个选中的图片ID
+        const firstSelectedId = Array.from(newSelection)[0];
+        const selectedImage = images.find(img => img.id === firstSelectedId);
+        setSelectedImageForInfo(selectedImage || null);
+      } else {
+        setSelectedImageForInfo(null);
+      }
+
       return newSelection;
     });
   };
@@ -430,20 +439,29 @@ function App() {
             onImport={handleImportImages}
             isSidebarOpen={isSidebarOpen}
           />
-          <div className="overflow-y-auto flex-1">
-            <ImageGrid
-              images={filteredAndSortedImages}
-              onFavorite={handleFavorite}
-              viewMode={viewMode}
-              selectedImages={selectedImages}
-              onSelectImage={handleImageSelect}
-              updateTagsByMediaId={updateTagsByMediaId}
-              addImages={handleAddImages}
-              existingImages={images}
-              categories={categories}
-              setIsTagging={setIsTagging}
-              isTagging={isTagging}
-            />
+          <div className="flex overflow-y-auto flex-1">
+            <div className={`flex-1 mr-60`}>
+              <ImageGrid
+                images={filteredAndSortedImages}
+                onFavorite={handleFavorite}
+                viewMode={viewMode}
+                selectedImages={selectedImages}
+                onSelectImage={handleImageSelect}
+                updateTagsByMediaId={updateTagsByMediaId}
+                addImages={handleAddImages}
+                existingImages={images}
+                categories={categories}
+                setIsTagging={setIsTagging}
+                isTagging={isTagging}
+              />
+            </div>
+            <div className="fixed right-0 bottom-0 top-16">
+              <ImageInfoSidebar
+                image={selectedImageForInfo}
+                onTagsUpdate={updateTagsByMediaId}
+                totalImages={images.length}
+              />
+            </div>
           </div>
         </div>
       </div>
