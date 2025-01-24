@@ -17,6 +17,7 @@ interface SidebarProps {
   onRenameCategory: (id: string, newName: string) => void;
   onDeleteCategory: (id: string) => void;
   onUpdateCategories?: (categories: Category[]) => void;
+  setShowDeleteConfirm: (id: string | null) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -27,13 +28,13 @@ const Sidebar: React.FC<SidebarProps> = ({
   onRenameCategory,
   onDeleteCategory,
   onUpdateCategories,
+  setShowDeleteConfirm,
 }) => {
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [showDropdown, setShowDropdown] = useState<string | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -97,14 +98,13 @@ const Sidebar: React.FC<SidebarProps> = ({
     onUpdateCategories(reorderedCategories);
   };
 
-  const handleDeleteConfirm = (categoryId: string) => {
-    onDeleteCategory(categoryId);
-    setShowDeleteConfirm(null);
+  const handleDeleteRequest = (categoryId: string) => {
+    setShowDeleteConfirm(categoryId);
     setShowDropdown(null);
   };
 
   return (
-    <div className="w-64 h-full bg-white bg-opacity-30 border-r border-gray-200 backdrop-blur-sm dark:bg-gray-800 dark:bg-opacity-30 dark:border-gray-700">
+    <div className="z-10 w-48 h-full bg-white bg-opacity-30 border-r border-gray-200 backdrop-blur-sm dark:bg-gray-800 dark:bg-opacity-30 dark:border-gray-700">
       <div className="p-4">
         <div className="space-y-2">
           {[
@@ -207,7 +207,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                                     setEditingName('');
                                   }
                                 }}
-                                className="flex-1 px-2 py-1 text-sm bg-transparent rounded border dark:text-white edit-input"
+                                className="flex-1 px-2 py-1 w-full text-sm bg-transparent rounded border dark:text-white edit-input"
                                 autoFocus
                                 placeholder="输入分类名称"
                                 title="编辑分类名称"
@@ -244,7 +244,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                               </button>
 
                               {showDropdown === category.id && (
-                                <div className="absolute right-0 z-10 mt-2 w-48 bg-white rounded-md ring-1 ring-black ring-opacity-5 shadow-lg dark:bg-gray-700 dropdown-content">
+                                <div className="absolute right-[-5] z-10 mt-2 w-48 bg-white rounded-md ring-1 ring-black ring-opacity-5 shadow-lg dark:bg-gray-700 dropdown-content">
                                   <div className="py-1">
                                     <button
                                       onClick={(e) => {
@@ -259,10 +259,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                                       重命名
                                     </button>
                                     <button
-                                      onClick={() => {
-                                        setShowDeleteConfirm(category.id);
-                                        setShowDropdown(null);
-                                      }}
+                                      onClick={() => handleDeleteRequest(category.id)}
                                       className="flex items-center px-4 py-2 w-full text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-600"
                                     >
                                       <Trash2 size={14} className="mr-2" />
@@ -284,33 +281,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           </DragDropContext>
         </div>
       </div>
-
-      {showDeleteConfirm && (
-        <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50">
-          <div className="relative p-6 w-80 bg-white rounded-lg dark:bg-gray-800">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-              确认删除
-            </h3>
-            <p className="mb-6 text-gray-600 dark:text-gray-300">
-              确定要删除这个分类吗？此操作无法撤销。
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setShowDeleteConfirm(null)}
-                className="px-4 py-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                取消
-              </button>
-              <button
-                onClick={() => handleDeleteConfirm(showDeleteConfirm)}
-                className="px-4 py-2 text-white bg-red-500 rounded-md hover:bg-red-600"
-              >
-                删除
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

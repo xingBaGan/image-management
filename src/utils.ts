@@ -1,3 +1,4 @@
+const defaultModel = 'wd-v1-4-moat-tagger-v2';
 export const generateHashId = (filePath: string, fileSize: number): string => {
   const str = `${filePath}-${fileSize}`;
   let hash = 0;
@@ -20,10 +21,11 @@ export const handleDrop = async (e: React.DragEvent, addImages: (newImages: any[
   e.preventDefault();
   const files = e.dataTransfer.files;
   const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'));
-
+  const autoTaggingEnabled = (await window.electron.loadSettings()).autoTagging;
   if (imageFiles.length > 0) {
     const newImages = await Promise.all(imageFiles.map(async (file) => {
       let filePath = file.path;
+      const originFilePath = file.path;
       const fileName = file.name;
       const fileSize = file.size;
       const dateModified = file.lastModified;
@@ -37,7 +39,7 @@ export const handleDrop = async (e: React.DragEvent, addImages: (newImages: any[
         size: fileSize,
         dateCreated: dateCreated,
         dateModified: new Date(dateModified).toISOString(),
-        tags: [],
+        tags: autoTaggingEnabled ? await window.electron.tagImage(originFilePath, defaultModel) : [],
         favorite: false,
         categories: [],
         type: file.type.startsWith('video/') ? 'video' : 'image',

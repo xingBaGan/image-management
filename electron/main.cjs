@@ -16,14 +16,27 @@ const getSettingsPath = () => {
 const loadSettings = async () => {
   try {
     const settingsPath = getSettingsPath();
-    if (fs.existsSync(settingsPath)) {
-      const data = await fsPromises.readFile(settingsPath, 'utf8');
-      return JSON.parse(data);
+    if (!fs.existsSync(settingsPath)) {
+      const defaultSettings = {
+        autoTagging: true,
+        ComfyUI_URL: 'http://localhost:8188'
+      };
+      console.log('不存在文件, 创建文件');
+      await fsPromises.writeFile(
+        settingsPath,
+        JSON.stringify(defaultSettings, null, 2),
+        'utf8' // 修正编码为 'utf8'
+      );
+      return defaultSettings;
     }
-    return {};
+    const data = await fsPromises.readFile(settingsPath, 'utf8');
+    return JSON.parse(data);
   } catch (error) {
     console.error('加载设置失败:', error);
-    return {};
+    return {
+      autoTagging: false, // 返回默认值以防止空对象
+      ComfyUI_URL: ''
+    };
   }
 };
 
@@ -46,17 +59,17 @@ const saveSettings = async (settings) => {
 // 读取 .env 文件
 const loadEnvConfig = () => {
   try {
-    const envPath = isDev 
+    const envPath = isDev
       ? path.join(__dirname, '..', '.env')
       : path.join(process.resourcesPath, '.env');
-    
+
     if (fs.existsSync(envPath)) {
       const envConfig = fs.readFileSync(envPath, 'utf8');
       const config = {};
       envConfig.split('\n').forEach(line => {
         // 忽略注释和空行
         if (line.startsWith('#') || !line.trim()) return;
-        
+
         const [key, ...valueParts] = line.split('=');
         if (key && valueParts.length > 0) {
           // 处理值中可能包含 = 的情况
@@ -80,7 +93,7 @@ const envConfig = loadEnvConfig();
 Object.assign(process.env, envConfig);
 let ComfyUI_URL = process.env.ComfyUI_URL;
 
-const isRemoteComfyUI = function(){
+const isRemoteComfyUI = function () {
   initializeSettings();
   return !(ComfyUI_URL.includes('localhost') || ComfyUI_URL.includes('127.0.0.1'));
 }
@@ -95,7 +108,7 @@ const initializeSettings = async () => {
 
 // 启动 ComfyUI 服务器
 async function _startComfyUIServer(comfyUI_url) {
-  const serverPath = isDev 
+  const serverPath = isDev
     ? path.join(__dirname, '..', 'comfyui_client', 'dist', 'server.js')
     : path.join(process.resourcesPath, 'comfyui_client', 'dist', 'server.js');
 
@@ -125,7 +138,7 @@ async function _startComfyUIServer(comfyUI_url) {
   return serverProcess;
 }
 
-function createWindow() {
+async function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -136,20 +149,17 @@ function createWindow() {
     }
   });
 
-  // 完全移除菜单栏
-  Menu.setApplicationMenu(null);
   if (isDev) {
+    await mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools({
       mode: 'detach'
     });
-  }
-  if (isDev) {
-    mainWindow.loadURL('http://localhost:5173');
- 
   } else {
-    mainWindow.loadFile(path.join(process.resourcesPath, 'app.asar/dist/index.html'));
+    await mainWindow.loadFile(path.join(process.resourcesPath, 'app.asar/dist/index.html'));
   }
 
+  // 完全移除菜单栏
+  Menu.setApplicationMenu(null);
   // 注册 IPC 处理器
   ipcMain.handle('save-image-to-local', async (event, imageBuffer, fileName, ext) => {
     return await saveImageToLocal(imageBuffer, fileName, ext);
@@ -182,11 +192,11 @@ const downloadRemoteImage = async (imageUrl, fileName) => {
     const blob = await response.blob();
     const arrayBuffer = await blob.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    
+
     // 从 Content-Type 中获取文件扩展名
     const contentType = response.headers.get('Content-Type');
     const ext = contentType?.split('/').pop() || 'jpg';
-    
+
     // 检查文件是否已存在
     const imagesDir = path.join(app.getPath('userData'), 'images');
     const filePath = path.join(imagesDir, `${fileName}.${ext}`);
@@ -221,7 +231,7 @@ const downloadRemoteImagesInBackground = async (jsonPath) => {
           hasUpdates = true;
           // 更新特定图片的路径
           const currentData = JSON.parse(await fsPromises.readFile(jsonPath, 'utf-8'));
-          const updatedImagesList = currentData.images.map(currentImg => 
+          const updatedImagesList = currentData.images.map(currentImg =>
             currentImg.id === img.id ? { ...currentImg, path: localPath } : currentImg
           );
           // 保存更新后的数据
@@ -293,7 +303,7 @@ const initializeUserData = async () => {
         "categories": []
       },
       {
-        "id": "5", 
+        "id": "5",
         "path": "https://media.w3.org/2010/05/sintel/trailer.mp4",
         "name": "示例视频",
         "size": 5242880,
@@ -333,7 +343,7 @@ const initializeUserData = async () => {
   try {
     const userDataPath = path.join(app.getPath('userData'), 'images.json');
     console.log('用户数据目录路径:', userDataPath);
-    
+
     // 检查文件是否存在
     try {
       await fsPromises.access(userDataPath);
@@ -342,17 +352,17 @@ const initializeUserData = async () => {
       return;
     } catch {
       console.log('images.json 文件不存在，开始初始化');
-      
+
       // 先保存初始数据
       await fsPromises.writeFile(
-        userDataPath, 
-        JSON.stringify(mockImagesContent, null, 2), 
+        userDataPath,
+        JSON.stringify(mockImagesContent, null, 2),
         'utf-8'
       );
 
       // 启动后台下载
       downloadRemoteImagesInBackground(userDataPath);
-      
+
       console.log('用户数据初始化完成，图片将在后台继续下载');
     }
   } catch (error) {
@@ -433,11 +443,11 @@ ipcMain.handle('load-images-from-json', async () => {
   try {
     const userDataPath = app.getPath('userData');
     const jsonPath = path.join(userDataPath, 'images.json');
-    
+
     if (!fs.existsSync(jsonPath)) {
       return { images: [], categories: [] };
     }
-    
+
     const data = await fs.promises.readFile(jsonPath, 'utf-8');
     return JSON.parse(data);
   } catch (error) {
@@ -464,7 +474,7 @@ ipcMain.handle('show-open-dialog', async () => {
       const localImageUrl = `local-image://${encodeURIComponent(filePath)}`;
       const ext = path.extname(filePath).toLowerCase();
       const isVideo = ['.mp4', '.mov', '.avi', '.webm'].includes(ext);
-      
+
       return {
         id: Date.now().toString(),
         path: localImageUrl,
@@ -489,13 +499,13 @@ ipcMain.handle('save-images-to-json', async (event, images, categories) => {
   try {
     const userDataPath = app.getPath('userData');
     const jsonPath = path.join(userDataPath, 'images.json');
-    
+
     await fs.promises.writeFile(
       jsonPath,
       JSON.stringify({ images, categories }, null, 2),
       'utf-8'
     );
-    
+
     return true;
   } catch (error) {
     console.error('Error saving images:', error);
@@ -522,7 +532,7 @@ ipcMain.handle('save-images', async (event, images) => {
 
 // 处理分类数据的请求
 ipcMain.handle('save-categories', async (event, categories) => {
-  try { 
+  try {
     const filePath = getJsonFilePath();
     // 先读取现有数据
     const existingData = JSON.parse(await fsPromises.readFile(filePath, 'utf8'));
@@ -586,16 +596,16 @@ function loadImagesData() {
   try {
     const imagesJsonPath = path.join(app.getPath('userData'), 'images.json');
     let data = JSON.parse(fs.readFileSync(imagesJsonPath, 'utf8'));
-    
+
     if (!data.categories) {
       data.categories = [];
     }
-    
+
     // 更新图片数据结构
     let hasUpdates = false;
     data.images = data.images.map(img => {
       const updatedImg = { ...img };
-      
+
       // 确保所有必需字段存在
       if (!updatedImg.id) updatedImg.id = Date.now().toString();
       if (!updatedImg.name) updatedImg.name = path.basename(updatedImg.path);

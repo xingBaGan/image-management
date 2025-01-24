@@ -62,18 +62,6 @@ const MediaTags: React.FC<MediaTagsProps> = ({
 
   return (
     <div className="flex flex-wrap gap-2 justify-center mt-4">
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsAddingTag(true);
-        }}
-        className="px-3 py-1 bg-blue-500 text-white rounded-full flex items-center gap-1.5 text-sm hover:bg-blue-600 transition-colors"
-        title="添加标签"
-        aria-label="添加标签"
-      >
-        <Plus size={14} />
-      </button>
-      
       {tags && tags.length > 0 && (
         <DragDropContext onDragEnd={handleDragEnd}>
           <StrictModeDroppable droppableId={`tags-${mediaId}`} direction="horizontal">
@@ -81,12 +69,26 @@ const MediaTags: React.FC<MediaTagsProps> = ({
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className="flex flex-wrap gap-2 justify-center"
+                className="flex overflow-y-auto overflow-x-hidden absolute top-0 left-0 flex-wrap gap-2 justify-center"
+                style={{
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                }}
               >
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsAddingTag(true);
+                  }}
+                  className="px-3 py-1 bg-blue-500 text-white rounded-full flex items-center gap-1.5 text-sm hover:bg-blue-600 transition-colors"
+                  title="添加标签"
+                  aria-label="添加标签"
+                >
+                  <Plus size={14} />
+                </button>
                 {tags.map((tag, index) => {
                   const dragId = `${tag}-${mediaId}-${index}`;
                   return (
-                    <Draggable 
+                    <Draggable
                       key={dragId}
                       draggableId={dragId}
                       index={index}
@@ -104,8 +106,8 @@ const MediaTags: React.FC<MediaTagsProps> = ({
                             ${snapshot.isDragging ? 'opacity-90 scale-105 shadow-lg bg-blue-500/30 z-50' : ''}
                           `}
                         >
-                          <div 
-                            {...provided.dragHandleProps} 
+                          <div
+                            {...provided.dragHandleProps}
                             className="p-1 rounded cursor-grab hover:bg-white/10"
                             style={{
                               cursor: snapshot.isDragging ? 'grabbing' : 'grab'

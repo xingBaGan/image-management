@@ -208,7 +208,7 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "your-github-username",
+      "owner": "xingBaGan",
       "repo": "atujji",
       "releaseType": "release"
     }
