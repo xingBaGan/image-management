@@ -124,14 +124,34 @@ function App() {
     }
   };
 
-  const handleImageSelect = (id: string) => {
+  const handleImageSelect = (id: string, isShiftKey: boolean) => {
     setSelectedImages(prev => {
-      const newSelection = new Set(prev);
-      if (newSelection.has(id)) {
-        newSelection.delete(id);
-      } else {
-        newSelection.add(id);
+      const newSelection = new Set<string>();
+      
+      // 如果id为空，表示清除所有选中状态
+      if (!id) {
+        return newSelection;
       }
+
+      if (isShiftKey) {
+        // Shift + 左键：保持原有选择，并切换当前图片的选中状态
+        prev.forEach(imageId => newSelection.add(imageId));
+        if (newSelection.has(id)) {
+          newSelection.delete(id);
+        } else {
+          newSelection.add(id);
+        }
+      } else {
+        // 普通左键：只选中当前图片
+        if (prev.has(id) && prev.size === 1) {
+          // 如果只有当前图片被选中，则取消选中
+          newSelection.clear();
+        } else {
+          // 否则只选中当前图片
+          newSelection.add(id);
+        }
+      }
+      
       return newSelection;
     });
   };

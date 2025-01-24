@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Masonry from 'react-masonry-css';
 import { Heart, MoreVertical, FileText, Calendar, Check, Play } from 'lucide-react';
 import { Category, Image as ImageType, ViewMode } from '../types';
@@ -35,7 +35,10 @@ const ImageGrid: React.FC<ImageGridProps> = ({
 }) => {
   const [viewingMedia, setViewingMedia] = useState<ImageType | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  console.log("----isTagging", isTagging);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectionStart, setSelectionStart] = useState({ x: 0, y: 0 });
+  const [selectionEnd, setSelectionEnd] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
   const breakpointColumns = {
     default: 4,
     1536: 3,
@@ -72,19 +75,18 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     );
   };
 
-  const handleContextMenu = (e: React.MouseEvent, id: string) => {
-    e.preventDefault(); // 阻止默认右键菜单
-    onSelectImage(id, e.shiftKey);
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault(); // 仅阻止默认右键菜单
   };
 
   const handleClick = (e: React.MouseEvent, image: ImageType) => {
-    if (e.shiftKey) {
-      // 如果按住Shift键，则触发选择功能
-      onSelectImage(image.id, true);
-    } else if (!e.ctrlKey && !e.metaKey) {
-      // 普通点击时预览图片（除非按住Ctrl/Command键）
-      setViewingMedia(image);
-    }
+    // 传递Shift键状态
+    onSelectImage(image.id, e.shiftKey);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent, image: ImageType) => {
+    // 双击查看图片
+    setViewingMedia(image);
   };
 
   const handleTagsUpdate = (mediaId: string, newTags: string[]) => {
@@ -96,6 +98,117 @@ const ImageGrid: React.FC<ImageGridProps> = ({
         setViewingMedia({ ...updatedMedia, tags: newTags });
       }
     }
+  };
+
+  // 处理鼠标按下事件
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // 只响应左键
+    if (e.button !== 0) return;
+    
+    // 如果点击的是图片或按钮，不启动框选
+    if ((e.target as HTMLElement).closest('.image-item')) return;
+
+    // 点击空白处时清除所有选中状态
+    onSelectImage('', false);
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    setIsSelecting(true);
+    setSelectionStart({ x, y });
+    setSelectionEnd({ x, y });
+  };
+
+  // 处理鼠标移动事件
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isSelecting) return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    setSelectionEnd({ x, y });
+  };
+
+  // 处理鼠标松开事件
+  const handleMouseUp = () => {
+    if (!isSelecting) return;
+
+    // 获取所有在选择框内的图片
+    const selectedIds = getImagesInSelection();
+    if (selectedIds.length > 0) {
+      // 全部选中
+      selectedIds.forEach(id => onSelectImage(id, true));
+    }
+
+    setIsSelecting(false);
+  };
+
+  // 获取选择框内的图片
+  const getImagesInSelection = () => {
+    const container = containerRef.current;
+    if (!container) return [];
+
+    const minX = Math.min(selectionStart.x, selectionEnd.x);
+    const maxX = Math.max(selectionStart.x, selectionEnd.x);
+    const minY = Math.min(selectionStart.y, selectionEnd.y);
+    const maxY = Math.max(selectionStart.y, selectionEnd.y);
+
+    const selectedIds: string[] = [];
+    
+    // 获取所有图片元素
+    const imageElements = container.getElementsByClassName('image-item');
+    Array.from(imageElements).forEach((element) => {
+      const rect = element.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      
+      const elementX = rect.left - containerRect.left;
+      const elementY = rect.top - containerRect.top;
+      
+      // 检查图片是否在选择框内
+      if (
+        elementX < maxX &&
+        elementX + rect.width > minX &&
+        elementY < maxY &&
+        elementY + rect.height > minY
+      ) {
+        const imageId = element.getAttribute('data-image-id');
+        if (imageId) {
+          selectedIds.push(imageId);
+        }
+      }
+    });
+
+    return selectedIds;
+  };
+
+  // 计算选择框样式
+  const getSelectionStyle = () => {
+    if (!isSelecting) return undefined;
+
+    const left = Math.min(selectionStart.x, selectionEnd.x);
+    const top = Math.min(selectionStart.y, selectionEnd.y);
+    const width = Math.abs(selectionEnd.x - selectionStart.x);
+    const height = Math.abs(selectionEnd.y - selectionStart.y);
+
+    return {
+      position: 'absolute',
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${width}px`,
+      height: `${height}px`,
+      backgroundColor: 'rgba(59, 130, 246, 0.2)',
+      border: '1px solid rgb(59, 130, 246)',
+      pointerEvents: 'none',
+      zIndex: 10,
+    } as React.CSSProperties;
   };
 
   if (viewMode === 'list') {
@@ -122,10 +235,17 @@ const ImageGrid: React.FC<ImageGridProps> = ({
         )}
         
         <div className="p-6" 
+             ref={containerRef}
+             onMouseDown={handleMouseDown}
+             onMouseMove={handleMouseMove}
+             onMouseUp={handleMouseUp}
+             onMouseLeave={() => setIsSelecting(false)}
+             style={{ position: 'relative' }}
              onDragEnter={() => setIsDragging(true)} 
              onDragOver={(e) => e.preventDefault()} 
              onDrop={async (e) => { await handleDropUtil(e, addImages, existingImages, categories, setIsTagging); setIsDragging(false); }}
              onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false); }}>
+          {isSelecting && <div style={getSelectionStyle()} />}
           <DragOverlay isDragging={isDragging} isTagging={isTagging} />
           <div className="bg-white bg-opacity-60 rounded-lg shadow dark:bg-gray-800">
             <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 border-b dark:border-gray-700 font-medium text-gray-500 dark:text-gray-400">
@@ -144,11 +264,13 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                   gap-4 p-4 items-center
                 hover:bg-gray-50
                 dark:hover:bg-gray-700
-                  transition-colors cursor-pointer ${
+                  transition-colors cursor-pointer image-item ${
                     selectedImages.has(image.id) ? 'bg-blue-50 dark:bg-blue-900/30' : ''
                   }`}
+                data-image-id={image.id}
                 onClick={(e) => handleClick(e, image)}
-                onContextMenu={(e) => handleContextMenu(e, image.id)}
+                onDoubleClick={(e) => handleDoubleClick(e, image)}
+                onContextMenu={handleContextMenu}
               >
                 <div className="relative w-12 h-12">
                   {image.type === 'video' ? (
@@ -239,11 +361,18 @@ const ImageGrid: React.FC<ImageGridProps> = ({
         />
       )}
       
-      <div className="p-6 w-full h-full" 
+      <div className="p-6 w-full h-full select-none" 
+           ref={containerRef}
+           onMouseDown={handleMouseDown}
+           onMouseMove={handleMouseMove}
+           onMouseUp={handleMouseUp}
+           onMouseLeave={() => setIsSelecting(false)}
+           style={{ position: 'relative' }}
            onDragEnter={() => setIsDragging(true)} 
            onDragOver={(e) => e.preventDefault()} 
            onDrop={async (e) => { await handleDropUtil(e, addImages, existingImages, categories, setIsTagging); setIsDragging(false); }}
            onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false); }}>
+          {isSelecting && <div style={getSelectionStyle()} />}
           <DragOverlay isDragging={isDragging} isTagging={isTagging} />
           <Masonry
             breakpointCols={breakpointColumns}
@@ -253,9 +382,10 @@ const ImageGrid: React.FC<ImageGridProps> = ({
             {images.map((image) => (
               <div
                 key={image.id}
-                className={`relative group cursor-pointer will-change-transform transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] transform ${
+                className={`relative group cursor-pointer will-change-transform transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] transform image-item ${
                   selectedImages.has(image.id) ? 'ring-4 ring-blue-500 rounded-lg scale-[0.98]' : 'scale-100'
                 }`}
+                data-image-id={image.id}
                 style={{
                   backfaceVisibility: 'hidden',
                   WebkitBackfaceVisibility: 'hidden',
@@ -263,7 +393,8 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                   WebkitPerspective: '1000px'
                 }}
                 onClick={(e) => handleClick(e, image)}
-                onContextMenu={(e) => handleContextMenu(e, image.id)}
+                onDoubleClick={(e) => handleDoubleClick(e, image)}
+                onContextMenu={handleContextMenu}
               >
                 {renderMediaItem(image)}
                 <div className={`absolute inset-0 bg-black will-change-opacity transition-opacity duration-300 ease-in-out rounded-lg ${

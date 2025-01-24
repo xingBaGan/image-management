@@ -8,7 +8,7 @@ interface SettingsProps {
 
 const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
   const [comfyUrl, setComfyUrl] = useState('');
-  const [autoTagging, setAutoTagging] = useState(true);
+  const [autoTagging, setAutoTagging] = useState(false);
 
   useEffect(() => {
     // 加载设置
@@ -16,7 +16,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       const settings = await window.electron.loadSettings();
       console.log('settings', settings);
       setComfyUrl(settings.ComfyUI_URL || '');
-      setAutoTagging(settings.autoTagging || true);
+      setAutoTagging(settings.autoTagging || false);
     };
     
     if (isOpen) {
