@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ImageInfo } from '../types';
-import MediaTags from './MediaTags';
-import Rating from './Rating';
 
 interface MediaViewerProps {
   media: ImageInfo;
@@ -10,7 +8,6 @@ interface MediaViewerProps {
   onPrevious: () => void;
   onNext: () => void;
   onTagsUpdate: (mediaId: string, newTags: string[]) => void;
-  onRateChange: (mediaId: string, rate: number) => void;
 }
 
 const MediaViewer: React.FC<MediaViewerProps> = ({
@@ -18,8 +15,6 @@ const MediaViewer: React.FC<MediaViewerProps> = ({
   onClose,
   onPrevious,
   onNext,
-  onTagsUpdate,
-  onRateChange,
 }) => {
   if (!media) return null;
 
@@ -91,21 +86,6 @@ const MediaViewer: React.FC<MediaViewerProps> = ({
             className="max-w-full max-h-[80vh] object-contain rounded-lg"
           />
         )}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-black bg-opacity-50 text-white">
-          <h3 className="text-lg font-semibold mb-2">{media.name}</h3>
-          <div className="flex items-center space-x-4 mb-2">
-            <Rating
-              value={media.rate || 0}
-              onChange={(value) => onRateChange(media.id, value)}
-              size={24}
-            />
-          </div>
-          <MediaTags
-            tags={media.tags || []}
-            mediaId={media.id}
-            onTagsUpdate={onTagsUpdate}
-          />
-        </div>
       </div>
     </div>
   );

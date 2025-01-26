@@ -21,39 +21,25 @@ export interface LocalImageData extends BaseImageData {
   height?: number;
 }
 
-export type BaseImage = {
-  id: string;
-  name: string;
-  path: string;
-  size: number;
-  tags: string[];
-  favorite: boolean;
-  categories: string[];
-  type: 'image' | 'video';
-  duration?: number;
-  thumbnail?: string;
-  rate?: number;
-  width?: number;
-  height?: number;
-}
-
-export type Image = LocalImageData;
-
-export interface Category {
-  id: string;
-  name: string;
-  count?: number;
-  icon?: React.ReactNode;
-  images: string[];
-}
-
 export type ViewMode = 'grid' | 'list';
+
 export type SortBy = 'name' | 'date' | 'size';
+
+export type FilterType = 'all' | 'favorites' | 'recent' | 'videos';
+
+export interface AppState {
+  filter: FilterType;
+}
 
 export type BulkAction = {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
+}
+
+export interface Category {
+  id: string;
+  name: string;
 }
 
 interface ElectronAPI {
@@ -63,10 +49,10 @@ interface ElectronAPI {
     dateCreated: Date;
     dateModified: Date;
   }>;
-  showOpenDialog: () => Promise<ImageInfo[]>;
+  showOpenDialog: () => Promise<LocalImageData[]>;
   saveImagesToJson: (images: LocalImageData[], categories: Category[]) => Promise<boolean>;
   loadImagesFromJson: (jsonPath: string) => Promise<{ 
-    images: ImageInfo[];
+    images: LocalImageData[];
     categories: Category[];
   }>;
   openImageJson: () => Promise<{ 
@@ -80,18 +66,13 @@ interface ElectronAPI {
   isRemoteComfyUI: () => Promise<boolean>;
   readFile: (filePath: string) => Promise<Buffer>;
   tagImage: (imagePath: string, modelName: string) => Promise<string[]>;
+  processDirectoryToFiles: (dirPath: string) => Promise<File[]>;
 }
 
 declare global {
   interface Window {
     electron: ElectronAPI
   }
-}
-
-export type FilterType = 'all' | 'favorites' | 'recent' | 'videos';
-
-export interface AppState {
-  filter: FilterType;
 }
 
 export {};

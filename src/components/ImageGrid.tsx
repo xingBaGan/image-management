@@ -1,10 +1,12 @@
 import React, { useState, useRef } from 'react';
 import Masonry from 'react-masonry-css';
-import { Heart, MoreVertical, FileText, Calendar, Check, Play } from 'lucide-react';
-import { BaseImage, Category, Image as ImageType, ViewMode } from '../types';
+import { FileText, Calendar } from 'lucide-react';
+import { BaseMedia, Category, Image as ImageType, ViewMode } from '../types';
 import MediaViewer from './MediaViewer';
 import { handleDrop as handleDropUtil } from '../utils';
 import DragOverlay from './DragOverlay';
+import ImageItem from './ImageItem';
+import VideoItem from './VideoItem';
 
 interface ImageGridProps {
   images: ImageType[];
@@ -18,7 +20,6 @@ interface ImageGridProps {
   categories: Category[];
   setIsTagging: (isTagging: boolean) => void;
   isTagging: boolean;
-  onRateChange: (mediaId: string, rate: number) => void;
 }
 
 const ImageGrid: React.FC<ImageGridProps> = ({
@@ -49,50 +50,20 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     640: 1,
   };
 
-  const renderMediaItem = (image: BaseImage) => {
-    if (image.type === 'video') {
-      return (
-        <div className="relative w-full h-0 pb-[56.25%]">
-          <video
-            src={image.path}
-            className="object-cover absolute inset-0 w-full h-full rounded-lg"
-            controls
-          />
-          {image.duration && (
-            <div className="absolute right-2 bottom-2 px-2 py-1 text-sm text-white bg-black bg-opacity-50 rounded">
-              {Math.floor(image.duration / 60)}:{(image.duration % 60).toString().padStart(2, '0')}
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    return (
-      <img
-        src={image.path}
-        alt={image.name}
-        className="w-full h-auto rounded-2xl"
-      />
-    );
-  };
-
   const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault(); // 仅阻止默认右键菜单
+    e.preventDefault();
   };
 
   const handleClick = (e: React.MouseEvent, image: ImageType) => {
-    // 传递Shift键状态
     onSelectImage(image.id, e.shiftKey);
   };
 
   const handleDoubleClick = (e: React.MouseEvent, image: ImageType) => {
-    // 双击查看图片
     setViewingMedia(image);
   };
 
   const handleTagsUpdate = (mediaId: string, newTags: string[]) => {
     updateTagsByMediaId(mediaId, newTags);
-    // 如果当前正在查看的媒体被更新了，同步更新 viewingMedia
     if (viewingMedia?.id === mediaId) {
       const updatedMedia = images.find(img => img.id === mediaId);
       if (updatedMedia) {
@@ -103,13 +74,8 @@ const ImageGrid: React.FC<ImageGridProps> = ({
 
   // 处理鼠标按下事件
   const handleMouseDown = (e: React.MouseEvent) => {
-    // 只响应左键
     if (e.button !== 0) return;
-
-    // 如果点击的是图片或按钮，不启动框选
     if ((e.target as HTMLElement).closest('.image-item')) return;
-
-    // 点击空白处时清除所有选中状态
     onSelectImage('', false);
 
     const container = containerRef.current;
@@ -141,14 +107,10 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   // 处理鼠标松开事件
   const handleMouseUp = () => {
     if (!isSelecting) return;
-
-    // 获取所有在选择框内的图片
     const selectedIds = getImagesInSelection();
     if (selectedIds.length > 0) {
-      // 全部选中
       selectedIds.forEach(id => onSelectImage(id, true));
     }
-
     setIsSelecting(false);
   };
 
@@ -163,8 +125,6 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     const maxY = Math.max(selectionStart.y, selectionEnd.y);
 
     const selectedIds: string[] = [];
-
-    // 获取所有图片元素
     const imageElements = container.getElementsByClassName('image-item');
     Array.from(imageElements).forEach((element) => {
       const rect = element.getBoundingClientRect();
@@ -173,7 +133,6 @@ const ImageGrid: React.FC<ImageGridProps> = ({
       const elementX = rect.left - containerRect.left;
       const elementY = rect.top - containerRect.top;
 
-      // 检查图片是否在选择框内
       if (
         elementX < maxX &&
         elementX + rect.width > minX &&
@@ -210,6 +169,22 @@ const ImageGrid: React.FC<ImageGridProps> = ({
       pointerEvents: 'none',
       zIndex: 10,
     } as React.CSSProperties;
+  };
+
+  const renderMediaItem = (media: ImageType) => {
+    const props = {
+      isSelected: selectedImages.has(media.id),
+      onSelect: (e: React.MouseEvent) => handleClick(e, media),
+      onDoubleClick: (e: React.MouseEvent) => handleDoubleClick(e, media),
+      onFavorite: onFavorite,
+      viewMode,
+    };
+
+    return media.type === 'video' ? (
+      <VideoItem video={media} {...props} />
+    ) : (
+      <ImageItem image={media} {...props} />
+    );
   };
 
   if (viewMode === 'list') {
@@ -263,40 +238,14 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                   grid 
                   grid-cols-[auto_1fr_auto_auto_auto]
                   gap-4 p-4 items-center
-                hover:bg-gray-50
-                dark:hover:bg-gray-700
+                  hover:bg-gray-50
+                  dark:hover:bg-gray-700
                   transition-colors cursor-pointer image-item ${selectedImages.has(image.id) ? 'bg-blue-50 dark:bg-blue-900/30' : ''
                   }`}
                 data-image-id={image.id}
-                onClick={(e) => handleClick(e, image)}
-                onDoubleClick={(e) => handleDoubleClick(e, image)}
                 onContextMenu={handleContextMenu}
               >
-                <div className="relative w-12 h-12">
-                  {image.type === 'video' ? (
-                    <div className="relative w-12 h-12">
-                      <img
-                        src={image.thumbnail || image.path}
-                        alt={image.name}
-                        className="object-cover w-12 h-12 rounded"
-                      />
-                      <div className="flex absolute inset-0 justify-center items-center">
-                        <Play className="w-4 h-4 text-white" />
-                      </div>
-                    </div>
-                  ) : (
-                    <img
-                      src={image.path}
-                      alt={image.name}
-                      className="object-cover w-12 h-12 rounded"
-                    />
-                  )}
-                  {selectedImages.has(image.id) && (
-                    <div className="flex absolute inset-0 justify-center items-center rounded bg-blue-500/50">
-                      <Check className="text-white" size={20} />
-                    </div>
-                  )}
-                </div>
+                {renderMediaItem(image)}
                 <div className="flex items-center">
                   <FileText size={16} className="mr-2 text-gray-400" />
                   <span className="text-gray-700 dark:text-gray-200">{image.name}</span>
@@ -307,28 +256,6 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                 <div className="flex items-center text-gray-500 dark:text-gray-400">
                   <Calendar size={16} className="mr-2" />
                   {new Date(image.dateModified).toLocaleDateString()}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    title={image.favorite ? "取消收藏" : "收藏"}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onFavorite(image.id);
-                    }}
-                    className={`p-2 rounded-full ${image.favorite
-                        ? 'bg-red-500 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                      }`}
-                  >
-                    <Heart size={16} />
-                  </button>
-                  <button
-                    title="更多选项"
-                    onClick={(e) => e.stopPropagation()}
-                    className="p-2 text-gray-700 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  >
-                    <MoreVertical size={16} />
-                  </button>
                 </div>
               </div>
             ))}
@@ -381,55 +308,11 @@ const ImageGrid: React.FC<ImageGridProps> = ({
           {images.map((image) => (
             <div
               key={image.id}
-              className={`relative group cursor-pointer will-change-transform transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] transform image-item ${selectedImages.has(image.id) ? 'ring-4 ring-blue-500 rounded-lg scale-[0.98]' : 'scale-100'
-                }`}
+              className="image-item"
               data-image-id={image.id}
-              style={{
-                backfaceVisibility: 'hidden',
-                WebkitBackfaceVisibility: 'hidden',
-                perspective: '1000px',
-                WebkitPerspective: '1000px'
-              }}
-              onClick={(e) => handleClick(e, image)}
-              onDoubleClick={(e) => handleDoubleClick(e, image)}
               onContextMenu={handleContextMenu}
             >
               {renderMediaItem(image)}
-              <div className={`absolute inset-0 bg-black will-change-opacity transition-opacity duration-300 ease-in-out rounded-lg ${selectedImages.has(image.id) ? 'bg-opacity-30' : 'bg-opacity-0 group-hover:bg-opacity-30'
-                }`} />
-              {selectedImages.has(image.id) && (
-                <div className="absolute top-4 left-4 p-1 bg-blue-500 rounded-full transition-transform duration-200 ease-in-out transform scale-100">
-                  <Check className="text-white" size={20} />
-                </div>
-              )}
-              <div className="flex absolute top-4 right-4 items-center space-x-2 opacity-0 backdrop-blur-sm transition-all duration-300 ease-in-out transform translate-y-2 group-hover:opacity-100 group-hover:translate-y-0">
-                <button
-                  title={image.favorite ? "取消收藏" : "收藏"}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onFavorite(image.id);
-                  }}
-                  className={`p-2 rounded-full transition-all duration-200 ease-in-out transform hover:scale-110 ${image.favorite
-                      ? 'bg-red-500 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-100'
-                    } backdrop-blur-sm`}
-                >
-                  <Heart size={20} />
-                </button>
-                <button
-                  title="更多选项"
-                  onClick={(e) => e.stopPropagation()}
-                  className="p-2 text-gray-700 bg-white rounded-full backdrop-blur-sm transition-all duration-200 ease-in-out transform hover:scale-110 hover:bg-gray-100"
-                >
-                  <MoreVertical size={20} />
-                </button>
-              </div>
-              <div className="absolute right-0 bottom-0 left-0 p-4 bg-gradient-to-t from-black to-transparent rounded-2xl opacity-0 backdrop-blur-sm transition-all duration-300 ease-in-out transform translate-y-2 group-hover:opacity-100 group-hover:translate-y-0">
-                <h3 className="font-medium text-white truncate">{image.name}</h3>
-                <p className="text-sm text-gray-300">
-                  {new Date(image.dateModified).toLocaleDateString()}
-                </p>
-              </div>
             </div>
           ))}
         </Masonry>

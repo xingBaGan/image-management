@@ -6,7 +6,7 @@ import ImageInfoSidebar from './components/ImageInfoSidebar';
 import { Category, ViewMode, SortBy, ImageInfo, FilterType, LocalImageData } from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
 import { addTagsToImages } from './services/tagService';
-import { generateHashId, processImages } from './utils';
+import { processMedia } from './utils';
 import DeleteConfirmDialog from './components/DeleteConfirmDialog';
 import './App.css';
 
@@ -291,7 +291,7 @@ function App() {
       const newImages = await window.electron.showOpenDialog();
       if (newImages.length > 0) {
         setIsTagging(true);
-        const updatedImages = await processImages(newImages as any, images, categories);
+        const updatedImages = await processMedia(newImages as any, images, categories);
         setImages([...images, ...updatedImages]);
         setIsTagging(false);
       }
@@ -469,7 +469,9 @@ function App() {
                 image={selectedImageForInfo}
                 onTagsUpdate={updateTagsByMediaId}
                 onRateChange={handleRateChange}
-                totalImages={images.filter(img => img.type !== 'video').length}
+                totalImages={filteredAndSortedImages.length}
+                totalVideos={filteredAndSortedImages.length}
+                type={selectedCategory === 'videos' ? 'video' : 'image'}
               />
             </div>
           </div>

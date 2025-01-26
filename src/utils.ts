@@ -1,7 +1,5 @@
-import { defaultModel } from './config.ts';
-import { LocalImageData } from './types/index.ts';
-import { Category } from './types/index.ts';
-import { ImageInfo } from './types/index.ts';
+import { BaseMedia, LocalImageData, Category, ImageInfo } from './types/index.ts';
+import { defaultModel } from './config';
 
 export const generateHashId = (filePath: string, fileSize: number): string => {
   const str = `${filePath}-${fileSize}`;
@@ -14,11 +12,28 @@ export const generateHashId = (filePath: string, fileSize: number): string => {
   return Math.abs(hash).toString(16);
 };
 
-export const getVideoDuration = async (file: File) => {
-  const video = document.createElement('video');
-  video.src = URL.createObjectURL(file);
-  await video.play();
-  return video.duration;
+export const getVideoDuration = async (file: File | string) => {
+  let video;
+  try {
+    if (typeof file === 'string') {
+      video = document.createElement('video');
+      video.src = file;
+      video.muted = true;
+      await video.play();
+      return video.duration;
+    } else {
+      video = document.createElement('video');
+      video.src = URL.createObjectURL(file);
+      video.muted = true;
+      await video.play();
+      return video.duration;
+    }
+  } finally {
+    if (video) {
+      video.src = '';
+      video.load();
+    }
+  }
 };
 
 export const getImageSize = async (file: File) => {
@@ -34,7 +49,7 @@ export const getImageSize = async (file: File) => {
   });
 };
 
-export const processImages = async (files: File[], existingImages: ImageInfo[], categories: Category[]): Promise<LocalImageData[]> => {
+export const processMedia = async (files: File[], existingImages: ImageInfo[], categories: Category[]): Promise<BaseMedia[]> => {
   const existingIds = new Set((existingImages || []).map(img => img.id));
   const filteredNewImages = files.filter(file => {
     const newId = generateHashId(file.path, file.size);
@@ -50,13 +65,14 @@ export const processImages = async (files: File[], existingImages: ImageInfo[], 
   const updatedImages = await Promise.all(filteredNewImages.map(async file => {
     const newId = generateHashId(file.path, file.size);
     const type = file.type.startsWith('video/') ? 'video' : 'image';
-    const tags = autoTaggingEnabled ? await window.electron.tagImage(file.path, defaultModel) : [];
+    const tags = autoTaggingEnabled && type === 'image' ? await window.electron.tagImage(file.path, defaultModel) : [];
     let imageSize = { width: 0, height: 0 };
     try {
       imageSize = await getImageSize(file);
     } catch (error) {
       console.error('获取图片尺寸失败', error);
     }
+    const [thumbnail, width, height] = type === 'video' ? await generateVideoThumbnail(file) : [undefined, undefined, undefined];
     return {
       id: newId,
       path: 'local-image://' + file.path,
@@ -69,9 +85,9 @@ export const processImages = async (files: File[], existingImages: ImageInfo[], 
       categories: [],
       type: type as 'image' | 'video',
       duration: type === 'video' ? await getVideoDuration(file) : undefined,
-      thumbnail: type === 'video' ? await generateVideoThumbnail(file) : undefined,
-      width: type === 'image' ? imageSize.width : undefined,
-      height: type === 'image' ? imageSize.height : undefined,
+      thumbnail: thumbnail,
+      width: type === 'image' ? imageSize.width : width,
+      height: type === 'image' ? imageSize.height : height,
       rate: 0,
     };
   }));
@@ -82,22 +98,34 @@ export const processImages = async (files: File[], existingImages: ImageInfo[], 
   return updatedImages;
 };
 
+
 export const handleDrop = async (
   e: React.DragEvent,
   addImages: (newImages: LocalImageData[]) => void,
   existingImages: ImageInfo[],
-  categories: Category[], 
-  setIsTagging: (isTagging: boolean) => void
+  categories: Category[],
+  setIsTagging: (isTagging: boolean) => void,
 ) => {
   e.preventDefault();
+  console.log('e:', e.dataTransfer.files);
   const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'));
-  setIsTagging(true);
-  const newImages = await processImages(files, existingImages, categories);
-  addImages(newImages);
-  setIsTagging(false);
+  console.log('files:', files);
+  const firstFile = e.dataTransfer.files[0].path;
+  if (files.length > 0) {
+    setIsTagging(true);
+    const newImages = await processMedia(files, existingImages, categories);
+    addImages(newImages as LocalImageData[]);
+    setIsTagging(false);
+  } else {
+    const images = await window.electron.processDirectoryToFiles(firstFile);
+    console.log('files:', images);
+    // const newImages = await processMedia(files, existingImages, categories);
+    const newImages = [...images, ...existingImages];
+    addImages(newImages as LocalImageData[]);
+  }
 };
 
-export const generateVideoThumbnail = async (file: File): Promise<string> => {
+export const generateVideoThumbnail = async (file: File): Promise<[string, number, number]> => {
   return new Promise((resolve, reject) => {
     const video = document.createElement('video');
     video.src = URL.createObjectURL(file);
@@ -111,7 +139,7 @@ export const generateVideoThumbnail = async (file: File): Promise<string> => {
       if (context) {
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         const thumbnail = canvas.toDataURL('image/png');
-        resolve(thumbnail);
+        resolve([thumbnail, video.videoWidth, video.videoHeight]);
       } else {
         reject('Failed to get canvas context');
       }

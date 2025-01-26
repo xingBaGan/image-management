@@ -1,10 +1,18 @@
-const { app, BrowserWindow, ipcMain, dialog, protocol, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, protocol, shell, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const fsPromises = require('fs/promises');
 const { Menu } = require('electron');
 const { spawn } = require('child_process');
+const ffmpeg = require('fluent-ffmpeg');
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path.replace('app.asar', 'app.asar.unpacked');
+const ffprobePath = require('@ffprobe-installer/ffprobe').path;
+const probe = require('probe-image-size');
+const { supportedExtensions } = require(path.join(__dirname, '..', 'config.cjs'))
 const { tagImage } = require(path.join(__dirname, '..', 'script', 'script.cjs'));
+// 设置 ffmpeg 和 ffprobe 路径
+ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfprobePath(ffprobePath);
 
 const isDev = !app.isPackaged;
 // 获取设置文件路径
@@ -144,8 +152,9 @@ async function createWindow() {
     height: 800,
     webPreferences: {
       nodeIntegration: true,
+      contextRemoteModule: true,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.cjs')
+      preload: path.join(__dirname, 'preload.cjs'),
     }
   });
 
@@ -222,7 +231,7 @@ const downloadRemoteImagesInBackground = async (jsonPath) => {
     await Promise.all(
       data.images.map(async (img) => {
         // 跳过视频和已经本地化的图片
-        if (img.type === 'video' || !img.path.startsWith('http')) {
+        if (img.type === 'video' || (img.path && !img.path.startsWith('http'))) {
           return img;
         }
 
@@ -301,20 +310,6 @@ const initializeUserData = async () => {
         "tags": ["food", "photography"],
         "favorite": true,
         "categories": []
-      },
-      {
-        "id": "5",
-        "path": "https://media.w3.org/2010/05/sintel/trailer.mp4",
-        "name": "示例视频",
-        "size": 5242880,
-        "dateCreated": "2024-01-05T00:00:00.000Z",
-        "dateModified": "2024-01-05T00:00:00.000Z",
-        "tags": ["视频", "示例"],
-        "favorite": false,
-        "categories": [],
-        "type": "video",
-        "duration": 52,
-        "thumbnail": "https://peach.blender.org/wp-content/uploads/title_anouncement.jpg"
       }
     ],
     "categories": [
@@ -407,6 +402,16 @@ app.whenReady().then(async () => {
       createWindow();
     }
   });
+
+  if (isDev) {
+    try {
+      await session.defaultSession.loadExtension(
+        'C:/Users/jzj/AppData/Local/Microsoft/Edge/User Data/Default/Extensions/gpphkfbcpidddadnkolkpfckpihlkkil/6.0.1_0'
+      );
+    } catch (e) {
+      console.log('React Devtools 加载失败', e);
+    }
+  }
 });
 
 app.on('window-all-closed', () => {
@@ -475,7 +480,7 @@ ipcMain.handle('show-open-dialog', async () => {
       const ext = path.extname(filePath).toLowerCase();
       const isVideo = ['.mp4', '.mov', '.avi', '.webm'].includes(ext);
 
-      return {
+      const metadata = {
         id: Date.now().toString(),
         path: localImageUrl,
         name: path.basename(filePath),
@@ -486,9 +491,18 @@ ipcMain.handle('show-open-dialog', async () => {
         favorite: false,
         categories: [],
         type: isVideo ? 'video' : 'image',
-        duration: undefined,
-        thumbnail: undefined
       };
+
+      if (isVideo) {
+        try {
+          metadata.duration = await getVideoDuration(filePath);
+          metadata.thumbnail = await generateVideoThumbnail(filePath);
+        } catch (error) {
+          console.error('处理视频元数据失败:', error);
+        }
+      }
+
+      return metadata;
     })
   );
 
@@ -658,4 +672,188 @@ const saveImageToLocal = async (imageData, fileName, ext) => {
     throw error;
   }
 };
+
+// 获取视频时长
+const getVideoDuration = (filePath) => {
+  return new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(filePath, (err, metadata) => {
+      if (err) {
+        console.error('获取视频时长失败:', err);
+        reject(err);
+        return;
+      }
+      resolve(metadata.format.duration);
+    });
+  });
+};
+
+// 生成视频缩略图
+const generateVideoThumbnail = (filePath) => {
+  return new Promise((resolve, reject) => {
+    const thumbnailPath = path.join(app.getPath('userData'), 'thumbnails', `${path.basename(filePath)}.png`);
+
+    // 确保缩略图目录存在
+    fs.mkdirSync(path.dirname(thumbnailPath), { recursive: true });
+
+    ffmpeg(filePath)
+      .screenshots({
+        timestamps: ['1'], // 在1秒处截图
+        filename: path.basename(thumbnailPath),
+        folder: path.dirname(thumbnailPath),
+        size: '320x240' // 缩略图尺寸
+      })
+      .on('end', () => {
+        // 将缩略图转换为 base64
+        fs.readFile(thumbnailPath, (err, data) => {
+          if (err) {
+            console.error('读取缩略图失败:', err);
+            reject(err);
+            return;
+          }
+          const base64 = `data:image/png;base64,${data.toString('base64')}`;
+          resolve(base64);
+        });
+      })
+      .on('error', (err) => {
+        console.error('生成缩略图失败:', err);
+        reject(err);
+      });
+  });
+};
+
+ipcMain.handle('process-directory', async (event, dirPath) => {
+  try {
+    const results = await processDirectory(dirPath);
+    return results;
+  } catch (error) {
+    console.error('处理目录时出错:', error);
+    throw new Error('处理目录失败: ' + error.message);
+  }
+});
+const generateHashId = (filePath, fileSize) => {
+  const str = `${filePath}-${fileSize}`;
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(16);
+};
+
+const getImageSize = async (filePath) => {
+  try {
+    // 处理 base64 图片
+    if (filePath.startsWith('data:image')) {
+      const base64 = filePath.split(',')[1];
+      const buffer = Buffer.from(base64, 'base64');
+      const dimensions = probe.sync(buffer);
+      return {
+        width: dimensions.width,
+        height: dimensions.height,
+      };
+    }
+
+    // 检查是否为视频文件
+    const ext = path.extname(filePath).toLowerCase();
+    if (['.mp4', '.mov', '.avi', '.webm'].includes(ext)) {
+      return { width: 0, height: 0 };
+    }
+
+    // 读取图片文件
+    const buffer = await fsPromises.readFile(filePath);
+    const dimensions = probe.sync(buffer);
+    
+    if (!dimensions) {
+      console.warn(`无法获取图片尺寸: ${filePath}`);
+      return { width: 0, height: 0 };
+    }
+
+    return {
+      width: dimensions.width,
+      height: dimensions.height
+    };
+  } catch (error) {
+    console.error(`获取图片尺寸失败: ${filePath}`, error);
+    return { width: 0, height: 0 };
+  }
+};
+
+const processDirectory = async (dirPath, existingImages, categories) => {
+  try {
+    const files = await fsPromises.readdir(dirPath);
+    
+    const processedFiles = [];
+
+    for (const file of files) {
+      try {
+        const filePath = path.join(dirPath, file);
+        const stats = await fsPromises.stat(filePath);
+        if (!stats.isFile()) continue;
+        
+        const ext = path.extname(filePath).toLowerCase();
+        if (!supportedExtensions.includes(ext)) continue;
+        const isVideo = ['.mp4', '.mov', '.avi', '.webm'].includes(ext);
+        const localImageUrl = `local-image://${encodeURIComponent(filePath)}`;
+        const thumbnail = isVideo ? await generateVideoThumbnail(filePath) : undefined;
+        let imageSize = await getImageSize(filePath);
+        imageSize = isVideo ? await getImageSize(thumbnail) : imageSize;
+        const id = generateHashId(filePath, stats.size);
+        const metadata = {
+          id: id,
+          path: localImageUrl,
+          name: path.basename(filePath),
+          size: stats.size,
+          dateCreated: stats.birthtime.toISOString(),
+          dateModified: stats.mtime.toISOString(),
+          tags: [],
+          favorite: false,
+          categories: [],
+          width: imageSize.width,
+          height: imageSize.height,
+          type: isVideo ? 'video' : 'image',
+          thumbnail: thumbnail,
+          duration: isVideo ? await getVideoDuration(filePath) : undefined,
+        };
+        if (isVideo) {
+          try {
+            const duration = await getVideoDuration(filePath);
+            const thumbnail = await generateVideoThumbnail(filePath);
+            metadata.duration = duration;
+            metadata.thumbnail = thumbnail;
+            metadata.imageSize = await getImageSize(thumbnail);
+          } catch (error) {
+            console.error('处理视频元数据失败:', error);
+            metadata.imageSize = { width: 0, height: 0 };
+          }
+        } else {
+          metadata.imageSize = await getImageSize(filePath);
+        }
+        processedFiles.push(metadata);
+      } catch (error) {
+        console.error(`处理文件 ${file} 时出错:`, error);
+        continue;
+      }
+    }
+
+    return processedFiles;
+  } catch (error) {
+    console.error('处理目录失败:', error);
+    throw error;
+  }
+};
+
+ipcMain.handle('get-video-duration', async (event, filePath) => {
+  if (filePath.startsWith('local-image://')) {
+    filePath = decodeURIComponent(filePath.replace('local-image://', ''));
+  }
+  return await getVideoDuration(filePath);
+});
+
+ipcMain.handle('generate-video-thumbnail', async (event, filePath) => {
+  if (filePath.startsWith('local-image://')) {
+    filePath = decodeURIComponent(filePath.replace('local-image://', ''));
+  }
+  return await generateVideoThumbnail(filePath);
+});
 
