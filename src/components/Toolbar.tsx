@@ -51,7 +51,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -272,39 +272,43 @@ const Toolbar: React.FC<ToolbarProps> = ({
               </div>
 
               <div className="flex items-center pl-4 space-x-2 border-l dark:border-gray-700">
-                <div className="relative group">
-                  <button
-                    className="flex items-center px-3 py-2 space-x-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
+                <div 
+                  className="relative group"
+                  onMouseEnter={() => setIsDropdownOpen(true)}
+                  onMouseLeave={() => setIsDropdownOpen(false)}
+                >
+                  <button className="flex items-center px-3 py-2 space-x-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
                     {sortDirection === 'asc' ? <SortAsc size={20} /> : <SortDesc size={20} />}
                     <span>Sort by {getSortLabel()}</span>
                   </button>
-                  <div className="hidden absolute left-0 top-full z-50 py-1 mt-1 w-48 bg-white rounded-lg border shadow-lg dark:bg-gray-800 dark:border-gray-700 group-hover:block">
-                    <button
-                      onClick={() => onSortChange('name')}
-                      className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                        sortBy === 'name' ? 'text-blue-600 dark:text-blue-300' : ''
-                      }`}
-                    >
-                      Name
-                    </button>
-                    <button
-                      onClick={() => onSortChange('date')}
-                      className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                        sortBy === 'date' ? 'text-blue-600 dark:text-blue-300' : ''
-                      }`}
-                    >
-                      Date
-                    </button>
-                    <button
-                      onClick={() => onSortChange('size')}
-                      className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                        sortBy === 'size' ? 'text-blue-600 dark:text-blue-300' : ''
-                      }`}
-                    >
-                      Size
-                    </button>
-                  </div>
+                  {isDropdownOpen && (
+                    <div className="absolute left-0 top-[calc(100%-5px)] z-50 py-1 mt-1 w-48 bg-white rounded-lg border shadow-lg dark:bg-gray-800 dark:border-gray-700">
+                      <button
+                        onClick={() => onSortChange('name')}
+                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                          sortBy === 'name' ? 'text-blue-600 dark:text-blue-300' : ''
+                        }`}
+                      >
+                        Name
+                      </button>
+                      <button
+                        onClick={() => onSortChange('date')}
+                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                          sortBy === 'date' ? 'text-blue-600 dark:text-blue-300' : ''
+                        }`}
+                      >
+                        Date
+                      </button>
+                      <button
+                        onClick={() => onSortChange('size')}
+                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                          sortBy === 'size' ? 'text-blue-600 dark:text-blue-300' : ''
+                        }`}
+                      >
+                        Size
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 

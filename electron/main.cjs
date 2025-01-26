@@ -6,15 +6,17 @@ const { Menu } = require('electron');
 const { spawn } = require('child_process');
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path.replace('app.asar', 'app.asar.unpacked');
-const ffprobePath = require('@ffprobe-installer/ffprobe').path;
+const ffprobePath = require('@ffprobe-installer/ffprobe').path.replace('app.asar', 'app.asar.unpacked');
+const isDev = !app.isPackaged;
 const probe = require('probe-image-size');
-const { supportedExtensions } = require(path.join(__dirname, '..', 'config.cjs'))
+const { supportedExtensions } = isDev
+  ? require(path.join(__dirname, '..', 'config.cjs'))  // 开发环境
+  : require(path.join(process.resourcesPath, 'config.cjs'));  // 生产环境
 const { tagImage } = require(path.join(__dirname, '..', 'script', 'script.cjs'));
 // 设置 ffmpeg 和 ffprobe 路径
 ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);
 
-const isDev = !app.isPackaged;
 // 获取设置文件路径
 const getSettingsPath = () => {
   return path.join(app.getPath('userData'), 'settings.json');

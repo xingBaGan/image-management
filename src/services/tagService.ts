@@ -1,5 +1,4 @@
-import { ImageInfo, LocalImageData } from '../types';
-import { compressImage } from './imageService';
+import { LocalImageData } from '../types';
 
 const baseUrl = 'http://localhost:3000';
 
@@ -37,11 +36,11 @@ export async function generateImageTags(imagePath: string, base64?: string): Pro
 }
 
 export async function addTagsToImages(
-  selectedImages: ImageInfo[], 
-  allImages: ImageInfo[],
+  selectedImages: LocalImageData[], 
+  allImages: LocalImageData[],
   categories: any[]
 ): Promise<{
-  updatedImages: ImageInfo[],
+  updatedImages: LocalImageData[],
   success: boolean
 }> {
   try {

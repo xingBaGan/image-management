@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Heart, MoreVertical, Check } from 'lucide-react';
-import { Image as ImageType } from '../types';
+import { LocalImageData } from '../types';
 
 interface ImageItemProps {
-  image: ImageType;
+  image: LocalImageData;
   isSelected: boolean;
   onSelect: (e: React.MouseEvent) => void;
   onDoubleClick: (e: React.MouseEvent) => void;
@@ -11,7 +11,7 @@ interface ImageItemProps {
   viewMode: 'grid' | 'list';
 }
 
-const ImageItem: React.FC<ImageItemProps> = ({
+const ImageItem: React.FC<ImageItemProps> = memo(({
   image,
   isSelected,
   onSelect,
@@ -26,6 +26,8 @@ const ImageItem: React.FC<ImageItemProps> = ({
           src={image.path}
           alt={image.name}
           className="object-cover w-12 h-12 rounded"
+          onClick={onDoubleClick}
+          loading="lazy"
         />
         {isSelected && (
           <div className="flex absolute inset-0 justify-center items-center rounded bg-blue-500/50">
@@ -54,6 +56,8 @@ const ImageItem: React.FC<ImageItemProps> = ({
         src={image.path}
         alt={image.name}
         className="w-full h-auto rounded-2xl"
+        loading="lazy"
+        decoding="async"
       />
       <div
         className={`absolute inset-0 bg-black will-change-opacity transition-opacity duration-300 ease-in-out rounded-lg ${
@@ -96,6 +100,6 @@ const ImageItem: React.FC<ImageItemProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default ImageItem; 

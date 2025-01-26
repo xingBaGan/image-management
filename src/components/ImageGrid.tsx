@@ -1,28 +1,13 @@
 import React, { useState, useRef } from 'react';
-import Masonry from 'react-masonry-css';
-import { FileText, Calendar } from 'lucide-react';
-import { BaseMedia, Category, Image as ImageType, ViewMode } from '../types';
-import MediaViewer from './MediaViewer';
 import { handleDrop as handleDropUtil } from '../utils';
 import DragOverlay from './DragOverlay';
-import ImageItem from './ImageItem';
-import VideoItem from './VideoItem';
+import MediaViewer from './MediaViewer';
+import { LocalImageData } from '../types';
+import { ImageGridBaseProps } from './ImageGridBase';
+import GridView from './GridView';
+import ListView from './ListView';
 
-interface ImageGridProps {
-  images: ImageType[];
-  onFavorite: (id: string) => void;
-  viewMode: ViewMode;
-  selectedImages: Set<string>;
-  onSelectImage: (id: string, isShiftKey: boolean) => void;
-  updateTagsByMediaId: (mediaId: string, newTags: string[]) => void;
-  addImages: (newImages: ImageType[]) => void;
-  existingImages: ImageType[];
-  categories: Category[];
-  setIsTagging: (isTagging: boolean) => void;
-  isTagging: boolean;
-}
-
-const ImageGrid: React.FC<ImageGridProps> = ({
+const ImageGrid: React.FC<ImageGridBaseProps> = ({
   images,
   onFavorite,
   viewMode,
@@ -35,32 +20,12 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   setIsTagging,
   isTagging,
 }) => {
-  const [viewingMedia, setViewingMedia] = useState<ImageType | null>(null);
+  const [viewingMedia, setViewingMedia] = useState<LocalImageData | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectionStart, setSelectionStart] = useState({ x: 0, y: 0 });
   const [selectionEnd, setSelectionEnd] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
-  const breakpointColumns = {
-    default: 4,
-    1536: 3,
-    1280: 3,
-    1024: 2,
-    768: 2,
-    640: 1,
-  };
-
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-  };
-
-  const handleClick = (e: React.MouseEvent, image: ImageType) => {
-    onSelectImage(image.id, e.shiftKey);
-  };
-
-  const handleDoubleClick = (e: React.MouseEvent, image: ImageType) => {
-    setViewingMedia(image);
-  };
 
   const handleTagsUpdate = (mediaId: string, newTags: string[]) => {
     updateTagsByMediaId(mediaId, newTags);
@@ -161,7 +126,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     return {
       position: 'absolute',
       left: `${left}px`,
-      top: `${top}px`,
+      top: `${top}px`,  
       width: `${width}px`,
       height: `${height}px`,
       backgroundColor: 'rgba(59, 130, 246, 0.2)',
@@ -170,100 +135,6 @@ const ImageGrid: React.FC<ImageGridProps> = ({
       zIndex: 10,
     } as React.CSSProperties;
   };
-
-  const renderMediaItem = (media: ImageType) => {
-    const props = {
-      isSelected: selectedImages.has(media.id),
-      onSelect: (e: React.MouseEvent) => handleClick(e, media),
-      onDoubleClick: (e: React.MouseEvent) => handleDoubleClick(e, media),
-      onFavorite: onFavorite,
-      viewMode,
-    };
-
-    return media.type === 'video' ? (
-      <VideoItem video={media} {...props} />
-    ) : (
-      <ImageItem image={media} {...props} />
-    );
-  };
-
-  if (viewMode === 'list') {
-    return (
-      <>
-        {viewingMedia && (
-          <MediaViewer
-            media={viewingMedia}
-            onTagsUpdate={handleTagsUpdate}
-            onClose={() => setViewingMedia(null)}
-            onPrevious={() => {
-              const index = images.findIndex(img => img.id === viewingMedia?.id);
-              if (index > 0) {
-                setViewingMedia(images[index - 1]);
-              }
-            }}
-            onNext={() => {
-              const index = images.findIndex(img => img.id === viewingMedia?.id);
-              if (index < images.length - 1) {
-                setViewingMedia(images[index + 1]);
-              }
-            }}
-          />
-        )}
-
-        <div className="p-6"
-          ref={containerRef}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={() => setIsSelecting(false)}
-          style={{ position: 'relative' }}
-          onDragEnter={() => setIsDragging(true)}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={async (e) => { await handleDropUtil(e, addImages, existingImages, categories, setIsTagging); setIsDragging(false); }}
-          onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false); }}>
-          {isSelecting && <div style={getSelectionStyle()} />}
-          <DragOverlay isDragging={isDragging} isTagging={isTagging} />
-          <div className="bg-white bg-opacity-60 rounded-lg shadow dark:bg-gray-800">
-            <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 border-b dark:border-gray-700 font-medium text-gray-500 dark:text-gray-400">
-              <div className="w-12"></div>
-              <div>Name</div>
-              <div>Size</div>
-              <div>dateModified</div>
-              <div className="w-20">Actions</div>
-            </div>
-            {images.map((image) => (
-              <div
-                key={image.id}
-                className={`
-                  grid 
-                  grid-cols-[auto_1fr_auto_auto_auto]
-                  gap-4 p-4 items-center
-                  hover:bg-gray-50
-                  dark:hover:bg-gray-700
-                  transition-colors cursor-pointer image-item ${selectedImages.has(image.id) ? 'bg-blue-50 dark:bg-blue-900/30' : ''
-                  }`}
-                data-image-id={image.id}
-                onContextMenu={handleContextMenu}
-              >
-                {renderMediaItem(image)}
-                <div className="flex items-center">
-                  <FileText size={16} className="mr-2 text-gray-400" />
-                  <span className="text-gray-700 dark:text-gray-200">{image.name}</span>
-                </div>
-                <div className="text-gray-500 dark:text-gray-400">
-                  {(image.size / 1024 / 1024).toFixed(2)} MB
-                </div>
-                <div className="flex items-center text-gray-500 dark:text-gray-400">
-                  <Calendar size={16} className="mr-2" />
-                  {new Date(image.dateModified).toLocaleDateString()}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </>
-    );
-  }
 
   return (
     <>
@@ -300,22 +171,37 @@ const ImageGrid: React.FC<ImageGridProps> = ({
         onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false); }}>
         {isSelecting && <div style={getSelectionStyle()} />}
         <DragOverlay isDragging={isDragging} isTagging={isTagging} />
-        <Masonry
-          breakpointCols={breakpointColumns}
-          className="flex -ml-6 [&>*]:will-change-[transform,opacity] [&>*]:transition-all [&>*]:duration-500 [&>*]:ease-[cubic-bezier(0.4,0,0.2,1)]"
-          columnClassName="pl-6 space-y-6 [&>*]:will-change-[transform,opacity] [&>*]:transition-all [&>*]:duration-500 [&>*]:ease-[cubic-bezier(0.4,0,0.2,1)]"
-        >
-          {images.map((image) => (
-            <div
-              key={image.id}
-              className="image-item"
-              data-image-id={image.id}
-              onContextMenu={handleContextMenu}
-            >
-              {renderMediaItem(image)}
-            </div>
-          ))}
-        </Masonry>
+        {viewMode === 'list' ? (
+          <ListView {...{
+            images,
+            onFavorite,
+            viewMode,
+            selectedImages,
+            onSelectImage,
+            updateTagsByMediaId,
+            addImages,
+            existingImages,
+            categories,
+            setIsTagging,
+            isTagging,
+            setViewingMedia,
+          }} />
+        ) : (
+          <GridView {...{
+            images,
+            onFavorite,
+            viewMode,
+            selectedImages,
+            onSelectImage,
+            updateTagsByMediaId,
+            addImages,
+            existingImages,
+            categories,
+            setIsTagging,
+            isTagging,
+            setViewingMedia,
+          }} />
+        )}
       </div>
     </>
   );

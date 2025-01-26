@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar';
 import ImageGrid from './components/ImageGrid';
@@ -15,7 +15,7 @@ function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortBy>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [images, setImages] = useState<ImageInfo[]>([]);
+  const [images, setImages] = useState<LocalImageData[]>([]);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [filter, setFilter] = useState<FilterType>('all');
@@ -23,7 +23,7 @@ function App() {
   const [searchTags, setSearchTags] = useState<string[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [isTagging, setIsTagging] = useState<boolean>(false);
-  const [selectedImageForInfo, setSelectedImageForInfo] = useState<ImageInfo | null>(null);
+  const [selectedImageForInfo, setSelectedImageForInfo] = useState<LocalImageData | null>(null);
 
   useEffect(() => {
     // console.log('selectedCategory', selectedCategory);
@@ -44,7 +44,7 @@ function App() {
     if (searchTags.length > 0) {
       filtered = filtered.filter(img =>
         searchTags.every(tag =>
-          img.tags?.some(imgTag =>
+          img.tags?.some((imgTag: string) =>
             imgTag.toLowerCase().includes(tag.toLowerCase())
           )
         )
@@ -300,7 +300,7 @@ function App() {
     }
   };
 
-  const handleAddImages = async (newImages: ImageInfo[]) => {
+  const handleAddImages = async (newImages: LocalImageData[]) => {
     const newImagesData = newImages.filter(img => !images.some(existingImg => existingImg.id === img.id));
     await window.electron.saveImagesToJson(
       [...images, ...newImagesData],

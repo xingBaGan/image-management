@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { Play, Check } from 'lucide-react';
 import type { LocalImageData } from '../types';
 import throttle from 'lodash/throttle';
@@ -11,13 +11,14 @@ interface VideoItemProps {
   onFavorite: (id: string) => void;
   viewMode: 'grid' | 'list';
 }
+
 const THROTTLE_TIME = 400;
-const VideoItem: React.FC<VideoItemProps> = ({
+
+const VideoItem: React.FC<VideoItemProps> = memo(({
   video,
   isSelected,
   onSelect,
   onDoubleClick,
-  onFavorite,
   viewMode
 }) => {
   const [aspectRatio, setAspectRatio] = useState<number>(16 / 9);
@@ -46,7 +47,7 @@ const VideoItem: React.FC<VideoItemProps> = ({
     }
   }, [isVideoLoaded]);
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     if (videoRef.current && isVideoLoaded) {
       videoRef.current.muted = true;
       setIsHovering(true);
@@ -54,22 +55,22 @@ const VideoItem: React.FC<VideoItemProps> = ({
         console.log('自动播放被阻止');
       });
     }
-  };
+  }, [isVideoLoaded]);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
       setCurrentTime(0);
       setIsHovering(false);
     }
-  };
+  }, []);
 
-  const handleTimeUpdate = () => {
+  const handleTimeUpdate = useCallback(() => {
     if (videoRef.current) {
       setCurrentTime(videoRef.current.currentTime);
     }
-  };
+  }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isHovering || !videoRef.current || !containerRef.current || !video.duration || !isVideoLoaded) return;
@@ -78,9 +79,7 @@ const VideoItem: React.FC<VideoItemProps> = ({
     const x = e.clientX - rect.left;
     const progress = Math.max(0, Math.min(1, x / rect.width));
 
-    // 设置视频播放位置
     videoRef.current.currentTime = video.duration * progress;
-    // 如果视频没在播放，则开始播放
     if (videoRef.current.paused) {
       videoRef.current.play().catch(() => {
         console.log('自动播放被阻止');
@@ -100,7 +99,6 @@ const VideoItem: React.FC<VideoItemProps> = ({
     [handleMouseMove]
   );
 
-  // 清理 throttle 函数
   useEffect(() => {
     return () => {
       throttledHandleMouseMove.cancel();
@@ -118,8 +116,9 @@ const VideoItem: React.FC<VideoItemProps> = ({
           src={video.thumbnail || video.path}
           alt={video.name}
           className="object-cover w-12 h-12 rounded"
+          loading="lazy"
         />
-        <div className="flex absolute inset-0 justify-center items-center">
+        <div className="flex absolute inset-0 justify-center items-center" onClick={onDoubleClick}>
           <Play className="w-4 h-4 text-white" />
         </div>
         {isSelected && (
@@ -189,6 +188,6 @@ const VideoItem: React.FC<VideoItemProps> = ({
       )}
     </div>
   );
-};
+});
 
 export default VideoItem; 

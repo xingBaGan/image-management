@@ -1,4 +1,4 @@
-import { BaseMedia, LocalImageData, Category, ImageInfo } from './types/index.ts';
+import { LocalImageData, Category } from './types/index.ts';
 import { defaultModel } from './config';
 
 export const generateHashId = (filePath: string, fileSize: number): string => {
@@ -49,7 +49,7 @@ export const getImageSize = async (file: File) => {
   });
 };
 
-export const processMedia = async (files: File[], existingImages: ImageInfo[], categories: Category[]): Promise<BaseMedia[]> => {
+export const processMedia = async (files: File[], existingImages: LocalImageData[], categories: Category[]): Promise<LocalImageData[]> => {
   const existingIds = new Set((existingImages || []).map(img => img.id));
   const filteredNewImages = files.filter(file => {
     const newId = generateHashId(file.path, file.size);
@@ -102,7 +102,7 @@ export const processMedia = async (files: File[], existingImages: ImageInfo[], c
 export const handleDrop = async (
   e: React.DragEvent,
   addImages: (newImages: LocalImageData[]) => void,
-  existingImages: ImageInfo[],
+  existingImages: LocalImageData[],
   categories: Category[],
   setIsTagging: (isTagging: boolean) => void,
 ) => {

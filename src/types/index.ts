@@ -1,4 +1,18 @@
-export interface BaseImageData {
+
+export type ViewMode = 'grid' | 'list';
+
+export type SortBy = 'name' | 'date' | 'size';
+
+export type FilterType = 'all' | 'favorites' | 'recent' | 'videos';
+
+export interface Category {
+  id: string;
+  name: string;
+  images: string[];
+  count: number;
+}
+
+export interface ImageInfo  {
   id: string;
   name: string;
   path: string;
@@ -6,26 +20,17 @@ export interface BaseImageData {
   type: string;
   dateCreated: string;
   dateModified: string;
-  favorite?: boolean;
-  tags: string[];
-  categories?: string[];
-}
-
-export interface ImageInfo extends BaseImageData {
-  url?: string;
-}
-
-export interface LocalImageData extends BaseImageData {
   url?: string;
   width?: number;
   height?: number;
 }
 
-export type ViewMode = 'grid' | 'list';
-
-export type SortBy = 'name' | 'date' | 'size';
-
-export type FilterType = 'all' | 'favorites' | 'recent' | 'videos';
+export interface LocalImageData extends ImageInfo {
+  url?: string;
+  favorite?: boolean;
+  tags: string[];
+  categories?: string[];
+}
 
 export interface AppState {
   filter: FilterType;
@@ -37,10 +42,6 @@ export type BulkAction = {
   onClick: () => void;
 }
 
-export interface Category {
-  id: string;
-  name: string;
-}
 
 interface ElectronAPI {
   readDirectory: (path: string) => Promise<string[]>;
