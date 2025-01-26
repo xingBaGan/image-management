@@ -7,7 +7,7 @@ import { ImageGridBaseProps } from './ImageGridBase';
 import GridView from './GridView';
 import ListView from './ListView';
 
-const ImageGrid: React.FC<ImageGridBaseProps> = ({
+const MediaGrid: React.FC<ImageGridBaseProps> = ({
   images,
   onFavorite,
   viewMode,
@@ -26,6 +26,8 @@ const ImageGrid: React.FC<ImageGridBaseProps> = ({
   const [selectionStart, setSelectionStart] = useState({ x: 0, y: 0 });
   const [selectionEnd, setSelectionEnd] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  const [mouseDownTime, setMouseDownTime] = useState<number>(0);
+  const [mouseDownPos, setMouseDownPos] = useState<{ x: number, y: number } | null>(null);
 
   const handleTagsUpdate = (mediaId: string, newTags: string[]) => {
     updateTagsByMediaId(mediaId, newTags);
@@ -40,9 +42,8 @@ const ImageGrid: React.FC<ImageGridBaseProps> = ({
   // 处理鼠标按下事件
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
-    if ((e.target as HTMLElement).closest('.image-item')) return;
-    onSelectImage('', false);
-
+    // if ((e.target as HTMLElement).closest('.image-item')) return;
+    
     const container = containerRef.current;
     if (!container) return;
 
@@ -50,33 +51,59 @@ const ImageGrid: React.FC<ImageGridBaseProps> = ({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    setIsSelecting(true);
-    setSelectionStart({ x, y });
-    setSelectionEnd({ x, y });
+    // 记录鼠标按下的时间和位置
+    setMouseDownTime(Date.now());
+    setMouseDownPos({ x, y });
   };
 
   // 处理鼠标移动事件
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isSelecting) return;
+    if (!mouseDownPos) return;
 
     const container = containerRef.current;
     if (!container) return;
 
     const rect = container.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
 
-    setSelectionEnd({ x, y });
+    // 计算鼠标移动距离
+    const moveDistance = Math.sqrt(
+      Math.pow(currentX - mouseDownPos.x, 2) + 
+      Math.pow(currentY - mouseDownPos.y, 2)
+    );
+
+    // 如果移动距离超过阈值，开始框选
+    if (moveDistance > 5 && !isSelecting) {
+      setIsSelecting(true);
+      setSelectionStart(mouseDownPos);
+      setSelectionEnd({ x: currentX, y: currentY });
+    }
+
+    if (isSelecting) {
+      setSelectionEnd({ x: currentX, y: currentY });
+    }
   };
 
   // 处理鼠标松开事件
-  const handleMouseUp = () => {
-    if (!isSelecting) return;
-    const selectedIds = getImagesInSelection();
-    if (selectedIds.length > 0) {
-      selectedIds.forEach(id => onSelectImage(id, true));
+  const handleMouseUp = (e: React.MouseEvent) => {
+    const currentTime = Date.now();
+    const timeDiff = currentTime - mouseDownTime;
+
+    if (isSelecting) {
+      // 如果正在框选，处理框选逻辑
+      const selectedIds = getImagesInSelection();
+      if (selectedIds.length > 0) {
+        selectedIds.forEach(id => onSelectImage(id, true));
+      }
+    } else if (timeDiff < 200 && mouseDownPos) {
+      // 如果是快速点击（小于200ms）且没有明显移动，视为点击事件
+      onSelectImage('', false); // 清除选择
     }
+
+    // 重置状态
     setIsSelecting(false);
+    setMouseDownPos(null);
   };
 
   // 获取选择框内的图片
@@ -163,7 +190,10 @@ const ImageGrid: React.FC<ImageGridBaseProps> = ({
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={() => setIsSelecting(false)}
+        onMouseLeave={() => {
+          setIsSelecting(false);
+          setMouseDownPos(null);
+        }}
         style={{ position: 'relative' }}
         onDragEnter={() => setIsDragging(true)}
         onDragOver={(e) => e.preventDefault()}
@@ -207,4 +237,4 @@ const ImageGrid: React.FC<ImageGridBaseProps> = ({
   );
 };
 
-export default ImageGrid;
+export default MediaGrid;

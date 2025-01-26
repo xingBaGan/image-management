@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar';
-import ImageGrid from './components/ImageGrid';
+import MediaGrid from './components/MediaGrid';
 import ImageInfoSidebar from './components/ImageInfoSidebar';
 import { Category, ViewMode, SortBy, ImageInfo, FilterType, LocalImageData } from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
@@ -450,7 +450,7 @@ function App() {
           />
           <div className="flex overflow-y-auto flex-1">
             <div className={`flex-1 mr-60`}>
-              <ImageGrid
+              <MediaGrid
                 images={filteredAndSortedImages}
                 onFavorite={handleFavorite}
                 viewMode={viewMode}
