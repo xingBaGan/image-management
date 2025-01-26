@@ -185,7 +185,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
         />
       )}
 
-      <div className="p-6 w-full h-full select-none scroll-smooth"
+      <div className="p-6 w-full h-full select-none scroll-smooth media-grid-container"
         ref={containerRef}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}

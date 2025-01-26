@@ -38,7 +38,11 @@ export const getVideoDuration = async (file: File | string) => {
 
 export const getImageSize = async (file: File) => {
   let image = new Image();
-  image.src = URL.createObjectURL(file);
+  if (typeof file.path === 'string') {
+    image.src = file.path;
+  } else {
+    image.src = URL.createObjectURL(file);
+  }
   return new Promise<{ width: number; height: number }>((resolve, reject) => {
     image.onload = () => {
       resolve({ width: image.width, height: image.height })
@@ -75,11 +79,11 @@ export const processMedia = async (files: File[], existingImages: LocalImageData
     const [thumbnail, width, height] = type === 'video' ? await generateVideoThumbnail(file) : [undefined, undefined, undefined];
     return {
       id: newId,
-      path: 'local-image://' + file.path,
+      path: file.path.includes('local-image://') ? file.path : 'local-image://' + file.path,
       name: file.name,
       size: file.size,
-      dateCreated: new Date().toISOString(),
-      dateModified: new Date(file.lastModified).toISOString(),
+      dateCreated: new Date(file.dateCreated || '').toISOString(),
+      dateModified: new Date(file.dateModified || '').toISOString(),
       tags,
       favorite: false,
       categories: [],

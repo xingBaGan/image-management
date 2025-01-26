@@ -24,6 +24,7 @@ function App() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [isTagging, setIsTagging] = useState<boolean>(false);
   const [selectedImageForInfo, setSelectedImageForInfo] = useState<LocalImageData | null>(null);
+  const [backgroundUrl, setBackgroundUrl] = useState<string>('');
 
   useEffect(() => {
     // console.log('selectedCategory', selectedCategory);
@@ -412,10 +413,24 @@ function App() {
     setShowDeleteConfirm(null);
   };
 
+  // 在组件加载时读取背景图设置
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await window.electron.loadSettings();
+        setBackgroundUrl(settings.backgroundUrl);
+      } catch (error) {
+        console.error('加载设置失败:', error);
+      }
+    };
+
+    loadSettings();
+  }, []);
+
   return (
     <div className="flex h-screen backdrop-blur-md dark:bg-gray-900 bg-white/20"
       style={{
-        backgroundImage: "url('https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/%E8%8D%89%E5%8E%9F%E7%89%9B%E5%9B%BE%E7%94%9F%E6%88%90.png')",
+        backgroundImage: `url('${backgroundUrl}')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}>

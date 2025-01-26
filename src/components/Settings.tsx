@@ -9,6 +9,7 @@ interface SettingsProps {
 const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
   const [comfyUrl, setComfyUrl] = useState('');
   const [autoTagging, setAutoTagging] = useState(false);
+  const [backgroundUrl, setBackgroundUrl] = useState('');
 
   useEffect(() => {
     // 加载设置
@@ -17,6 +18,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       console.log('settings', settings);
       setComfyUrl(settings.ComfyUI_URL || '');
       setAutoTagging(settings.autoTagging || false);
+      setBackgroundUrl(settings.backgroundUrl);
     };
     
     if (isOpen) {
@@ -28,7 +30,8 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
     try {
       await window.electron.saveSettings({
         ComfyUI_URL: comfyUrl,
-        autoTagging: autoTagging
+        autoTagging: autoTagging,
+        backgroundUrl: backgroundUrl
       });
       onClose();
     } catch (error) {
@@ -61,6 +64,19 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
               value={comfyUrl}
               onChange={(e) => setComfyUrl(e.target.value)}
               placeholder="http://localhost:8188"
+              className="px-3 py-2 w-full rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+              背景图片URL
+            </label>
+            <input
+              type="text"
+              value={backgroundUrl}
+              onChange={(e) => setBackgroundUrl(e.target.value)}
+              placeholder="输入背景图片URL"
               className="px-3 py-2 w-full rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>

@@ -42,6 +42,11 @@ export type BulkAction = {
   onClick: () => void;
 }
 
+export interface Settings {
+  ComfyUI_URL: string;
+  autoTagging: boolean;
+  backgroundUrl: string;
+}
 
 interface ElectronAPI {
   readDirectory: (path: string) => Promise<string[]>;
@@ -62,8 +67,8 @@ interface ElectronAPI {
   }>;
   saveCategories: (categories: Category[]) => Promise<{ success: boolean }>;
   saveImageToLocal: (imageBuffer: Uint8Array, fileName: string, ext: string) => Promise<string>;
-  loadSettings: () => Promise<{ ComfyUI_URL: string, autoTagging: boolean }>;
-  saveSettings: (settings: { ComfyUI_URL: string, autoTagging: boolean }) => Promise<boolean>;
+  loadSettings: () => Promise<Settings>;
+  saveSettings: (settings: Settings) => Promise<boolean>;
   isRemoteComfyUI: () => Promise<boolean>;
   readFile: (filePath: string) => Promise<Buffer>;
   tagImage: (imagePath: string, modelName: string) => Promise<string[]>;
