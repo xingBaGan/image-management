@@ -1,4 +1,4 @@
-import { LocalImageData, Category } from './types/index.ts';
+import { LocalImageData, Category, ImportFile } from './types/index.ts';
 import { defaultModel } from './config';
 
 export const generateHashId = (filePath: string, fileSize: number): string => {
@@ -53,7 +53,7 @@ export const getImageSize = async (file: File) => {
   });
 };
 
-export const processMedia = async (files: File[], existingImages: LocalImageData[], categories: Category[]): Promise<LocalImageData[]> => {
+export const processMedia = async (files: ImportFile[], existingImages: LocalImageData[], categories: Category[]): Promise<LocalImageData[]> => {
   const existingIds = new Set((existingImages || []).map(img => img.id));
   const filteredNewImages = files.filter(file => {
     const newId = generateHashId(file.path, file.size);
@@ -83,7 +83,7 @@ export const processMedia = async (files: File[], existingImages: LocalImageData
       name: file.name,
       size: file.size,
       dateCreated: new Date(file.dateCreated || '').toISOString(),
-      dateModified: new Date(file.dateModified || '').toISOString(),
+      dateModified: new Date(file.dateModified || file.lastModified || '').toISOString(),
       tags,
       favorite: false,
       categories: [],
@@ -117,7 +117,7 @@ export const handleDrop = async (
   const firstFile = e.dataTransfer.files[0].path;
   if (files.length > 0) {
     setIsTagging(true);
-    const newImages = await processMedia(files, existingImages, categories);
+    const newImages = await processMedia(files as ImportFile[], existingImages, categories);
     addImages(newImages as LocalImageData[]);
     setIsTagging(false);
   } else {

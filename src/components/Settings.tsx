@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useSettings } from '../contexts/SettingsContext';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -7,28 +8,22 @@ interface SettingsProps {
 }
 
 const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
+  const { settings, updateSettings } = useSettings();
   const [comfyUrl, setComfyUrl] = useState('');
   const [autoTagging, setAutoTagging] = useState(false);
   const [backgroundUrl, setBackgroundUrl] = useState('');
 
   useEffect(() => {
-    // 加载设置
-    const loadSettings = async () => {
-      const settings = await window.electron.loadSettings();
-      console.log('settings', settings);
-      setComfyUrl(settings.ComfyUI_URL || '');
-      setAutoTagging(settings.autoTagging || false);
-      setBackgroundUrl(settings.backgroundUrl);
-    };
-    
     if (isOpen) {
-      loadSettings();
+      setComfyUrl(settings.ComfyUI_URL);
+      setAutoTagging(settings.autoTagging);
+      setBackgroundUrl(settings.backgroundUrl);
     }
-  }, [isOpen]);
+  }, [isOpen, settings]);
 
   const handleSave = async () => {
     try {
-      await window.electron.saveSettings({
+      await updateSettings({
         ComfyUI_URL: comfyUrl,
         autoTagging: autoTagging,
         backgroundUrl: backgroundUrl

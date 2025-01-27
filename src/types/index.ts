@@ -48,6 +48,11 @@ export interface Settings {
   backgroundUrl: string;
 }
 
+export interface ImportFile extends File {
+  dateCreated: string;
+  dateModified: string;
+}
+
 interface ElectronAPI {
   readDirectory: (path: string) => Promise<string[]>;
   readFileMetadata: (path: string) => Promise<{

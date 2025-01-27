@@ -8,23 +8,24 @@ import { Trash2, FolderPlus, Tags } from 'lucide-react';
 import { addTagsToImages } from './services/tagService';
 import { processMedia } from './utils';
 import DeleteConfirmDialog from './components/DeleteConfirmDialog';
+import { useSettings } from './contexts/SettingsContext';
 import './App.css';
 
 function App() {
+  const { settings } = useSettings();
   const [selectedCategory, setSelectedCategory] = useState<string>('photos');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortBy>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [images, setImages] = useState<LocalImageData[]>([]);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+  const [isZenMode, setIsZenMode] = useState<boolean>(false);
   const [filter, setFilter] = useState<FilterType>('all');
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchTags, setSearchTags] = useState<string[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [isTagging, setIsTagging] = useState<boolean>(false);
   const [selectedImageForInfo, setSelectedImageForInfo] = useState<LocalImageData | null>(null);
-  const [backgroundUrl, setBackgroundUrl] = useState<string>('');
 
   useEffect(() => {
     // console.log('selectedCategory', selectedCategory);
@@ -403,7 +404,6 @@ function App() {
   };
 
   const handleReorderCategories = (newCategories: Category[]) => {
-    console.log('newCategories', newCategories);
     window.electron.saveCategories(newCategories);
     setCategories(newCategories);
   };
@@ -413,29 +413,15 @@ function App() {
     setShowDeleteConfirm(null);
   };
 
-  // 在组件加载时读取背景图设置
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const settings = await window.electron.loadSettings();
-        setBackgroundUrl(settings.backgroundUrl);
-      } catch (error) {
-        console.error('加载设置失败:', error);
-      }
-    };
-
-    loadSettings();
-  }, []);
-
   return (
     <div className="flex h-screen backdrop-blur-md dark:bg-gray-900 bg-white/20"
       style={{
-        backgroundImage: `url('${backgroundUrl}')`,
+        backgroundImage: `url('${settings.backgroundUrl}')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}>
       <div className="flex w-full h-full bg-white bg-opacity-25 backdrop-blur-sm">
-        {isSidebarOpen && (
+        {!isZenMode && (
           <Sidebar
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
@@ -459,12 +445,12 @@ function App() {
             onSearch={handleSearch}
             selectedCount={selectedImages.size}
             bulkActions={selectedImages.size > 0 ? bulkActions : []}
-            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+            onToggleSidebar={() => setIsZenMode(!isZenMode)}
             onImport={handleImportImages}
-            isSidebarOpen={isSidebarOpen}
+            isSidebarOpen={isZenMode}
           />
           <div className="flex overflow-y-auto flex-1">
-            <div className={`flex-1 mr-60`}>
+            <div className={`flex-1 ${isZenMode ? 'mr-0' : 'mr-60'}`}>
               <MediaGrid
                 images={filteredAndSortedImages}
                 onFavorite={handleFavorite}
@@ -480,14 +466,14 @@ function App() {
               />
             </div>
             <div className="fixed right-0 bottom-0 top-16">
-              <ImageInfoSidebar
+              {!isZenMode && <ImageInfoSidebar
                 image={selectedImageForInfo}
                 onTagsUpdate={updateTagsByMediaId}
                 onRateChange={handleRateChange}
                 totalImages={filteredAndSortedImages.length}
                 totalVideos={filteredAndSortedImages.length}
                 type={selectedCategory === 'videos' ? 'video' : 'image'}
-              />
+              />}
             </div>
           </div>
         </div>
