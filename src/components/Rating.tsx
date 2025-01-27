@@ -19,7 +19,7 @@ const Rating: React.FC<RatingProps> = ({ value = 0, onChange, size = 20 }) => {
             key={star}
             title={`评分 ${star} 星`}
             className={`transition-all duration-200 ease-in-out transform hover:scale-110 ${
-              filled ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'
+              filled ? 'text-yellow-400' : 'text-gray-300 dark:text-black-600'
             }`}
             onMouseEnter={() => setHoverValue(star)}
             onMouseLeave={() => setHoverValue(null)}

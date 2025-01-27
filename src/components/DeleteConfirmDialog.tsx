@@ -12,13 +12,13 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({ onCancel, onC
         <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
           确认删除
         </h3>
-        <p className="mb-6 text-gray-600 dark:text-gray-300">
+        <p className="mb-6 text-gray-600dark:text-rose-300">
           确定要删除这个分类吗？此操作无法撤销。
         </p>
         <div className="flex gap-3 justify-end">
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="px-4 py-2 text-gray-700 rounded-md dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             取消
           </button>

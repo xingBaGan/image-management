@@ -3,24 +3,26 @@ import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar';
 import MediaGrid from './components/MediaGrid';
 import ImageInfoSidebar from './components/ImageInfoSidebar';
-import { Category, ViewMode, SortBy, ImageInfo, FilterType, LocalImageData } from './types';
+import { Category, ViewMode, LocalImageData,  } from './types';
+import { SortType, FilterType, SortDirection} from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
 import { addTagsToImages } from './services/tagService';
 import { processMedia } from './utils';
 import DeleteConfirmDialog from './components/DeleteConfirmDialog';
 import { useSettings } from './contexts/SettingsContext';
 import './App.css';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 function App() {
   const { settings } = useSettings();
-  const [selectedCategory, setSelectedCategory] = useState<string>('photos');
+  const [selectedCategory, setSelectedCategory] = useState<FilterType>(FilterType.Photos);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [sortBy, setSortBy] = useState<SortBy>('date');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sortBy, setSortBy] = useState<SortType>(SortType.Date);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(SortDirection.Desc);
   const [images, setImages] = useState<LocalImageData[]>([]);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [isZenMode, setIsZenMode] = useState<boolean>(false);
-  const [filter, setFilter] = useState<FilterType>('all');
+  const [filter, setFilter] = useState<FilterType>(FilterType.All);
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchTags, setSearchTags] = useState<string[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
@@ -28,13 +30,17 @@ function App() {
   const [selectedImageForInfo, setSelectedImageForInfo] = useState<LocalImageData | null>(null);
 
   useEffect(() => {
-    // console.log('selectedCategory', selectedCategory);
-    if (selectedCategory === 'favorites') {
-      setFilter('favorites');
-    } else if (selectedCategory === 'recent') {
-      setFilter('recent');
+    setSelectedImages(new Set());
+    setSelectedImageForInfo(null);
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    if (selectedCategory === FilterType.Favorites) {
+      setFilter(FilterType.Favorites);
+    } else if (selectedCategory === FilterType.Recent) {
+      setFilter(FilterType.Recent);
     } else {
-      setFilter('all');
+      setFilter(FilterType.All);
     }
   }, [selectedCategory]);
 
@@ -53,15 +59,15 @@ function App() {
       );
     }
 
-    if (selectedCategory === 'videos') {
+    if (selectedCategory === FilterType.Videos) {
       filtered = images.filter(img => img.type === 'video');
-    } else if (filter === 'favorites') {
+    } else if (filter === FilterType.Favorites) {
       filtered = filtered.filter(img => img.favorite);
-    } else if (filter === 'recent') {
+    } else if (filter === FilterType.Recent) {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       filtered = images.filter(img => new Date(img.dateModified) >= sevenDaysAgo);
-    } else if (selectedCategory !== 'photos') {
+    } else if (selectedCategory !== FilterType.Photos) {
       // 如果选中的不是 'photos'（所有图片），且不是特殊过滤器（favorites/recent）
       // 查找选中分类下的所有图片
       const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
@@ -80,13 +86,13 @@ function App() {
       let comparison = 0;
 
       switch (sortBy) {
-        case 'name':
+        case SortType.Name:
           comparison = a.name.localeCompare(b.name);
           break;
-        case 'date':
+        case SortType.Date:
           comparison = new Date(b.dateModified).getTime() - new Date(a.dateModified).getTime();
           break;
-        case 'size':
+        case SortType.Size:
           comparison = b.size - a.size;
           break;
       }
@@ -121,12 +127,12 @@ function App() {
     setSearchTags(tags);
   };
 
-  const handleSort = (newSortBy: SortBy) => {
+  const handleSort = (newSortBy: SortType) => {
     if (newSortBy === sortBy) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+      setSortDirection(prev => prev === SortDirection.Asc ? SortDirection.Desc : SortDirection.Asc);
     } else {
       setSortBy(newSortBy);
-      setSortDirection('desc');
+      setSortDirection(SortDirection.Desc);
     }
   };
 
@@ -414,77 +420,79 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen backdrop-blur-md dark:bg-gray-900 bg-white/20"
-      style={{
-        backgroundImage: `url('${settings.backgroundUrl}')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}>
-      <div className="flex w-full h-full bg-white bg-opacity-25 backdrop-blur-sm">
-        {!isZenMode && (
-          <Sidebar
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-            categories={categories}
-            filter={filter}
-            onFilterChange={setFilter}
-            onAddCategory={handleAddCategory}
-            onRenameCategory={handleRenameCategory}
-            onDeleteCategory={handleDeleteCategory}
-            onUpdateCategories={handleReorderCategories}
-            setShowDeleteConfirm={setShowDeleteConfirm}
-          />
-        )}
-        <div className="flex overflow-hidden relative flex-col flex-1">
-          <Toolbar
-            viewMode={viewMode}
-            sortBy={sortBy}
-            sortDirection={sortDirection}
-            onViewModeChange={setViewMode}
-            onSortChange={handleSort}
-            onSearch={handleSearch}
-            selectedCount={selectedImages.size}
-            bulkActions={selectedImages.size > 0 ? bulkActions : []}
-            onToggleSidebar={() => setIsZenMode(!isZenMode)}
-            onImport={handleImportImages}
-            isSidebarOpen={isZenMode}
-          />
-          <div className="flex overflow-y-auto flex-1">
-            <div className={`flex-1 ${isZenMode ? 'mr-0' : 'mr-60'}`}>
-              <MediaGrid
-                images={filteredAndSortedImages}
-                onFavorite={handleFavorite}
-                viewMode={viewMode}
-                selectedImages={selectedImages}
-                onSelectImage={handleImageSelect}
-                updateTagsByMediaId={updateTagsByMediaId}
-                addImages={handleAddImages}
-                existingImages={images}
-                categories={categories}
-                setIsTagging={setIsTagging}
-                isTagging={isTagging}
-              />
-            </div>
-            <div className="fixed right-0 bottom-0 top-16">
-              {!isZenMode && <ImageInfoSidebar
-                image={selectedImageForInfo}
-                onTagsUpdate={updateTagsByMediaId}
-                onRateChange={handleRateChange}
-                totalImages={filteredAndSortedImages.length}
-                totalVideos={filteredAndSortedImages.length}
-                type={selectedCategory === 'videos' ? 'video' : 'image'}
-              />}
+    <ThemeProvider>
+      <div className="flex h-screen backdrop-blur-md dark:bg-gray-900 bg-white/20"
+        style={{
+          backgroundImage: `url('${settings.backgroundUrl}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}>
+        <div className="flex w-full h-full bg-white bg-opacity-25 backdrop-blur-sm">
+          {!isZenMode && (
+            <Sidebar
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
+              categories={categories}
+              filter={filter}
+              onFilterChange={setFilter}
+              onAddCategory={handleAddCategory}
+              onRenameCategory={handleRenameCategory}
+              onDeleteCategory={handleDeleteCategory}
+              onUpdateCategories={handleReorderCategories}
+              setShowDeleteConfirm={setShowDeleteConfirm}
+            />
+          )}
+          <div className="flex overflow-hidden relative flex-col flex-1">
+            <Toolbar
+              viewMode={viewMode}
+              sortBy={sortBy}
+              sortDirection={sortDirection}
+              onViewModeChange={setViewMode}
+              onSortChange={handleSort}
+              onSearch={handleSearch}
+              selectedCount={selectedImages.size}
+              bulkActions={selectedImages.size > 0 ? bulkActions : []}
+              onToggleSidebar={() => setIsZenMode(!isZenMode)}
+              onImport={handleImportImages}
+              isSidebarOpen={isZenMode}
+            />
+            <div className="flex overflow-y-auto flex-1">
+              <div className={`flex-1 ${isZenMode ? 'mr-0' : 'mr-60'}`}>
+                <MediaGrid
+                  images={filteredAndSortedImages}
+                  onFavorite={handleFavorite}
+                  viewMode={viewMode}
+                  selectedImages={selectedImages}
+                  onSelectImage={handleImageSelect}
+                  updateTagsByMediaId={updateTagsByMediaId}
+                  addImages={handleAddImages}
+                  existingImages={images}
+                  categories={categories}
+                  setIsTagging={setIsTagging}
+                  isTagging={isTagging}
+                />
+              </div>
+              <div className="fixed right-0 bottom-0 top-16">
+                {!isZenMode && <ImageInfoSidebar
+                  image={selectedImageForInfo}
+                  onTagsUpdate={updateTagsByMediaId}
+                  onRateChange={handleRateChange}
+                  totalImages={filteredAndSortedImages.length}
+                  totalVideos={filteredAndSortedImages.length}
+                  type={selectedCategory === 'videos' ? 'video' : 'image'}
+                />}
+              </div>
             </div>
           </div>
         </div>
+        {showDeleteConfirm && (
+          <DeleteConfirmDialog
+            onCancel={() => setShowDeleteConfirm(null)}
+            onConfirm={() => handleDeleteConfirm(showDeleteConfirm)}
+          />
+        )}
       </div>
-      {showDeleteConfirm && (
-        <DeleteConfirmDialog
-          onCancel={() => setShowDeleteConfirm(null)}
-          onConfirm={() => handleDeleteConfirm(showDeleteConfirm)}
-        />
-      )}
-    </div>
+    </ThemeProvider>
   );
 }
 

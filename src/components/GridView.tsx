@@ -32,12 +32,13 @@ const GridView: React.FC<ImageGridBaseProps> = ({
   viewMode,
   selectedImages,
   onSelectImage,
+  setViewingMedia,
 }) => {
   const renderMediaItem = useCallback((media: LocalImageData) => {
     const props = {
       isSelected: selectedImages.has(media.id),
       onSelect: (e: React.MouseEvent) => onSelectImage(media.id, e.shiftKey),
-      onDoubleClick: (e: React.MouseEvent) => {},
+      onDoubleClick: (e: React.MouseEvent) => setViewingMedia?.(media),
       onFavorite,
       viewMode,
     };

@@ -8,8 +8,8 @@ import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from './StrictModeDroppable';
 
 interface SidebarProps {
-  selectedCategory: string;
-  onSelectCategory: (id: string) => void;
+  selectedCategory: FilterType;
+  onSelectCategory: (id: FilterType) => void;
   categories: Category[];
   filter: FilterType;
   onFilterChange: (filter: FilterType) => void;
@@ -115,8 +115,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           ].map(({ id, icon: Icon, label }) => (
             <button
               key={id}
-              onClick={() => onSelectCategory(id)}
-              className={`flex w-full items-center px-1 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 hover:bg-opacity-80 dark:hover:bg-gray-700 dark:hover:bg-opacity-80 ${
+              onClick={() => onSelectCategory(id as FilterType)}
+              className={`flex w-full items-center px-1 py-2 rounded-lg text-gray-700 dark:text-white hover:bg-gray-100 hover:bg-opacity-80 dark:hover:bg-gray-700 dark:hover:bg-opacity-80 ${
                 selectedCategory === id ? 'bg-gray-100 dark:bg-gray-700' : ''
               }`}
             >
@@ -129,10 +129,10 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         <div className="mt-6">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">分类</h3>
+            <h3 className="text-sm font-medium text-gray-500 dark:text-rose-400">分类</h3>
             <button
               onClick={() => setIsAddingCategory(true)}
-              className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="p-1 text-gray-500 hover:text-gray-700 dark:text-white dark:hover:text-rose-400"
               title="添加分类"
             >
               <FolderPlus size={16} />
@@ -222,13 +222,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    onSelectCategory(category.id);
+                                    onSelectCategory(category.id as FilterType);
                                   }}
-                                  className="flex-1 text-left text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
+                                  className="flex-1 text-left text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-white"
                                 >
                                   {category.name}
                                 </button>
-                                <span className="mr-2 text-xs text-black">
+                                <span className="mr-2 text-xs text-black dark:text-white">
                                   {category.count || 0}
                                 </span>
                               </>
@@ -258,7 +258,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                                         setEditingName(category.name);
                                         setShowDropdown(null);
                                       }}
-                                      className="flex items-center px-4 py-2 w-full text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
+                                      className="flex items-center px-4 py-2 w-full text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
                                     >
                                       <Edit2 size={14} className="mr-2" />
                                       重命名

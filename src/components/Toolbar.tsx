@@ -1,15 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FileJson, Settings as SettingsIcon } from 'lucide-react';
-import { ViewMode, SortBy, Category } from '../types';
-import type { BulkAction } from '../types';
+import { ViewMode, SortType, Category } from '../types';
 import Settings from './Settings';
-
+import ThemeToggle from './ThemeToggle';
 interface ToolbarProps {
   viewMode: ViewMode;
-  sortBy: SortBy;
+  sortBy: SortType;
   sortDirection: 'asc' | 'desc';
   onViewModeChange: (mode: ViewMode) => void;
-  onSortChange: (sort: SortBy) => void;
+  onSortChange: (sort: SortType) => void;
   onSearch: (tags: string[]) => void;
   selectedCount: number;
   bulkActions: BulkAction[];
@@ -121,10 +120,10 @@ const Toolbar: React.FC<ToolbarProps> = ({
           >
             <Import size={20} />
           </button>
-
+          <ThemeToggle />
           {selectedCount > 0 ? (
             <>
-              <span className="text-sm text-gray-600 dark:text-gray-300">
+              <span className="text-sm text-gray-600dark:text-rose-300">
                 {selectedCount} selected
               </span>
               <div className="h-6 border-l dark:border-gray-600" />
@@ -134,7 +133,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                     {action.categories ? (
                       <div className="relative">
                         <button
-                          className="flex items-center px-3 py-2 space-x-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
+                          className="flex items-center px-3 py-2 space-x-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700dark:text-rose-300"
                           onClick={() => {
                             const dropdown = document.getElementById(`category-dropdown-${index}`);
                             if (dropdown) {
@@ -193,7 +192,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                     ) : (
                       <button
                         onClick={action.onClick}
-                        className="flex items-center px-3 py-2 space-x-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
+                        className="flex items-center px-3 py-2 space-x-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700dark:text-rose-300"
                         title={action.label}
                       >
                         {action.icon}
@@ -240,7 +239,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 ) : (
                   <button
                     onClick={handleSearchClick}
-                    className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
+                    className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700dark:text-rose-300"
                     title="搜索"
                   >
                     <Search size={20} />
@@ -277,32 +276,32 @@ const Toolbar: React.FC<ToolbarProps> = ({
                   onMouseEnter={() => setIsDropdownOpen(true)}
                   onMouseLeave={() => setIsDropdownOpen(false)}
                 >
-                  <button className="flex items-center px-3 py-2 space-x-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <button className="flex items-center px-3 py-2 space-x-2 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
                     {sortDirection === 'asc' ? <SortAsc size={20} /> : <SortDesc size={20} />}
                     <span>Sort by {getSortLabel()}</span>
                   </button>
                   {isDropdownOpen && (
-                    <div className="absolute left-0 top-[calc(100%-5px)] z-50 py-1 mt-1 w-48 bg-white rounded-lg border shadow-lg dark:bg-gray-800 dark:border-gray-700">
+                    <div className="absolute left-0 top-[calc(100%-5px)] z-50 py-1 mt-1 w-48 bg-white rounded-lg border shadow-lg dark:text-white dark:bg-gray-800 dark:border-gray-700">
                       <button
-                        onClick={() => onSortChange('name')}
-                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                          sortBy === 'name' ? 'text-blue-600 dark:text-blue-300' : ''
+                        onClick={() => onSortChange(SortType.Name)}
+                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:text-red-300 dark:hover:bg-gray-700 ${
+                          sortBy === SortType.Name ? 'text-blue-600 dark:text-blue-300' : ''
                         }`}
                       >
                         Name
                       </button>
                       <button
-                        onClick={() => onSortChange('date')}
-                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                          sortBy === 'date' ? 'text-blue-600 dark:text-blue-300' : ''
+                        onClick={() => onSortChange(SortType.Date)}
+                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:text-red-300 dark:hover:bg-gray-700 ${
+                          sortBy === SortType.Date ? 'text-blue-600 dark:text-blue-300' : ''
                         }`}
                       >
                         Date
                       </button>
                       <button
-                        onClick={() => onSortChange('size')}
-                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                          sortBy === 'size' ? 'text-blue-600 dark:text-blue-300' : ''
+                        onClick={() => onSortChange(SortType.Size)}
+                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:text-red-300 dark:hover:bg-gray-700 ${
+                          sortBy === SortType.Size ? 'text-blue-600 dark:text-blue-300' : ''
                         }`}
                       >
                         Size
@@ -319,7 +318,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                     console.error('打开配置文件失败:', result.error);
                   }
                 }}
-                className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
+                className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700dark:text-rose-300"
                 title="打开配置文件"
                 aria-label="打开配置文件"
               >
@@ -328,7 +327,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
               <button
                 onClick={() => setIsSettingsOpen(true)}
-                className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
+                className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700dark:text-rose-300"
                 title="设置"
               >
                 <SettingsIcon size={20} />

@@ -51,7 +51,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
         
         <div className="space-y-4">
           <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block mb-1 text-sm font-medium text-gray-700dark:text-rose-300">
               ComfyUI 服务器地址
             </label>
             <input
@@ -64,7 +64,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
           </div>
 
           <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block mb-1 text-sm font-medium text-gray-700dark:text-rose-300">
               背景图片URL
             </label>
             <input
@@ -77,10 +77,11 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
           </div>
 
           <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block mb-1 text-sm font-medium text-gray-700dark:text-rose-300">
               自动打标
             </label>
             <input
+              title="自动打标"
               type="checkbox"
               checked={autoTagging}
               onChange={(e) => setAutoTagging(e.target.checked)}
@@ -91,7 +92,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
           <div className="flex justify-end mt-6 space-x-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-700dark:text-rose-300 dark:hover:bg-gray-600"
             >
               取消
             </button>

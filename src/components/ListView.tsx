@@ -39,7 +39,7 @@ const Row = memo(({ data, index, style }: {
     // 如果图片数据还未加载，显示占位符
     if (!image) {
         return (
-            <div style={style} className="animate-pulse bg-gray-100 dark:bg-gray-700" />
+            <div style={style} className="bg-gray-100 animate-pulse dark:bg-gray-700" />
         );
     }
 
@@ -51,13 +51,7 @@ const Row = memo(({ data, index, style }: {
                     ? 'var(--selected-bg-color, rgba(59, 130, 246, 0.1))' 
                     : undefined
             }}
-            className={`
-                grid 
-                grid-cols-[auto_1fr_auto_auto_auto]
-                gap-4 p-4 items-center
-                hover:bg-gray-50
-                dark:hover:bg-gray-700
-                transition-colors cursor-pointer image-item`}
+            className={`grid gap-4 items-center p-4 transition-colors cursor-pointer grid-cols-[auto_1fr_auto_auto_auto] hover:bg-gray-50 dark:hover:bg-gray-700 image-item`}
             data-image-id={image.id}
             onContextMenu={handleContextMenu}
             onClick={(e) => handleRowClick(e, image.id)}
@@ -68,13 +62,13 @@ const Row = memo(({ data, index, style }: {
             </div>
             <div className="flex items-center">
                 <FileText size={16} className="mr-2 text-gray-400" />
-                <span className="text-gray-700 dark:text-gray-200">{image.name}</span>
+                <span className="text-gray-700 dark:text-white">{image.name}</span>
             </div>
             <div className="flex gap-4 justify-between items-center w-50">
-                <div className="text-gray-500 dark:text-gray-400 min-w-15">
+                <div className="text-gray-500 dark:text-white min-w-15">
                     {(image.size / 1024 / 1024).toFixed(2)} MB
                 </div>
-                <div className="flex items-center text-gray-500 dark:text-gray-400">
+                <div className="flex items-center text-gray-500 dark:text-white">
                     <Calendar size={16} className="mr-2" />
                     {new Date(image.dateModified).toLocaleDateString()}
                 </div>
@@ -152,8 +146,8 @@ const ListView: React.FC<ImageGridBaseProps> = ({
     };
 
     return (
-        <div className="h-full bg-white bg-opacity-60 rounded-lg shadow dark:bg-gray-800">
-            <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 border-b dark:border-gray-700 font-medium text-gray-500 dark:text-gray-400">
+        <div className="h-full bg-white bg-opacity-60 rounded-lg shadow dark:bg-gray-800 dark:bg-opacity-60">
+            <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 border-b dark:border-gray-700 font-medium text-gray-500 dark:text-rose-400">
                 <div className="w-12"></div>
                 <div>Name</div>
                 <div>Size</div>

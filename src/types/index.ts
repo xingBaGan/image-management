@@ -1,9 +1,6 @@
 
 export type ViewMode = 'grid' | 'list';
 
-export type SortBy = 'name' | 'date' | 'size';
-
-export type FilterType = 'all' | 'favorites' | 'recent' | 'videos';
 
 export interface Category {
   id: string;
@@ -30,10 +27,6 @@ export interface LocalImageData extends ImageInfo {
   favorite?: boolean;
   tags: string[];
   categories?: string[];
-}
-
-export interface AppState {
-  filter: FilterType;
 }
 
 export type BulkAction = {
@@ -78,6 +71,25 @@ interface ElectronAPI {
   readFile: (filePath: string) => Promise<Buffer>;
   tagImage: (imagePath: string, modelName: string) => Promise<string[]>;
   processDirectoryToFiles: (dirPath: string) => Promise<File[]>;
+}
+
+export enum FilterType {
+  Recent = 'recent',
+  Favorites = 'favorites',
+  All = 'all',
+  Photos = 'photos',
+  Videos = 'videos',
+} 
+
+export enum SortDirection {
+  Asc = 'asc',
+  Desc = 'desc',
+}
+
+export enum SortType {
+  Name = 'name',
+  Date = 'date',
+  Size = 'size',
 }
 
 declare global {

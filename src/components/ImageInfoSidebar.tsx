@@ -1,9 +1,8 @@
 import React from 'react';
-import { LocalImageData, ImageInfo } from '../types';
+import { LocalImageData } from '../types';
 import { formatFileSize, formatDate } from '../utils';
 import MediaTags from './MediaTags';
 import Rating from './Rating';
-import VideoItem from './VideoItem';
 
 interface ImageInfoSidebarProps {
     image: LocalImageData | null;
@@ -33,7 +32,7 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold dark:text-white">视频信息</h3>
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-sm text-gray-500 dark:text-white">
                 {totalVideos}个视频
             </div>
             </>
@@ -42,7 +41,7 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
              <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold dark:text-white">基本信息</h3>
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-sm text-gray-500 dark:text-white">
                 {totalImages}张图片
             </div></>
            ) }
@@ -70,32 +69,32 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
 
                 <div className="space-y-2">
                     <div>
-                        <label className="text-sm text-gray-500 dark:text-gray-400">文件名</label>
+                        <label className="text-sm text-gray-500 dark:text-rose-400">文件名</label>
                         <p className="text-gray-900 dark:text-white">{image.name}</p>
                     </div>
 
                     <div>
-                        <label className="text-sm text-gray-500 dark:text-gray-400">尺寸</label>
+                        <label className="text-sm text-gray-500 dark:text-rose-400">尺寸</label>
                         <p className="text-gray-900 dark:text-white">{image.width} x {image.height}</p>
                     </div>
 
                     <div>
-                        <label className="text-sm text-gray-500 dark:text-gray-400">文件大小</label>
+                        <label className="text-sm text-gray-500 dark:text-rose-400">文件大小</label>
                         <p className="text-gray-900 dark:text-white">{formatFileSize(image.size)}</p>
                     </div>
 
                     <div>
-                        <label className="text-sm text-gray-500 dark:text-gray-400">创建日期</label>
+                        <label className="text-sm text-gray-500 dark:text-rose-400">创建日期</label>
                         <p className="text-gray-900 dark:text-white">{formatDate(image.dateCreated)}</p>
                     </div>
 
                     <div>
-                        <label className="text-sm text-gray-500 dark:text-gray-400">修改日期</label>
+                        <label className="text-sm text-gray-500 dark:text-rose-400">修改日期</label>
                         <p className="text-gray-900 dark:text-white">{formatDate(image.dateModified)}</p>
                     </div>
 
                     <div>
-                        <label className="text-sm text-gray-500 dark:text-gray-400">评分</label>
+                        <label className="text-sm text-gray-500 dark:text-rose-400">评分</label>
                         <Rating
                             value={image.rate || 0}
                             onChange={(value) => onRateChange(image.id, value)}
@@ -103,8 +102,8 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
                     </div>
 
                     <div>
-                        <span className="p-1 mb-2 text-sm text-gray-500 dark:text-gray-400">标签</span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="p-1 mb-2 text-sm text-gray-500 dark:text-rose-400">标签</span>
+                        <span className="text-xs text-gray-500 dark:text-rose-400">
                             (提示：按回车添加标签，按退格键删除)
                         </span>
                         <MediaTags
