@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
+import { supportModes } from '../config';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
   const [comfyUrl, setComfyUrl] = useState('');
   const [autoTagging, setAutoTagging] = useState(false);
   const [backgroundUrl, setBackgroundUrl] = useState('');
+  const [modelName, setModelName] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -26,7 +28,8 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       await updateSettings({
         ComfyUI_URL: comfyUrl,
         autoTagging: autoTagging,
-        backgroundUrl: backgroundUrl
+        backgroundUrl: backgroundUrl,
+        modelName: modelName,
       });
       onClose();
     } catch (error) {
@@ -88,7 +91,22 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
               className="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
           </div>
-
+          
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-700dark:text-rose-300">
+              模型名称
+            </label>
+            <select
+              title="模型名称"
+              value={modelName}
+              onChange={(e) => setModelName(e.target.value)}
+              className="px-3 py-2 w-full rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            >
+              {supportModes.map((mode) => (
+                <option key={mode} value={mode}>{mode}</option>
+              ))}
+            </select>
+          </div>
           <div className="flex justify-end mt-6 space-x-3">
             <button
               onClick={onClose}

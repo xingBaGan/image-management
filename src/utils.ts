@@ -39,7 +39,7 @@ export const getVideoDuration = async (file: File | string) => {
 export const getImageSize = async (file: File) => {
   let image = new Image();
   if (typeof file.path === 'string') {
-    image.src = file.path;
+    image.src = 'local-image://' + file.path;
   } else {
     image.src = URL.createObjectURL(file);
   }
@@ -82,8 +82,8 @@ export const processMedia = async (files: ImportFile[], existingImages: LocalIma
       path: file.path.includes('local-image://') ? file.path : 'local-image://' + file.path,
       name: file.name,
       size: file.size,
-      dateCreated: new Date(file.dateCreated || '').toISOString(),
-      dateModified: new Date(file.dateModified || file.lastModified || '').toISOString(),
+      dateCreated: new Date(file?.dateCreated || new Date()).toISOString(),
+      dateModified: new Date(file?.dateModified || file?.lastModified || new Date()).toISOString(),
       tags,
       favorite: false,
       categories: [],

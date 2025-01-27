@@ -1,15 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { defaultModel } from '../config';
 
 export interface Settings {
   ComfyUI_URL: string;
   autoTagging: boolean;
   backgroundUrl: string;
+  modelName: string;
 }
 
 interface SettingsContextType {
   settings: Settings;
   updateSettings: (newSettings: Partial<Settings>) => Promise<void>;
   loadSettings: () => Promise<void>;
+  setModelName: (modelName: string) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -19,6 +22,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     ComfyUI_URL: '',
     autoTagging: false,
     backgroundUrl: '',
+    modelName: defaultModel,
   });
 
   const loadSettings = async () => {
@@ -28,6 +32,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         ComfyUI_URL: loadedSettings.ComfyUI_URL || '',
         autoTagging: loadedSettings.autoTagging || false,
         backgroundUrl: loadedSettings.backgroundUrl || '',
+        modelName: loadedSettings.modelName || defaultModel,
       });
     } catch (error) {
       console.error('加载设置失败:', error);
@@ -44,12 +49,16 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const setModelName = (modelName: string) => {
+    setSettings((prevSettings) => ({ ...prevSettings, modelName }));
+  };
+
   useEffect(() => {
     loadSettings();
   }, []);
 
   return (
-    <SettingsContext.Provider value={{ settings, updateSettings, loadSettings }}>
+    <SettingsContext.Provider value={{ settings, updateSettings, loadSettings, setModelName }}>
       {children}
     </SettingsContext.Provider>
   );

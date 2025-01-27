@@ -39,6 +39,7 @@ export interface Settings {
   ComfyUI_URL: string;
   autoTagging: boolean;
   backgroundUrl: string;
+  modelName: string;
 }
 
 export interface ImportFile extends File {

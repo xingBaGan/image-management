@@ -38,7 +38,8 @@ export async function generateImageTags(imagePath: string, base64?: string): Pro
 export async function addTagsToImages(
   selectedImages: LocalImageData[], 
   allImages: LocalImageData[],
-  categories: any[]
+  categories: any[],
+  modelName: string
 ): Promise<{
   updatedImages: LocalImageData[],
   success: boolean
@@ -48,7 +49,7 @@ export async function addTagsToImages(
     const updatedImages = await Promise.all(
       selectedImages.map(async (image) => {
         const imagePath = await getLocalImagePath(image.path);
-        const newTags = await window.electron.tagImage(imagePath, "wd-v1-4-moat-tagger-v2");
+        const newTags = await window.electron.tagImage(imagePath, modelName);
         if (newTags.length > 0) {
         // 合并现有标签和新标签，去重
           return {

@@ -265,7 +265,8 @@ function App() {
     const { updatedImages, success } = await addTagsToImages(
       selectedImagesList,
       images,
-      categories
+      categories,
+      settings.modelName
     );
 
     if (success) {

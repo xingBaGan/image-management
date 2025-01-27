@@ -1,8 +1,8 @@
 {
   "name": "atujji",
   "private": true,
-  "version": "0.0.1",
-  "description": "一个简洁优雅的本地图片管理工具",
+  "version": "0.1.0",
+  "description": "a image manager tool which has plugin support with ai",
   "author": {
     "name": "jzj",
     "email": "example@example.com"
