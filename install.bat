@@ -15,4 +15,14 @@ if not exist "venv" (
 )
 
 echo.
-echo Installation completed! You can now close this window and start the application. 
+echo Downloading AI model...
+python script\download_models.py
+if errorlevel 1 (
+    echo Model download failed!
+    pause
+    exit /b 1
+)
+
+echo.
+echo Installation completed! You can now close this window and start the application.
+pause 

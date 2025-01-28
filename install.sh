@@ -25,4 +25,14 @@ else
 fi
 
 echo
-echo "Installation completed! You can now close this window and start the application." 
+echo "Downloading AI model..."
+python3 script/download_models.py
+if [ $? -ne 0 ]; then
+    echo "Model download failed!"
+    read -p "Press any key to continue..."
+    exit 1
+fi
+
+echo
+echo "Installation completed! You can now close this window and start the application."
+read -p "Press any key to continue..." 

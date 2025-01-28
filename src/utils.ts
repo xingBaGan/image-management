@@ -39,7 +39,11 @@ export const getVideoDuration = async (file: File | string) => {
 export const getImageSize = async (file: File) => {
   let image = new Image();
   if (typeof file.path === 'string') {
-    image.src = 'local-image://' + file.path;
+    if (file.path.includes('local-image://')) {
+      image.src = file.path;
+    } else {
+      image.src = 'local-image://' + file.path;
+    }
   } else {
     image.src = URL.createObjectURL(file);
   }
