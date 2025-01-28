@@ -1,4 +1,4 @@
-import { Category, LocalImageData, ViewMode } from '../types';
+import { Category, LocalImageData, ViewMode, ImportStatus } from '../types';
 
 export interface ImageGridBaseProps {
   images: LocalImageData[];
@@ -10,8 +10,8 @@ export interface ImageGridBaseProps {
   addImages: (newImages: LocalImageData[]) => void;
   existingImages: LocalImageData[];
   categories: Category[];
-  setIsTagging: (isTagging: boolean) => void;
-  isTagging: boolean;
+  setImportState: (importState: ImportStatus) => void;
+  importState: ImportStatus;
   setViewingMedia?: (media: LocalImageData | null) => void;
 }
 

@@ -54,3 +54,7 @@
     scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
   }
 } 
+
+body {
+  overflow: hidden;
+}

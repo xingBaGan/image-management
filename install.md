@@ -1,6 +1,6 @@
 ## 环境安装
 
-根据您的操作系统，运行相应的安装脚本：
+根据您的操作系统，运行相应的安装脚本[在resources目录下]：
 
 - Windows: 双击运行 `install.bat`
 - Linux: 运行 `install.sh`

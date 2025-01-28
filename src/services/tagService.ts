@@ -1,4 +1,4 @@
-import { LocalImageData } from '../types';
+import { ImportStatus, LocalImageData } from '../types';
 
 const baseUrl = 'http://localhost:3000';
 
@@ -39,12 +39,14 @@ export async function addTagsToImages(
   selectedImages: LocalImageData[], 
   allImages: LocalImageData[],
   categories: any[],
-  modelName: string
+  modelName: string,
+  setImportState: (importState: ImportStatus) => void
 ): Promise<{
   updatedImages: LocalImageData[],
   success: boolean
 }> {
   try {
+    setImportState(ImportStatus.Tagging);
     // 对每个选中的图片调用 tagger API
     const updatedImages = await Promise.all(
       selectedImages.map(async (image) => {
@@ -60,7 +62,6 @@ export async function addTagsToImages(
         return image;
       })
     );
-
     // 更新图片数据
     const finalImages = allImages.map(img => {
       const updatedImg = updatedImages.find(updated => updated?.id === img.id);
@@ -76,7 +77,7 @@ export async function addTagsToImages(
         dateModified: dateModified
       };
     });
-
+    setImportState(ImportStatus.Imported);
     // 保存更新后的图片数据
     await window.electron.saveImagesToJson(localImageDataList, categories);
 

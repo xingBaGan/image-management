@@ -145,15 +145,14 @@ class AITagger:
     
     
 def main():
-    tagger = AITagger()
-    
     if len(sys.argv) < 2:
         print("请提供图片路径")
         sys.exit(1)
         
     image_path = sys.argv[1]
     model_name = sys.argv[2] if len(sys.argv) > 2 else "wd-v1-4-moat-tagger-v2"
-    
+    model_dir_path = sys.argv[3] if len(sys.argv) > 3 else "models"
+    tagger = AITagger(model_dir_path)
     # 确保图片路径存在
     if not os.path.exists(image_path):
         print(f"图片不存在: {image_path}")

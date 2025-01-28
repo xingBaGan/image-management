@@ -1,4 +1,4 @@
-import { LocalImageData, Category, ImportFile } from './types/index.ts';
+import { LocalImageData, Category, ImportFile, ImportStatus } from './types/index.ts';
 import { defaultModel } from './config';
 
 export const generateHashId = (filePath: string, fileSize: number): string => {
@@ -23,7 +23,7 @@ export const getVideoDuration = async (file: File | string) => {
       return video.duration;
     } else {
       video = document.createElement('video');
-      video.src = URL.createObjectURL(file);
+      assignPathToMedia(file, video);
       video.muted = true;
       await video.play();
       return video.duration;
@@ -36,17 +36,21 @@ export const getVideoDuration = async (file: File | string) => {
   }
 };
 
-export const getImageSize = async (file: File) => {
-  let image = new Image();
+export const assignPathToMedia = (file: File, media: HTMLImageElement | HTMLVideoElement)=> {
   if (typeof file.path === 'string') {
     if (file.path.includes('local-image://')) {
-      image.src = file.path;
+      media.src = file.path;
     } else {
-      image.src = 'local-image://' + file.path;
+      media.src = 'local-image://' + file.path;
     }
   } else {
-    image.src = URL.createObjectURL(file);
+    media.src = URL.createObjectURL(file);
   }
+}
+
+export const getImageSize = async (file: File) => {
+  let image = new Image();
+  assignPathToMedia(file, image);
   return new Promise<{ width: number; height: number }>((resolve, reject) => {
     image.onload = () => {
       resolve({ width: image.width, height: image.height })
@@ -57,7 +61,12 @@ export const getImageSize = async (file: File) => {
   });
 };
 
-export const processMedia = async (files: ImportFile[], existingImages: LocalImageData[], categories: Category[]): Promise<LocalImageData[]> => {
+export const processMedia = async (
+  files: ImportFile[], 
+  existingImages: LocalImageData[], 
+  categories: Category[],
+  setImportState: (importState: ImportStatus) => void,
+): Promise<LocalImageData[]> => {
   const existingIds = new Set((existingImages || []).map(img => img.id));
   const filteredNewImages = files.filter(file => {
     const newId = generateHashId(file.path, file.size);
@@ -72,15 +81,21 @@ export const processMedia = async (files: ImportFile[], existingImages: LocalIma
   const autoTaggingEnabled = (await window.electron.loadSettings()).autoTagging;
   const updatedImages = await Promise.all(filteredNewImages.map(async file => {
     const newId = generateHashId(file.path, file.size);
-    const type = file.type.startsWith('video/') ? 'video' : 'image';
-    const tags = autoTaggingEnabled && type === 'image' ? await window.electron.tagImage(file.path, defaultModel) : [];
+    const type = file.type.startsWith('video') ? 'video' : 'image';
+    const isVideo = type === 'video';
+    const isImage = type === 'image';
+    let tags: string[] = [];
+    if (autoTaggingEnabled && isImage) {
+      setImportState(ImportStatus.Tagging);
+      tags = await window.electron.tagImage(file.path, defaultModel);
+    }
     let imageSize = { width: 0, height: 0 };
     try {
-      imageSize = await getImageSize(file);
+      isImage && (imageSize = await getImageSize(file));
     } catch (error) {
       console.error('获取图片尺寸失败', error);
     }
-    const [thumbnail, width, height] = type === 'video' ? await generateVideoThumbnail(file) : [undefined, undefined, undefined];
+    const [thumbnail, width, height] = isVideo ? await generateVideoThumbnail(file) : [undefined, undefined, undefined];
     return {
       id: newId,
       path: file.path.includes('local-image://') ? file.path : 'local-image://' + file.path,
@@ -88,20 +103,20 @@ export const processMedia = async (files: ImportFile[], existingImages: LocalIma
       size: file.size,
       dateCreated: new Date(file?.dateCreated || new Date()).toISOString(),
       dateModified: new Date(file?.dateModified || file?.lastModified || new Date()).toISOString(),
-      tags,
+      tags: tags as string[],
       favorite: false,
       categories: [],
       type: type as 'image' | 'video',
-      duration: type === 'video' ? await getVideoDuration(file) : undefined,
+      duration: isVideo ? await getVideoDuration(file) : undefined,
       thumbnail: thumbnail,
-      width: type === 'image' ? imageSize.width : width,
-      height: type === 'image' ? imageSize.height : height,
+      width: isImage ? imageSize.width : width,
+      height: isImage ? imageSize.height : height,
       rate: 0,
     };
   }));
 
   const localImageDataList: LocalImageData[] = [...(existingImages || []), ...updatedImages];
-
+  setImportState(ImportStatus.Imported);
   await window.electron.saveImagesToJson(localImageDataList, categories);
   return updatedImages;
 };
@@ -112,7 +127,7 @@ export const handleDrop = async (
   addImages: (newImages: LocalImageData[]) => void,
   existingImages: LocalImageData[],
   categories: Category[],
-  setIsTagging: (isTagging: boolean) => void,
+  setImportState: (importState: ImportStatus) => void,
 ) => {
   e.preventDefault();
   console.log('e:', e.dataTransfer.files);
@@ -120,23 +135,20 @@ export const handleDrop = async (
   console.log('files:', files);
   const firstFile = e.dataTransfer.files[0].path;
   if (files.length > 0) {
-    setIsTagging(true);
-    const newImages = await processMedia(files as ImportFile[], existingImages, categories);
+    const newImages = await processMedia(files as ImportFile[], existingImages, categories, setImportState);
     addImages(newImages as LocalImageData[]);
-    setIsTagging(false);
   } else {
     const images = await window.electron.processDirectoryToFiles(firstFile);
-    console.log('files:', images);
-    // const newImages = await processMedia(files, existingImages, categories);
     const newImages = [...images, ...existingImages];
     addImages(newImages as LocalImageData[]);
   }
 };
 
-export const generateVideoThumbnail = async (file: File): Promise<[string, number, number]> => {
+export const generateVideoThumbnail = async (file: File |ImportFile): Promise<[string, number, number]> => {
+
   return new Promise((resolve, reject) => {
     const video = document.createElement('video');
-    video.src = URL.createObjectURL(file);
+    assignPathToMedia(file, video);
     video.currentTime = 1; // Capture the thumbnail at 1 second
 
     video.onloadeddata = () => {

@@ -3,18 +3,21 @@ import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar';
 import MediaGrid from './components/MediaGrid';
 import ImageInfoSidebar from './components/ImageInfoSidebar';
-import { Category, ViewMode, LocalImageData,  } from './types';
+import { Category, ViewMode, LocalImageData, ImportStatus,  } from './types';
 import { SortType, FilterType, SortDirection} from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
 import { addTagsToImages } from './services/tagService';
 import { processMedia } from './utils';
+import Settings from './components/Settings';
 import DeleteConfirmDialog from './components/DeleteConfirmDialog';
+import MessageBox from './components/MessageBox';
 import { useSettings } from './contexts/SettingsContext';
 import './App.css';
 import { ThemeProvider } from './contexts/ThemeContext';
 
 function App() {
   const { settings } = useSettings();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<FilterType>(FilterType.Photos);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortType>(SortType.Date);
@@ -26,8 +29,17 @@ function App() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchTags, setSearchTags] = useState<string[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-  const [isTagging, setIsTagging] = useState<boolean>(false);
+  const [importState, setImportState] = useState<ImportStatus>(ImportStatus.Imported);
   const [selectedImageForInfo, setSelectedImageForInfo] = useState<LocalImageData | null>(null);
+  const [messageBox, setMessageBox] = useState<{
+    isOpen: boolean;
+    message: string;
+    type: 'info' | 'success' | 'warning' | 'error';
+  }>({
+    isOpen: false,
+    message: '',
+    type: 'info'
+  });
 
   useEffect(() => {
     setSelectedImages(new Set());
@@ -259,14 +271,22 @@ function App() {
   };
 
   const handleAddTags = async () => {
+    if (selectedCategory === FilterType.Videos) {
+      setMessageBox({
+        isOpen: true,
+        message: '视频文件暂不支持批量打标签',
+        type: 'warning'
+      });
+      return;
+    }
     // 获取选中的图片
-    const selectedImagesList = images.filter(img => selectedImages.has(img.id));
-
+    let selectedImagesList = images.filter(img => selectedImages.has(img.id));
     const { updatedImages, success } = await addTagsToImages(
       selectedImagesList,
       images,
       categories,
-      settings.modelName
+      settings.modelName,
+      setImportState,
     );
 
     if (success) {
@@ -294,15 +314,18 @@ function App() {
       onClick: handleAddTags
     }
   ];
+  const messageBoxClose = () => {
+    setMessageBox(prev => ({ ...prev, isOpen: false }));
+  };
 
   const handleImportImages = async () => {
     try {
       const newImages = await window.electron.showOpenDialog();
       if (newImages.length > 0) {
-        setIsTagging(true);
-        const updatedImages = await processMedia(newImages as any, images, categories);
+        setImportState(ImportStatus.Importing);
+        const updatedImages = await processMedia(newImages as any, images, categories, setImportState);
         setImages([...images, ...updatedImages]);
-        setIsTagging(false);
+        setImportState(ImportStatus.Imported);
       }
     } catch (error) {
       console.error('导入图片失败:', error);
@@ -456,6 +479,8 @@ function App() {
               onToggleSidebar={() => setIsZenMode(!isZenMode)}
               onImport={handleImportImages}
               isSidebarOpen={isZenMode}
+              setIsSettingsOpen={setIsSettingsOpen}
+              isSettingsOpen={isSettingsOpen}
             />
             <div className="flex overflow-y-auto flex-1">
               <div className={`flex-1 ${isZenMode ? 'mr-0' : 'mr-60'}`}>
@@ -469,8 +494,8 @@ function App() {
                   addImages={handleAddImages}
                   existingImages={images}
                   categories={categories}
-                  setIsTagging={setIsTagging}
-                  isTagging={isTagging}
+                  setImportState={setImportState}
+                  importState={importState}
                 />
               </div>
               <div className="fixed right-0 bottom-0 top-16">
@@ -492,6 +517,18 @@ function App() {
             onConfirm={() => handleDeleteConfirm(showDeleteConfirm)}
           />
         )}
+        <MessageBox
+          isOpen={messageBox.isOpen}
+          onClose={messageBoxClose}
+          message={messageBox.message}
+          type={messageBox.type}
+        />
+        <Settings
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          setMessageBox={setMessageBox}
+          messageBox={messageBox}
+        />
       </div>
     </ThemeProvider>
   );

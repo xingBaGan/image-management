@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FileJson, Settings as SettingsIcon } from 'lucide-react';
 import { ViewMode, SortType, Category } from '../types';
-import Settings from './Settings';
 import ThemeToggle from './ThemeToggle';
 interface ToolbarProps {
   viewMode: ViewMode;
@@ -15,6 +14,8 @@ interface ToolbarProps {
   onToggleSidebar: () => void;
   onImport: () => void;
   isSidebarOpen: boolean;
+  setIsSettingsOpen: (isOpen: boolean) => void;
+  isSettingsOpen: boolean;
 }
 
 interface SearchTag {
@@ -42,9 +43,10 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onToggleSidebar,
   onImport,
   isSidebarOpen,
+  setIsSettingsOpen,
 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   const [inputValue, setInputValue] = useState('');
   const [tags, setTags] = useState<SearchTag[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -324,7 +326,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
               >
                 <FileJson className="w-4 h-4" />
               </button>
-
               <button
                 onClick={() => setIsSettingsOpen(true)}
                 className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700dark:text-rose-300"
@@ -336,11 +337,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
           )}
         </div>
       </div>
-
-      <Settings
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
     </>
   );
 };

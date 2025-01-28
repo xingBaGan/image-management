@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { handleDrop as handleDropUtil } from '../utils';
 import DragOverlay from './DragOverlay';
 import MediaViewer from './MediaViewer';
-import { LocalImageData } from '../types';
+import { ImportStatus, LocalImageData } from '../types';
 import { ImageGridBaseProps } from './ImageGridBase';
 import GridView from './GridView';
 import ListView from './ListView';
@@ -17,8 +17,8 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
   addImages,
   existingImages,
   categories,
-  setIsTagging,
-  isTagging,
+  setImportState,
+  importState,
 }) => {
   const [viewingMedia, setViewingMedia] = useState<LocalImageData | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -151,7 +151,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
     const height = Math.abs(selectionEnd.y - selectionStart.y);
 
     return {
-      position: 'absolute',
+      position: 'fixed',
       left: `${left}px`,
       top: `${top}px`,  
       width: `${width}px`,
@@ -163,6 +163,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
     } as React.CSSProperties;
   };
 
+  const isImporting = importState === ImportStatus.Importing || importState === ImportStatus.Tagging;
   return (
     <>
       {viewingMedia && (
@@ -194,13 +195,13 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
           setIsSelecting(false);
           setMouseDownPos(null);
         }}
-        style={{ position: 'relative', overflow: isTagging || isDragging ? 'hidden' : 'auto' }}
+        style={{ position: 'relative', overflow: isImporting || isDragging ? 'hidden' : 'auto' }}
         onDragEnter={() => setIsDragging(true)}
         onDragOver={(e) => e.preventDefault()}
-        onDrop={async (e) => { await handleDropUtil(e, addImages, existingImages, categories, setIsTagging); setIsDragging(false); }}
+        onDrop={async (e) => { await handleDropUtil(e, addImages, existingImages, categories, setImportState); setIsDragging(false); }}
         onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false); }}>
         {isSelecting && <div style={getSelectionStyle()} />}
-        <DragOverlay isDragging={isDragging} isTagging={isTagging} />
+        <DragOverlay isDragging={isDragging} importState={importState} />
         {viewMode === 'list' ? (
           <ListView {...{
             images,
@@ -212,8 +213,8 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
             addImages,
             existingImages,
             categories,
-            setIsTagging,
-            isTagging,
+            setImportState,
+            importState,
             setViewingMedia,
           }} />
         ) : (
@@ -227,8 +228,8 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
             addImages,
             existingImages,
             categories,
-            setIsTagging,
-            isTagging,
+            setImportState,
+            importState,
             setViewingMedia,
           }} />
         )}

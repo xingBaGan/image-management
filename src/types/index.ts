@@ -45,6 +45,14 @@ export interface Settings {
 export interface ImportFile extends File {
   dateCreated: string;
   dateModified: string;
+  thumbnail?: string;
+}
+
+export enum ImportStatus {
+  Importing = 'importing',
+  Tagging = 'tagging',
+  Imported = 'imported',
+  Failed = 'failed',
 }
 
 interface ElectronAPI {

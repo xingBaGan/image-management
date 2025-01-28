@@ -18,8 +18,9 @@ let options = {
 };
 const delimiter = ', '
 async function tagImage(imagePath, modelName) {
-  options.args = [imagePath, modelName]
+  const model_dir_path = isDev? path.join(__dirname, '../models') : path.join(process.resourcesPath, 'models')
   const tag_path = isDev? path.join(__dirname, 'ai_tagger.py') : path.join(process.resourcesPath, 'script', 'ai_tagger.py')
+  options.args = [imagePath, modelName, model_dir_path]
   const result = await PythonShell.run(tag_path, options)
   return result[2].split(delimiter);
 }
