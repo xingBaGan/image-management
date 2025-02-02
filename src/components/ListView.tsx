@@ -96,6 +96,7 @@ const ListView: React.FC<ImageGridBaseProps> = ({
     selectedImages,
     onSelectImage,
     setViewingMedia,
+    onOpenInEditor,
 }) => {
     const listRef = useRef<List>(null);
     const [isScrolling, setIsScrolling] = useState(false);
@@ -129,7 +130,7 @@ const ListView: React.FC<ImageGridBaseProps> = ({
         return media.type === 'video' ? (
             <VideoItem video={media as LocalImageData & { type: 'video'; duration?: number; thumbnail?: string }} {...props} />
         ) : (
-            <ImageItem image={media} {...props} />
+            <ImageItem image={media} {...props} onOpenInEditor={onOpenInEditor} />
         );
     }, [selectedImages, onSelectImage, setViewingMedia, onFavorite, viewMode]);
 

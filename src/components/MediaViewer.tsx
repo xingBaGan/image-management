@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { ImageInfo } from '../types';
+import { MediaInfo } from '../types';
 
 interface MediaViewerProps {
-  media: ImageInfo;
+  media: MediaInfo;
   onClose: () => void;
   onPrevious: () => void;
   onNext: () => void;

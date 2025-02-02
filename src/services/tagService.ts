@@ -68,7 +68,7 @@ export async function addTagsToImages(
       return updatedImg || img;
     });
 
-    // 将 ImageInfo 转换为 LocalImageData
+    // 将 MediaInfo 转换为 LocalImageData
     const localImageDataList: LocalImageData[] = finalImages.map(img => {
       const { dateCreated, dateModified, ...rest } = img;
       return {

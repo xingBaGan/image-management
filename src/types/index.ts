@@ -1,4 +1,3 @@
-
 export type ViewMode = 'grid' | 'list';
 
 
@@ -9,7 +8,7 @@ export interface Category {
   count: number;
 }
 
-export interface ImageInfo  {
+export interface MediaInfo  {
   id: string;
   name: string;
   path: string;
@@ -20,9 +19,10 @@ export interface ImageInfo  {
   url?: string;
   width?: number;
   height?: number;
+  extension: string;
 }
 
-export interface LocalImageData extends ImageInfo {
+export interface LocalImageData extends MediaInfo {
   url?: string;
   favorite?: boolean;
   tags: string[];
@@ -62,24 +62,31 @@ interface ElectronAPI {
     dateCreated: Date;
     dateModified: Date;
   }>;
-  showOpenDialog: () => Promise<LocalImageData[]>;
-  saveImagesToJson: (images: LocalImageData[], categories: Category[]) => Promise<boolean>;
-  loadImagesFromJson: (jsonPath: string) => Promise<{ 
-    images: LocalImageData[];
-    categories: Category[];
-  }>;
+  showOpenDialog: () => Promise<any[]>;
+  saveImagesToJson: (images: LocalImageData[], categories: Category[]) => Promise<void>;
+  loadImagesFromJson: (path: string) => Promise<{ images: LocalImageData[]; categories: Category[] }>;
   openImageJson: () => Promise<{ 
     success: boolean;
     error?: string;
   }>;
-  saveCategories: (categories: Category[]) => Promise<{ success: boolean }>;
-  saveImageToLocal: (imageBuffer: Uint8Array, fileName: string, ext: string) => Promise<string>;
+  saveCategories: (categories: Category[]) => Promise<void>;
+  saveImageToLocal: (buffer: Uint8Array, fileName: string, ext: string) => Promise<string>;
   loadSettings: () => Promise<Settings>;
   saveSettings: (settings: Settings) => Promise<boolean>;
   isRemoteComfyUI: () => Promise<boolean>;
   readFile: (filePath: string) => Promise<Buffer>;
   tagImage: (imagePath: string, modelName: string) => Promise<string[]>;
-  processDirectoryToFiles: (dirPath: string) => Promise<File[]>;
+  processDirectory: (dirPath: string) => Promise<LocalImageData[]>;
+  openInEditor: (filePath: string) => Promise<{ success: boolean; error?: string }>;
+  downloadUrlImage: (url: string) => Promise<{
+    success: boolean;
+    localPath?: string;
+    fileName?: string;
+    size?: number;
+    type?: string;
+    error?: string;
+  }>;
+  showInFolder: (filePath: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 export enum FilterType {
@@ -103,8 +110,10 @@ export enum SortType {
 
 declare global {
   interface Window {
-    electron: ElectronAPI
+    electron: ElectronAPI;
   }
 }
+
+export type { ElectronAPI };
 
 export {};

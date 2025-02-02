@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { handleDrop as handleDropUtil } from '../utils';
 import DragOverlay from './DragOverlay';
 import MediaViewer from './MediaViewer';
@@ -6,6 +6,7 @@ import { ImportStatus, LocalImageData } from '../types';
 import { ImageGridBaseProps } from './ImageGridBase';
 import GridView from './GridView';
 import ListView from './ListView';
+import { useElectron } from '../hooks/useElectron';
 
 const MediaGrid: React.FC<ImageGridBaseProps> = ({
   images,
@@ -28,6 +29,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [mouseDownTime, setMouseDownTime] = useState<number>(0);
   const [mouseDownPos, setMouseDownPos] = useState<{ x: number, y: number } | null>(null);
+  const { openInEditor } = useElectron();
 
   const handleTagsUpdate = (mediaId: string, newTags: string[]) => {
     updateTagsByMediaId(mediaId, newTags);
@@ -164,6 +166,11 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
   };
 
   const isImporting = importState === ImportStatus.Importing || importState === ImportStatus.Tagging;
+
+  const handleOpenInEditor = useCallback((path: string) => {
+    openInEditor(path);
+  }, [openInEditor]);
+
   return (
     <>
       {viewingMedia && (
@@ -216,6 +223,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
             setImportState,
             importState,
             setViewingMedia,
+            onOpenInEditor: handleOpenInEditor,
           }} />
         ) : (
           <GridView {...{
@@ -231,6 +239,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
             setImportState,
             importState,
             setViewingMedia,
+            onOpenInEditor: handleOpenInEditor,
           }} />
         )}
       </div>

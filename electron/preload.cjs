@@ -9,11 +9,15 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.invoke('save-images-to-json', images, categories),
   openImageJson: () => ipcRenderer.invoke('open-image-json'),
   saveCategories: (categories) => ipcRenderer.invoke('save-categories', categories),
-  saveImageToLocal: (buffer, fileName, ext) => ipcRenderer.invoke('save-image-to-local', buffer, fileName, ext),
+  saveImageToLocal: (imageBuffer, fileName, ext) => 
+    ipcRenderer.invoke('save-image-to-local', imageBuffer, fileName, ext),
   loadSettings: () => ipcRenderer.invoke('load-settings'),
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
   isRemoteComfyUI: () => ipcRenderer.invoke('is-remote-comfyui'),
   readFile: (filePath) => ipcRenderer.invoke('read-file', filePath),
   tagImage: (imagePath, modelName) => ipcRenderer.invoke('tag-image', imagePath, modelName),
-  processDirectoryToFiles: (dirPath) => ipcRenderer.invoke('process-directory', dirPath),
+  processDirectory: (dirPath) => ipcRenderer.invoke('process-directory', dirPath),
+  openInEditor: (filePath) => ipcRenderer.invoke('open-in-photoshop', filePath),
+  downloadUrlImage: (url) => ipcRenderer.invoke('download-url-image', url),
+  showInFolder: (filePath) => ipcRenderer.invoke('show-in-folder', filePath),
 });

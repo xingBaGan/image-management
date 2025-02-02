@@ -96,10 +96,12 @@ export const processMedia = async (
       console.error('获取图片尺寸失败', error);
     }
     const [thumbnail, width, height] = isVideo ? await generateVideoThumbnail(file) : [undefined, undefined, undefined];
+    const extension = file.name.split('.').pop() || file.type.split('/').pop() || 'jpg';
     return {
       id: newId,
       path: file.path.includes('local-image://') ? file.path : 'local-image://' + file.path,
       name: file.name,
+      extension: extension,
       size: file.size,
       dateCreated: new Date(file?.dateCreated || new Date()).toISOString(),
       dateModified: new Date(file?.dateModified || file?.lastModified || new Date()).toISOString(),

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar';
 import MediaGrid from './components/MediaGrid';
@@ -249,7 +249,7 @@ function App() {
         return category;
       });
 
-      // 将 ImageInfo 转换为 LocalImageData
+      // 将 MediaInfo 转换为 LocalImageData
       const localImageDataList: LocalImageData[] = updatedImages.map(img => {
         const { dateCreated, dateModified, ...rest } = img;
         return {
@@ -443,6 +443,76 @@ function App() {
     setShowDeleteConfirm(null);
   };
 
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      e.preventDefault();
+      const clipboardText = e.clipboardData?.getData('text');
+      
+      if (!clipboardText) return;
+
+      // 检查是否为 URL
+      const isUrl = /^(http|https):\/\/[^ "]+$/.test(clipboardText);
+      // 检查是否为本地文件路径
+      const isFilePath = /^([a-zA-Z]:\\|\\\\|\/)[^\n"]+\.(jpg|jpeg|png|gif|mp4|mov|avi|webm)$/i.test(clipboardText);
+
+      if (isUrl || isFilePath) {
+        try {
+          setImportState(ImportStatus.Importing);
+          let newImages;
+          
+          if (isUrl) {
+            // 使用主进程下载图片
+            const result = await window.electron.downloadUrlImage(clipboardText);
+            if (!result.success) {
+              throw new Error(result.error);
+            }
+            const ext = result.type?.split('/').pop() || 'jpg';
+            newImages = [{
+              id: Date.now().toString(),
+              path: result.localPath,
+              name: result.fileName,
+              extension: ext,
+              size: result.size,
+              dateCreated: new Date().toISOString(),
+              dateModified: new Date().toISOString(),
+              tags: [],
+              favorite: false,
+              categories: [],
+              type: 'image'
+            }];
+          } else {
+            // 处理本地文件路径
+            newImages = await window.electron.processDirectory(clipboardText);
+          }
+
+          const updatedImages = await processMedia(newImages, images, categories, setImportState);
+          setImages([...images, ...updatedImages]);
+          setMessageBox({
+            isOpen: true,
+            message: '导入成功',
+            type: 'success'
+          });
+        } catch (error: any) {
+          console.error('导入失败:', error);
+          setMessageBox({
+            isOpen: true,
+            message: '导入失败: ' + (error.message || '未知错误'),
+            type: 'error'
+          });
+        } finally {
+          setImportState(ImportStatus.Imported);
+        }
+      }
+    };
+
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [images, categories]);
+
+  const handleOpenInEditor = useCallback((path: string) => {
+    window.electron.openInEditor(path);
+  }, []);
+
   return (
     <ThemeProvider>
       <div className="flex h-screen backdrop-blur-md dark:bg-gray-900 bg-white/20"
@@ -496,6 +566,7 @@ function App() {
                   categories={categories}
                   setImportState={setImportState}
                   importState={importState}
+                  onOpenInEditor={handleOpenInEditor}
                 />
               </div>
               <div className="fixed right-0 bottom-0 top-16">

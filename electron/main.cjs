@@ -487,7 +487,8 @@ ipcMain.handle('show-open-dialog', async () => {
       const metadata = {
         id: Date.now().toString(),
         path: localImageUrl,
-        name: path.basename(filePath),
+        name: path.basename(filePath, ext), // 移除扩展名
+        extension: ext.slice(1), // 移除点号
         size: stats.size,
         dateCreated: stats.birthtime.toISOString(),
         dateModified: stats.mtime.toISOString(),
@@ -785,7 +786,7 @@ const getImageSize = async (filePath) => {
   }
 };
 
-const processDirectory = async (dirPath, existingImages, categories) => {
+const processDirectory = async (dirPath) => {
   try {
     const files = await fsPromises.readdir(dirPath);
     
@@ -808,7 +809,8 @@ const processDirectory = async (dirPath, existingImages, categories) => {
         const metadata = {
           id: id,
           path: localImageUrl,
-          name: path.basename(filePath),
+          name: path.basename(filePath, ext), // 移除扩展名
+          extension: ext.slice(1), // 移除点号
           size: stats.size,
           dateCreated: stats.birthtime.toISOString(),
           dateModified: stats.mtime.toISOString(),
@@ -821,20 +823,6 @@ const processDirectory = async (dirPath, existingImages, categories) => {
           thumbnail: thumbnail,
           duration: isVideo ? await getVideoDuration(filePath) : undefined,
         };
-        if (isVideo) {
-          try {
-            const duration = await getVideoDuration(filePath);
-            const thumbnail = await generateVideoThumbnail(filePath);
-            metadata.duration = duration;
-            metadata.thumbnail = thumbnail;
-            metadata.imageSize = await getImageSize(thumbnail);
-          } catch (error) {
-            console.error('处理视频元数据失败:', error);
-            metadata.imageSize = { width: 0, height: 0 };
-          }
-        } else {
-          metadata.imageSize = await getImageSize(filePath);
-        }
         processedFiles.push(metadata);
       } catch (error) {
         console.error(`处理文件 ${file} 时出错:`, error);
@@ -861,5 +849,81 @@ ipcMain.handle('generate-video-thumbnail', async (event, filePath) => {
     filePath = decodeURIComponent(filePath.replace('local-image://', ''));
   }
   return await generateVideoThumbnail(filePath);
+});
+
+// 添加 IPC 处理函数
+ipcMain.handle('open-in-photoshop', async (_, filePath) => {
+  try {
+    const localPath = decodeURIComponent(filePath.replace('local-image://', ''));
+    await shell.openPath(localPath)
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to open Photoshop:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// 添加打开文件所在文件夹的处理函数
+ipcMain.handle('show-in-folder', async (_, filePath) => {
+  try {
+    const localPath = decodeURIComponent(filePath.replace('local-image://', ''));
+    await shell.showItemInFolder(localPath);
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to show item in folder:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// 添加下载 URL 图片的功能
+ipcMain.handle('download-url-image', async (_, url) => {
+  try {
+    const https = require('https');
+    const http = require('http');
+
+    const client = url.startsWith('https') ? https : http;
+    
+    const imageBuffer = await new Promise((resolve, reject) => {
+      client.get(url, (res) => {
+        if (res.statusCode !== 200) {
+          reject(new Error(`请求失败: ${res.statusCode}`));
+          return;
+        }
+
+        const chunks = [];
+        res.on('data', (chunk) => chunks.push(chunk));
+        res.on('end', () => resolve(Buffer.concat(chunks)));
+        res.on('error', reject);
+      }).on('error', reject);
+    });
+    const id = generateHashId(url, imageBuffer.length);
+    const fileNameMatch = url.match(/filename=([^&]+)/);
+    let fileName = fileNameMatch ? fileNameMatch[1] : id;
+    const contentType = await new Promise((resolve) => {
+      client.get(url, (res) => {
+        resolve(res.headers['content-type'] || 'image/jpeg');
+      });
+    });
+    const ext = contentType.split('/').pop() || 'jpg';
+    if ( !fileName.includes('.')) {
+      fileName = fileName + '.' + ext;
+    }
+    const localPath = await saveImageToLocal(imageBuffer, fileName, ext);
+
+    return {
+      success: true,
+      localPath,
+      fileName,
+      extension: ext,
+      size: imageBuffer.length,
+      type: contentType
+    };
+  } catch (error) {
+    console.error('下载图片失败:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
 });
 

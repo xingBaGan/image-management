@@ -59,12 +59,13 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
             </div>
 
             <div className="space-y-4">
-                <div>
+                <div className="relative">
                     <img
                         src={image.type === 'video' ? image.thumbnail : image.path}
                         alt={image.name}
                         className="object-cover w-full rounded-lg h-30"
                     />
+                    <div className="inline-block absolute top-1 right-2 text-sm text-gray-700 backdrop-blur-md bg-white/30 dark:text-white">{image.extension}</div>
                 </div>
 
                 <div className="space-y-2">

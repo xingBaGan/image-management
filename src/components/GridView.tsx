@@ -7,7 +7,7 @@ import VideoItem from './VideoItem';
 import { useInView } from 'react-intersection-observer';
 
 // 使用 memo 优化 MediaItem 组件的重渲染
-const MediaItem = memo(({ media, props }: { media: LocalImageData; props: any }) => {
+const MediaItem = memo(({ media, props, onOpenInEditor }: { media: LocalImageData; props: any; onOpenInEditor: (path: string) => void }) => {
   const { ref, inView } = useInView({
     threshold: 0,
     triggerOnce: true,
@@ -19,7 +19,7 @@ const MediaItem = memo(({ media, props }: { media: LocalImageData; props: any })
         media.type === 'video' ? (
           <VideoItem video={media as LocalImageData & { type: 'video'; duration?: number; thumbnail?: string }} {...props} />
         ) : (
-          <ImageItem image={media} {...props} />
+          <ImageItem image={media} {...props} onOpenInEditor={onOpenInEditor} />
         )
       )}
     </div>
@@ -33,6 +33,7 @@ const GridView: React.FC<ImageGridBaseProps> = ({
   selectedImages,
   onSelectImage,
   setViewingMedia,
+  onOpenInEditor,
 }) => {
   const renderMediaItem = useCallback((media: LocalImageData) => {
     const props = {
@@ -43,7 +44,7 @@ const GridView: React.FC<ImageGridBaseProps> = ({
       viewMode,
     };
 
-    return <MediaItem media={media} props={props} />;
+    return <MediaItem media={media} props={props} onOpenInEditor={onOpenInEditor} />;
   }, [selectedImages, onSelectImage, onFavorite, viewMode]);
 
   return (
