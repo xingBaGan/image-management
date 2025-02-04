@@ -66,6 +66,20 @@ export const getMainColor = async (file: File) => {
   return colors;
 };
 
+export const getRatio = async (width: number, height: number) => {
+  const ratio = width / height;
+  // ['4:3', '16:9', '1:1', '3:4', '9:16']
+  const ratios = ['4:3', '16:9', '1:1', '3:4', '9:16'];
+  const closestRatio = ratios.reduce((prev, curr) => {
+    const [prevWidth, prevHeight] = prev.split(':').map(Number);
+    const [currWidth, currHeight] = curr.split(':').map(Number);
+    const prevRatio = prevWidth / prevHeight;
+    const currRatio = currWidth / currHeight;
+    return (Math.abs(ratio - prevRatio) < Math.abs(ratio - currRatio) ? prev : curr);
+  });
+  return closestRatio;
+};
+
 export const processMedia = async (
   files: ImportFile[], 
   existingImages: LocalImageData[], 
@@ -107,9 +121,10 @@ export const processMedia = async (
       setImportState(ImportStatus.Importing);
       colors = await getMainColor(file);
     }
-
+    const ratio = await getRatio(width || imageSize.width, height || imageSize.height);
     return {
       id: newId,
+      ratio: ratio,
       path: file.path.includes('local-image://') ? file.path : 'local-image://' + file.path,
       name: file.name.includes('.') ? file.name : file.name + '.' + extension,
       extension: extension,

@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FileJson, Settings as SettingsIcon } from 'lucide-react';
-import { ViewMode, SortType, Category } from '../types';
+import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FileJson, Settings as SettingsIcon, Filter as FilterIcon, Star, Image, Palette } from 'lucide-react';
+import { ViewMode, SortType, Category, FilterOptions, Filter } from '../types';
 import ThemeToggle from './ThemeToggle';
+
 interface ToolbarProps {
   viewMode: ViewMode;
   sortBy: SortType;
@@ -9,6 +10,7 @@ interface ToolbarProps {
   onViewModeChange: (mode: ViewMode) => void;
   onSortChange: (sort: SortType) => void;
   onSearch: (tags: string[]) => void;
+  onFilter: (filters: FilterOptions) => void;
   selectedCount: number;
   bulkActions: BulkAction[];
   onToggleSidebar: () => void;
@@ -16,6 +18,7 @@ interface ToolbarProps {
   isSidebarOpen: boolean;
   setIsSettingsOpen: (isOpen: boolean) => void;
   isSettingsOpen: boolean;
+  filterColors: string[];
 }
 
 interface SearchTag {
@@ -38,14 +41,23 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onViewModeChange,
   onSortChange,
   onSearch,
+  onFilter,
   selectedCount,
   bulkActions,
   onToggleSidebar,
   onImport,
   isSidebarOpen,
   setIsSettingsOpen,
+  filterColors,
 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    colors: filterColors,
+    ratio: [],
+    rating: null,
+    formats: []
+  });
 
   const [inputValue, setInputValue] = useState('');
   const [tags, setTags] = useState<SearchTag[]>([]);
@@ -53,12 +65,49 @@ const Toolbar: React.FC<ToolbarProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const filters: Filter[] = [
+    {
+      id: 'colors',
+      type: 'colors',
+      label: '颜色',
+      options: [],
+      isMultiple: false
+    },
+    {
+      id: 'ratio',
+      type: 'ratio',
+      label: '比例',
+      options: ['4:3', '16:9', '1:1', '3:4', '9:16'],
+      isMultiple: true
+    },
+    {
+      id: 'rating',
+      type: 'rating',
+      label: '评分',
+      options: ['1', '2', '3', '4', '5'],
+      isMultiple: false
+    },
+    {
+      id: 'formats',
+      type: 'formats',
+      label: '格式',
+      options: ['PNG', 'JPG', 'GIF', 'WEBP'],
+      isMultiple: true
+    }
+  ];
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         if (tags.length === 0) {
           setIsSearchOpen(false);
         }
+      }
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFilterOpen(false);
       }
     };
 
@@ -102,6 +151,102 @@ const Toolbar: React.FC<ToolbarProps> = ({
         return 'Sort by';
     }
   };
+
+  const handleFilterChange = (type: keyof FilterOptions, value: string) => {
+    setFilterOptions(prev => {
+      const newOptions = { ...prev };
+      if (type === 'rating') {
+        if (newOptions.rating === parseInt(value)) {
+          newOptions.rating = null; // 取消选择
+        } else {
+          newOptions.rating = parseInt(value);
+        }
+      } else {
+        const arr = newOptions[type] as string[];
+        const index = arr.indexOf(value);
+        if (index === -1) {
+          arr.push(value);
+        } else {
+          arr.splice(index, 1);
+        }
+      }
+      onFilter(newOptions);
+      return newOptions;
+    });
+  };
+
+  const getFilterIcon = (type: Filter['type']) => {
+    switch (type) {
+      case 'colors':
+        return <Palette className="w-4 h-4" />;
+      case 'ratio':
+        return <Image className="w-4 h-4" />;
+      case 'rating':
+        return <Star className="w-4 h-4" />;
+      case 'formats':
+        return <FileJson className="w-4 h-4" />;
+      default:
+        return null;
+    }
+  };
+
+  const filterPopup = () => {
+    if (!isFilterOpen) return null;
+    return (
+      <div className="absolute left-0 top-[calc(100%+8px)] z-50 p-4 w-80 bg-white rounded-lg border shadow-lg dark:bg-gray-800 dark:border-gray-700">
+        <div className="space-y-4">
+          {filters.map(filter => {
+            if (filter.type === 'colors') {
+              return (
+                <div key={filter.id} className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    {getFilterIcon(filter.type)}
+                    <span className="text-sm font-medium dark:text-white">{filter.label}</span>
+                  </div>
+                  <div className='flex flex-wrap gap-2'>
+                    {filterColors.map(color => (
+                      <div key={color} className="px-3 py-1 text-sm text-white rounded-full border" style={{ backgroundColor: color }}>
+                        {color}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            }
+            return (
+              <div key={filter.id} className="space-y-2">
+
+                <div className="flex items-center space-x-2">
+                  {getFilterIcon(filter.type)}
+                  <span className="text-sm font-medium dark:text-white">{filter.label}</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {filter.options?.map(option => (
+                    <button
+                      key={option}
+                      onClick={() => handleFilterChange(filter.type as keyof FilterOptions, option)}
+                      className={`px-3 py-1 text-sm rounded-full border ${
+                        filter.type === 'rating'
+                          ? filterOptions.rating === parseInt(option)
+                            ? 'bg-blue-100 border-blue-300 text-blue-700 dark:bg-blue-900 dark:border-blue-700 dark:text-blue-300'
+                            : 'border-gray-300 dark:border-gray-600'
+                          : (filterOptions[filter.type as keyof FilterOptions] as string[]).includes(option)
+                          ? 'bg-blue-100 border-blue-300 text-blue-700 dark:bg-blue-900 dark:border-blue-700 dark:text-blue-300'
+                          : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    )
+  }
+
 
   return (
     <>
@@ -333,6 +478,22 @@ const Toolbar: React.FC<ToolbarProps> = ({
               >
                 <SettingsIcon size={20} />
               </button>
+
+              <div ref={filterRef} className="relative">
+                <button
+                  onClick={() => setIsFilterOpen(!isFilterOpen)}
+                  className={`p-2 rounded-lg ${
+                    isFilterOpen || Object.values(filterOptions).some(v => Array.isArray(v) ? v.length > 0 : v !== null)
+                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                  title="筛选"
+                >
+                  <FilterIcon size={20} />
+                </button>
+
+                {filterPopup()}
+              </div>
             </>
           )}
         </div>

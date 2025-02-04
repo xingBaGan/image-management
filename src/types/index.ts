@@ -20,6 +20,8 @@ export interface MediaInfo  {
   width?: number;
   height?: number;
   extension: string;
+  rating?: number;
+  ratio?: string;
 }
 
 export interface ColorInfo {
@@ -114,6 +116,22 @@ export enum SortType {
   Name = 'name',
   Date = 'date',
   Size = 'size',
+}
+
+export interface FilterOptions {
+  colors: string[];
+  ratio: string[];
+  rating: number | null;
+  formats: string[];
+}
+
+
+export interface Filter {
+  id: string;
+  type: 'colors' | 'ratio' | 'rating' | 'formats';
+  label: string;
+  options?: string[];
+  isMultiple?: boolean;
 }
 
 declare global {

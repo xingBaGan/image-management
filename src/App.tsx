@@ -3,7 +3,7 @@ import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar';
 import MediaGrid from './components/MediaGrid';
 import ImageInfoSidebar from './components/ImageInfoSidebar';
-import { Category, ViewMode, LocalImageData, ImportStatus,  } from './types';
+import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ColorInfo,  } from './types';
 import { SortType, FilterType, SortDirection} from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
 import { addTagsToImages } from './services/tagService';
@@ -31,9 +31,17 @@ function App() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [importState, setImportState] = useState<ImportStatus>(ImportStatus.Imported);
   const [selectedImageForInfo, setSelectedImageForInfo] = useState<LocalImageData | null>(null);
+  const [multiFilter, setMultiFilter] = useState<FilterOptions>({
+    colors: [],
+    ratio: [],
+    rating: null,
+    formats: []
+  });
+  const [filterColors, setFilterColors] = useState<string[]>([]);
   const [messageBox, setMessageBox] = useState<{
     isOpen: boolean;
     message: string;
+
     type: 'info' | 'success' | 'warning' | 'error';
   }>({
     isOpen: false,
@@ -92,10 +100,31 @@ function App() {
         );
       }
     }
+    filtered = filtered.filter(img => {
+      if (multiFilter.colors.length > 0) {
+        return multiFilter.colors.every(color => img.colors.some((c: string | ColorInfo) => typeof c === 'string' ? c === color : c.color === color));
+      }
+      if (multiFilter.ratio.length > 0) {
+        return multiFilter.ratio.every(ratio => img.ratio === ratio);
+      }
 
+      if (typeof multiFilter.rating === 'number') {
+        return img.rating === multiFilter.rating;
+      }
+
+      if (multiFilter.formats.length > 0) {
+        const ext = img.extension.toLowerCase();
+        return multiFilter.formats.some(format => ext.endsWith(format.toLowerCase()));
+      }
+      return true;
+
+    });
     // 然后对过滤后的结果进行排序
+
+
     return [...filtered].sort((a, b) => {
       let comparison = 0;
+
 
       switch (sortBy) {
         case SortType.Name:
@@ -111,7 +140,7 @@ function App() {
 
       return sortDirection === 'asc' ? -comparison : comparison;
     });
-  }, [images, sortBy, sortDirection, filter, selectedCategory, categories, searchTags]);
+  }, [images, sortBy, sortDirection, filter, selectedCategory, categories, searchTags, multiFilter]);
 
   const handleFavorite = async (id: string) => {
     try {
@@ -426,7 +455,7 @@ function App() {
 
   const handleRateChange = (mediaId: string, rate: number) => {
     const updatedImages = images.map(img =>
-      img.id === mediaId ? { ...img, rate } : img
+      img.id === mediaId ? { ...img, rating: rate } : img
     );
     window.electron.saveImagesToJson(updatedImages, categories);
     setImages(updatedImages);
@@ -551,6 +580,8 @@ function App() {
               isSidebarOpen={isZenMode}
               setIsSettingsOpen={setIsSettingsOpen}
               isSettingsOpen={isSettingsOpen}
+              onFilter={setMultiFilter}
+              filterColors={filterColors}
             />
             <div className="flex overflow-y-auto flex-1">
               <div className={`flex-1 ${isZenMode ? 'mr-0' : 'mr-60'}`}>
@@ -577,6 +608,8 @@ function App() {
                   totalImages={filteredAndSortedImages.length}
                   totalVideos={filteredAndSortedImages.length}
                   type={selectedCategory === 'videos' ? 'video' : 'image'}
+                  setFilterColors={setFilterColors}
+                  setSelectedImages={setSelectedImages}
                 />}
               </div>
             </div>
