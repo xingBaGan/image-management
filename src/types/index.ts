@@ -22,11 +22,17 @@ export interface MediaInfo  {
   extension: string;
 }
 
+export interface ColorInfo {
+  color: string;
+  percentage: number;
+}
+
 export interface LocalImageData extends MediaInfo {
   url?: string;
   favorite?: boolean;
   tags: string[];
   categories?: string[];
+  colors: (string | ColorInfo)[];
 }
 
 export type BulkAction = {
@@ -87,7 +93,9 @@ interface ElectronAPI {
     error?: string;
   }>;
   showInFolder: (filePath: string) => Promise<{ success: boolean; error?: string }>;
+  getMainColor: (imagePath: string) => Promise<string[]>;
 }
+
 
 export enum FilterType {
   Recent = 'recent',

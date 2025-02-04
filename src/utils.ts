@@ -61,6 +61,11 @@ export const getImageSize = async (file: File) => {
   });
 };
 
+export const getMainColor = async (file: File) => {
+  const colors = await window.electron.getMainColor(file.path);
+  return colors;
+};
+
 export const processMedia = async (
   files: ImportFile[], 
   existingImages: LocalImageData[], 
@@ -96,11 +101,17 @@ export const processMedia = async (
       console.error('获取图片尺寸失败', error);
     }
     const [thumbnail, width, height] = isVideo ? await generateVideoThumbnail(file) : [undefined, undefined, undefined];
-    const extension = file.name.split('.').pop() || file.type.split('/').pop() || 'jpg';
+    const extension = (file as any).extension || file.name.split('.').pop() || file.type.split('/').pop() || 'jpg';
+    let colors: string[] = [];
+    if (isImage) {
+      setImportState(ImportStatus.Importing);
+      colors = await getMainColor(file);
+    }
+
     return {
       id: newId,
       path: file.path.includes('local-image://') ? file.path : 'local-image://' + file.path,
-      name: file.name,
+      name: file.name.includes('.') ? file.name : file.name + '.' + extension,
       extension: extension,
       size: file.size,
       dateCreated: new Date(file?.dateCreated || new Date()).toISOString(),
@@ -114,6 +125,7 @@ export const processMedia = async (
       width: isImage ? imageSize.width : width,
       height: isImage ? imageSize.height : height,
       rate: 0,
+      colors: colors
     };
   }));
 
@@ -134,20 +146,50 @@ export const handleDrop = async (
   e.preventDefault();
   console.log('e:', e.dataTransfer.files);
   const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'));
-  console.log('files:', files);
   const firstFile = e.dataTransfer.files[0].path;
   if (files.length > 0) {
     const newImages = await processMedia(files as ImportFile[], existingImages, categories, setImportState);
     addImages(newImages as LocalImageData[]);
   } else {
-    const images = await window.electron.processDirectoryToFiles(firstFile);
-    const newImages = [...images, ...existingImages];
-    addImages(newImages as LocalImageData[]);
+    const images = await window.electron.processDirectory(firstFile);
+    addImages(images);
   }
 };
 
-export const generateVideoThumbnail = async (file: File |ImportFile): Promise<[string, number, number]> => {
+// 添加压缩图片的辅助函数
+const compressImage = (
+  canvas: HTMLCanvasElement,
+  maxWidth: number = 320,
+  quality: number = 0.6
+): string => {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return '';
 
+  // 计算压缩后的尺寸
+  let width = canvas.width;
+  let height = canvas.height;
+  if (width > maxWidth) {
+    height = Math.floor((height * maxWidth) / width);
+    width = maxWidth;
+  }
+
+  // 创建临时画布进行压缩
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = width;
+  tempCanvas.height = height;
+  const tempCtx = tempCanvas.getContext('2d');
+  if (!tempCtx) return '';
+
+  // 使用双线性插值算法进行缩放
+  tempCtx.imageSmoothingEnabled = true;
+  tempCtx.imageSmoothingQuality = 'high';
+  tempCtx.drawImage(canvas, 0, 0, width, height);
+
+  // 返回压缩后的 base64
+  return tempCanvas.toDataURL('image/jpeg', quality);
+};
+
+export const generateVideoThumbnail = async (file: File | ImportFile): Promise<[string, number, number]> => {
   return new Promise((resolve, reject) => {
     const video = document.createElement('video');
     assignPathToMedia(file, video);
@@ -160,7 +202,8 @@ export const generateVideoThumbnail = async (file: File |ImportFile): Promise<[s
       const context = canvas.getContext('2d');
       if (context) {
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const thumbnail = canvas.toDataURL('image/png');
+        // 使用压缩函数生成缩略图
+        const thumbnail = compressImage(canvas, 320, 0.6);
         resolve([thumbnail, video.videoWidth, video.videoHeight]);
       } else {
         reject('Failed to get canvas context');

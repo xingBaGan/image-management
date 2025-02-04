@@ -12,7 +12,7 @@ const probe = require('probe-image-size');
 const { supportedExtensions } = isDev
   ? require(path.join(__dirname, '..', 'config.cjs'))  // 开发环境
   : require(path.join(process.resourcesPath, 'config.cjs'));  // 生产环境
-const { tagImage } = require(path.join(__dirname, '..', 'script', 'script.cjs'));
+const { tagImage, getMainColor } = require(path.join(__dirname, '..', 'script', 'script.cjs'));
 // 设置 ffmpeg 和 ffprobe 路径
 ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);
@@ -613,6 +613,12 @@ ipcMain.handle('tag-image', async (event, imagePath, modelName) => {
   return await tagImage(imagePath, modelName);
 });
 
+ipcMain.handle('get-main-color', async (event, imagePath) => {
+  imagePath = decodeURIComponent(imagePath);
+  imagePath = imagePath.replace('local-image://', '');
+  return await getMainColor(imagePath);
+});
+
 function loadImagesData() {
   try {
     const imagesJsonPath = path.join(app.getPath('userData'), 'images.json');
@@ -663,9 +669,14 @@ const saveImageToLocal = async (imageData, fileName, ext) => {
     if (!fs.existsSync(imagesDir)) {
       fs.mkdirSync(imagesDir, { recursive: true });
     }
+    let uniqueFileName;
+    if (!fileName.includes('.')) {
+      uniqueFileName = `${fileName}.${ext}`;
+    } else {
+      uniqueFileName = fileName;
+    }
 
     // 缓存图片
-    const uniqueFileName = `${fileName}.${ext}`;
     const filePath = path.join(imagesDir, uniqueFileName);
 
     // 将 Uint8Array 转换为 Buffer 并写入文件
@@ -905,7 +916,7 @@ ipcMain.handle('download-url-image', async (_, url) => {
       });
     });
     const ext = contentType.split('/').pop() || 'jpg';
-    if ( !fileName.includes('.')) {
+    if (!fileName.includes('.')) {
       fileName = fileName + '.' + ext;
     }
     const localPath = await saveImageToLocal(imageBuffer, fileName, ext);
