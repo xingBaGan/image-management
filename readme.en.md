@@ -61,6 +61,7 @@ For installation instructions, see [install.en.md](install.en.md)
    - Sort: Click the sort button in the toolbar to choose sorting method
    - View Large Image: Double-click any media to enlarge
    - Video Preview: Hover mouse over video to preview, move mouse to quickly preview different timestamps
+   - Filter: Use the filter button in the toolbar to filter by file type, size, date, and other conditions
 
 2. **Import Media**
    - Click the "Import" button in the toolbar
@@ -167,7 +168,7 @@ npm run electron:build --linux
 - [x] Image tag system
 - [x] Video preview optimization
 - [x] Image information viewing
-- [ ] Color classification support
+- [x] Color classification support
 - [ ] Multi-language support
 - [ ] Shortcut key support
 - [ ] ComfyUI integration - Support image processing through ComfyUI

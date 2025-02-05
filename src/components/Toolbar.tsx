@@ -505,7 +505,20 @@ const Toolbar: React.FC<ToolbarProps> = ({
                   }`}
                   title="筛选"
                 >
-                  <FilterIcon size={20} />
+                  <div className="relative">
+                    <FilterIcon size={20} />
+                    {(() => {
+                      const count = filterColors.length +
+                        filterOptions.ratio.length +
+                        filterOptions.formats.length +
+                        (filterOptions.rating !== null ? 1 : 0);
+                      return count > 0 ? (
+                        <div className="absolute -top-2 -right-2 flex items-center justify-center w-4 h-4 text-[10px] text-white bg-red-500 rounded-full">
+                          {count}
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
                 </button>
 
                 {filterPopup()}

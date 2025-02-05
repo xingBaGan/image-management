@@ -1,7 +1,7 @@
 {
   "name": "atujji",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "a image manager tool which has plugin support with ai",
   "author": {
     "name": "jzj",
@@ -17,7 +17,7 @@
     "electron:dev": "cross-env NODE_ENV=development tsc -p electron/tsconfig.json && concurrently \"vite\" \"electron .\"",
     "electron:build": "cd comfyui_client && npm run build && cd .. && tsc -p electron/tsconfig.json && vite build && node -e \"require('fs').cpSync('electron', 'dist-electron', {recursive: true})\" && electron-builder",
     "electron:preview": "electron .",
-    "tag": "cross-env NODE_ENV=development node script/script.cjs",
+    "script": "cross-env NODE_ENV=development node script/script.cjs",
     "python:install": "venv\\Scripts\\activate && pip install -r requirements.txt"
   },
   "dependencies": {
