@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FileJson, Settings as SettingsIcon, Filter as FilterIcon, Star, Image, Palette } from 'lucide-react';
+import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FileJson, Settings as SettingsIcon, Filter as FilterIcon, Star, Image, Palette, XCircle } from 'lucide-react';
 import { ViewMode, SortType, Category, FilterOptions, Filter } from '../types';
 import ThemeToggle from './ThemeToggle';
 
@@ -19,6 +19,7 @@ interface ToolbarProps {
   setIsSettingsOpen: (isOpen: boolean) => void;
   isSettingsOpen: boolean;
   filterColors: string[];
+  setFilterColors: (colors: string[]) => void;
 }
 
 interface SearchTag {
@@ -49,6 +50,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   isSidebarOpen,
   setIsSettingsOpen,
   filterColors,
+  setFilterColors,
 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -205,8 +207,22 @@ const Toolbar: React.FC<ToolbarProps> = ({
                   </div>
                   <div className='flex flex-wrap gap-2'>
                     {filterColors.map(color => (
-                      <div key={color} className="px-3 py-1 text-sm text-white rounded-full border" style={{ backgroundColor: color }}>
+                      <div 
+                        key={color} 
+                        className="flex relative gap-1 items-center px-3 py-1 text-sm text-white rounded-full border group" 
+                        style={{ backgroundColor: color }}
+                      >
                         {color}
+                        <button
+                          onClick={() => {
+                            const newColors = filterColors.filter(c => c !== color);
+                            setFilterColors(newColors);
+                          }}
+                          className="p-0.5 rounded-full hover:bg-white/20 transition-colors"
+                          title="移除颜色"
+                        >
+                          <X size={14} />
+                        </button>
                       </div>
                     ))}
                   </div>

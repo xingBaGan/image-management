@@ -172,7 +172,10 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
   }, [openInEditor]);
 
   return (
-    <>
+    <div 
+      className="media-grid-container relative p-4"
+      style={{ height: 'calc(100vh - 4rem)' }}
+    >
       {viewingMedia && (
         <MediaViewer
           media={viewingMedia}
@@ -243,7 +246,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
           }} />
         )}
       </div>
-    </>
+    </div>
   );
 };
 

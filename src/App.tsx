@@ -64,84 +64,6 @@ function App() {
     }
   }, [selectedCategory]);
 
-  const filteredAndSortedImages = useMemo(() => {
-    // 首先根据 filter 和 selectedCategory 过滤图片
-    let filtered = images.filter(img => img.type !== 'video');
-
-    // 添加标签过滤逻辑
-    if (searchTags.length > 0) {
-      filtered = filtered.filter(img =>
-        searchTags.every(tag =>
-          img.tags?.some((imgTag: string) =>
-            imgTag.toLowerCase().includes(tag.toLowerCase())
-          )
-        )
-      );
-    }
-
-    if (selectedCategory === FilterType.Videos) {
-      filtered = images.filter(img => img.type === 'video');
-    } else if (filter === FilterType.Favorites) {
-      filtered = filtered.filter(img => img.favorite);
-    } else if (filter === FilterType.Recent) {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      filtered = images.filter(img => new Date(img.dateModified) >= sevenDaysAgo);
-    } else if (selectedCategory !== FilterType.Photos) {
-      // 如果选中的不是 'photos'（所有图片），且不是特殊过滤器（favorites/recent）
-      // 查找选中分类下的所有图片
-      const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
-      if (selectedCategoryData) {
-        filtered = images.filter(img =>
-          // 检查图片是否属于当前选中的分类
-          img.categories?.includes(selectedCategory) ||
-          // 或者检查图片 ID 是否在分类的 images 数组中
-          selectedCategoryData.images?.includes(img.id)
-        );
-      }
-    }
-    filtered = filtered.filter(img => {
-      if (multiFilter.colors.length > 0) {
-        return multiFilter.colors.every(color => img.colors.some((c: string | ColorInfo) => typeof c === 'string' ? c === color : c.color === color));
-      }
-      if (multiFilter.ratio.length > 0) {
-        return multiFilter.ratio.every(ratio => img.ratio === ratio);
-      }
-
-      if (typeof multiFilter.rating === 'number') {
-        return img.rating === multiFilter.rating;
-      }
-
-      if (multiFilter.formats.length > 0) {
-        const ext = img.extension.toLowerCase();
-        return multiFilter.formats.some(format => ext.endsWith(format.toLowerCase()));
-      }
-      return true;
-
-    });
-    // 然后对过滤后的结果进行排序
-
-
-    return [...filtered].sort((a, b) => {
-      let comparison = 0;
-
-
-      switch (sortBy) {
-        case SortType.Name:
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case SortType.Date:
-          comparison = new Date(b.dateModified).getTime() - new Date(a.dateModified).getTime();
-          break;
-        case SortType.Size:
-          comparison = b.size - a.size;
-          break;
-      }
-
-      return sortDirection === 'asc' ? -comparison : comparison;
-    });
-  }, [images, sortBy, sortDirection, filter, selectedCategory, categories, searchTags, multiFilter]);
-
   const handleFavorite = async (id: string) => {
     try {
       const updatedImages = images.map((img) =>
@@ -474,6 +396,18 @@ function App() {
 
   useEffect(() => {
     const handlePaste = async (e: ClipboardEvent) => {
+      // 检查事件目标是否在 MediaGrid 区域内
+      const target = e.target as HTMLElement;
+      const mediaGridElement = document.querySelector('.media-grid-container');
+      
+      // 如果点击目标不在 MediaGrid 内，或者目标是输入框/文本框，则不处理粘贴事件
+      if (!mediaGridElement?.contains(target) || 
+          target.tagName === 'INPUT' || 
+          target.tagName === 'TEXTAREA' ||
+          target.getAttribute('contenteditable') === 'true') {
+        return;
+      }
+
       e.preventDefault();
       const clipboardText = e.clipboardData?.getData('text');
       
@@ -542,6 +476,86 @@ function App() {
     window.electron.openInEditor(path);
   }, []);
 
+  const filteredAndSortedImages = useMemo(() => {
+    // 首先根据 filter 和 selectedCategory 过滤图片
+    let filtered = images.filter(img => img.type !== 'video');
+
+    // 添加标签过滤逻辑
+    if (searchTags.length > 0) {
+      filtered = filtered.filter(img =>
+        searchTags.every(tag =>
+          img.tags?.some((imgTag: string) =>
+            imgTag.toLowerCase().includes(tag.toLowerCase())
+          )
+        )
+      );
+    }
+
+    if (selectedCategory === FilterType.Videos) {
+      filtered = images.filter(img => img.type === 'video');
+    } else if (filter === FilterType.Favorites) {
+      filtered = filtered.filter(img => img.favorite);
+    } else if (filter === FilterType.Recent) {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      filtered = images.filter(img => new Date(img.dateModified) >= sevenDaysAgo);
+    } else if (selectedCategory !== FilterType.Photos) {
+      // 如果选中的不是 'photos'（所有图片），且不是特殊过滤器（favorites/recent）
+      // 查找选中分类下的所有图片
+      const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
+      if (selectedCategoryData) {
+        filtered = images.filter(img =>
+          // 检查图片是否属于当前选中的分类
+          img.categories?.includes(selectedCategory) ||
+          // 或者检查图片 ID 是否在分类的 images 数组中
+          selectedCategoryData.images?.includes(img.id)
+        );
+      }
+    }
+    filtered = filtered.filter(img => {
+      if (filterColors.length > 0) {
+        console.log('filter colors', filterColors);
+        return filterColors.some(color => img.colors.some((c: string | ColorInfo) => typeof c === 'string' ? c === color : c.color === color));
+      }
+      if (multiFilter.ratio.length > 0) {
+
+        return multiFilter.ratio.every(ratio => img.ratio === ratio);
+      }
+      if (typeof multiFilter.rating === 'number') {
+        return img.rating === multiFilter.rating;
+      }
+
+      if (multiFilter.formats.length > 0) {
+        const ext = img.extension.toLowerCase();
+        return multiFilter.formats.some(format => ext.endsWith(format.toLowerCase()));
+      }
+      return true;
+
+    });
+    // 然后对过滤后的结果进行排序
+
+
+    return [...filtered].sort((a, b) => {
+      let comparison = 0;
+
+
+      switch (sortBy) {
+        case SortType.Name:
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case SortType.Date:
+          comparison = new Date(b.dateModified).getTime() - new Date(a.dateModified).getTime();
+          break;
+        case SortType.Size:
+          comparison = b.size - a.size;
+          break;
+      }
+
+      return sortDirection === 'asc' ? -comparison : comparison;
+    });
+  }, [images, sortBy, sortDirection, filter, selectedCategory, categories, searchTags, multiFilter, filterColors]);
+
+
   return (
     <ThemeProvider>
       <div className="flex h-screen backdrop-blur-md dark:bg-gray-900 bg-white/20"
@@ -582,6 +596,7 @@ function App() {
               isSettingsOpen={isSettingsOpen}
               onFilter={setMultiFilter}
               filterColors={filterColors}
+              setFilterColors={setFilterColors}
             />
             <div className="flex overflow-y-auto flex-1">
               <div className={`flex-1 ${isZenMode ? 'mr-0' : 'mr-60'}`}>
