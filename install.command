@@ -30,6 +30,20 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+python3 script/download_models.py wd-v1-4-convnext-tagger-v2
+if [ $? -ne 0 ]; then
+    echo "Model download failed!"
+    read -p "Press any key to continue..."
+    exit 1
+fi
+
+python3 script/download_models.py wd-v1-4-convnextv2-tagger-v2
+if [ $? -ne 0 ]; then
+    echo "Model download failed!"
+    read -p "Press any key to continue..."
+    exit 1
+fi
+
 echo
 echo "Installation completed! You can now close this window and start the application."
 read -p "Press any key to continue..." 

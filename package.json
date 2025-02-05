@@ -2,10 +2,10 @@
   "name": "atujji",
   "private": true,
   "version": "0.2.0",
-  "description": "a image manager tool which has plugin support with ai",
+  "description": "ai image management tool",
   "author": {
     "name": "jzj",
-    "email": "example@example.com"
+    "email": "gan_xingba@126.com"
   },
   "type": "module",
   "license": "MIT",

@@ -25,7 +25,7 @@ def download_model(model_name: str, models_dir: str = "models") -> bool:
     
     print(f"使用模型目录: {models_dir}")
     
-    cloudflare_url = "http://atujii.test.upcdn.net"  # 替换为你的 Worker URL
+    cloudflare_url = "https://huggingface.co/honmo/wd14-collection/blob/main"  # 替换为你的 Worker URL
     files_to_download = [f"{model_name}.onnx", f"{model_name}.csv"]
     
     try:

@@ -6,7 +6,4 @@ tqdm>=4.66.0
 scikit-learn>=1.3.0
 pandas>=2.0.0
 matplotlib>=3.7.0
-# 加速库 需要根据CUDA版本选择对应的包
-cupy-cuda12x  # 如果你的CUDA是12.x版本
-# 或者
-#cupy-cuda11x  # 如果你的CUDA是11.x版本
+cupy-cuda12x

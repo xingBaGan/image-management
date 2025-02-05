@@ -11,7 +11,7 @@ The installation process will automatically:
 2. Install required dependencies
 3. Download AI models (download progress will be displayed, likely to fail. You can try multiple times if persistent)
 
-### Manual Model Download (If Automatic Download Fails)
+### Manual Model Download
 
 If the automatic download fails, you can choose the following methods to download the models manually:
 

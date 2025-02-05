@@ -23,6 +23,20 @@ if errorlevel 1 (
     exit /b 1
 )
 
+python script\download_models.py wd-v1-4-convnext-tagger-v2
+if errorlevel 1 (
+    echo Model download failed!
+    pause
+    exit /b 1
+)
+
+python script\download_models.py wd-v1-4-convnextv2-tagger-v2
+if errorlevel 1 (
+    echo Model download failed!
+    pause
+    exit /b 1
+)
+
 echo.
 echo Installation completed! You can now close this window and start the application.
 pause 
