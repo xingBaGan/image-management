@@ -5,13 +5,10 @@
 一个简洁优雅的本地图片管理工具，帮助你轻松管理和组织图片与视频资源。
 
 图片管理
-![image](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/home.png)
-
-![list](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/list.png)
+![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/pn1.png)
 
 video 管理
-
-![videos](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/2.png)
+![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/pn2.png)
 
 ## 主要功能
 

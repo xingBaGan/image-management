@@ -3,13 +3,10 @@
 A clean and elegant local image management tool to help you easily manage and organize your images and video resources.
 
 Image Management
-![image](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/home.png)
-
-![list](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/list.png)
+![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/pn1.png)
 
 Video Management
-
-![videos](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/2.png)
+![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/pn2.png)
 
 ## Main Features
 

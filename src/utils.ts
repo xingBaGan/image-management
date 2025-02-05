@@ -114,11 +114,18 @@ export const processMedia = async (
     } catch (error) {
       console.error('获取图片尺寸失败', error);
     }
-    const [thumbnail, width, height] = isVideo ? await generateVideoThumbnail(file) : [undefined, undefined, undefined];
+    let thumbnailItem: [string, number, number] | [undefined, undefined, undefined] = [undefined, undefined, undefined];
+    try {
+      thumbnailItem = isVideo ? await generateVideoThumbnail(file) : [undefined, undefined, undefined];
+    } catch (error) {
+      console.error('获取视频缩略图失败', error);
+    }
+    const [thumbnail, width, height] = thumbnailItem || [undefined, undefined, undefined];
     const extension = (file as any).extension || file.name.split('.').pop() || file.type.split('/').pop() || 'jpg';
     let colors: string[] = [];
+    setImportState(ImportStatus.Importing);
+
     if (isImage) {
-      setImportState(ImportStatus.Importing);
       colors = await getMainColor(file);
     }
     const ratio = await getRatio(width || imageSize.width, height || imageSize.height);
@@ -159,7 +166,6 @@ export const handleDrop = async (
   setImportState: (importState: ImportStatus) => void,
 ) => {
   e.preventDefault();
-  console.log('e:', e.dataTransfer.files);
   const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'));
   const firstFile = e.dataTransfer.files[0].path;
   if (files.length > 0) {
@@ -206,28 +212,60 @@ const compressImage = (
 
 export const generateVideoThumbnail = async (file: File | ImportFile): Promise<[string, number, number]> => {
   return new Promise((resolve, reject) => {
+    // 设置10秒超时
+    const timeout = setTimeout(() => {
+      video.removeAttribute('src');
+      video.load();
+      reject('获取视频封面超时');
+    }, 10000);
+
     const video = document.createElement('video');
-    assignPathToMedia(file, video);
-    video.currentTime = 1; // Capture the thumbnail at 1 second
+    video.currentTime = 1;
+    // 优化视频加载
+    video.preload = 'metadata';
+    video.playsInline = true;
+    video.muted = true;
+    
+    // 设置事件处理
+    const cleanupAndReject = (error: string) => {
+      clearTimeout(timeout);
+      video.removeAttribute('src');
+      video.load();
+      reject(error);
+    };
 
     video.onloadeddata = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const context = canvas.getContext('2d');
-      if (context) {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const context = canvas.getContext('2d');
+        
+        if (!context) {
+          cleanupAndReject('无法获取 canvas context');
+          return;
+        }
+
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        // 使用压缩函数生成缩略图
         const thumbnail = compressImage(canvas, 320, 0.6);
+        
+        // 清理资源
+        clearTimeout(timeout);
+        video.removeAttribute('src');
+        video.load();
+        
         resolve([thumbnail, video.videoWidth, video.videoHeight]);
-      } else {
-        reject('Failed to get canvas context');
+      } catch (error) {
+        cleanupAndReject(`处理视频帧失败: ${error}`);
       }
     };
 
-    video.onerror = (error) => {
-      reject('Error loading video: ' + error);
+    video.onerror = () => {
+      cleanupAndReject(`视频加载错误: ${video.error?.message || '未知错误'}`);
     };
+
+    // 最后才设置视频源以触发加载
+    assignPathToMedia(file, video);
   });
 };
 
