@@ -59,6 +59,7 @@ export const translations = {
     pressEnterToAddTag: 'Press Enter to add tag',
     removeTag: 'Remove tag',
     removeColor: 'Remove color',
+    escapeToExit: 'Press ESC to exit search',
 
     // Messages
     deleteConfirm: 'Are you sure you want to delete?',
@@ -155,6 +156,20 @@ export const translations = {
     deleteCategoryFailed: 'Failed to delete category: {error}',
     loadImagesFailed: 'Failed to load images: {error}',
     pasteImageFailed: 'Failed to paste image: {error}',
+
+    // Shortcuts
+    shortcuts: {
+      title: 'Keyboard Shortcuts',
+      escape: 'ESC - Deselect all images',
+      delete: 'Delete - Delete selected images',
+      ctrlA: 'Ctrl+A - Select all images',
+      ctrlF: 'Ctrl+F - Open search',
+      ctrlG: 'Ctrl+G - Toggle view mode',
+      ctrlE: 'Ctrl+E - Open in editor',
+      ctrlH: 'Ctrl+H - Add to favorites',
+      ctrlS: 'Ctrl+S - Toggle sort popup',
+      ctrlR: 'Ctrl+R - Toggle filter popup',
+    },
   },
   zh: {
     // 工具栏
@@ -217,6 +232,7 @@ export const translations = {
     pressEnterToAddTag: '按回车添加标签',
     removeTag: '删除标签',
     removeColor: '移除颜色',
+    escapeToExit: '按ESC退出搜索',
 
     // 消息
     deleteConfirm: '确定要删除吗？',
@@ -312,5 +328,19 @@ export const translations = {
     deleteCategoryFailed: '删除分类失败：{error}',
     loadImagesFailed: '加载图片失败：{error}',
     pasteImageFailed: '粘贴图片失败：{error}',
+
+    // 快捷键
+    shortcuts: {
+      title: '键盘快捷键',
+      escape: 'ESC - 取消选择所有图片',
+      delete: 'Delete - 删除选中的图片',
+      ctrlA: 'Ctrl+A - 选择所有图片',
+      ctrlF: 'Ctrl+F - 打开搜索',
+      ctrlG: 'Ctrl+G - 切换视图模式',
+      ctrlE: 'Ctrl+E - 在编辑器中打开',
+      ctrlH: 'Ctrl+H - 添加到收藏',
+      ctrlS: 'Ctrl+S - 切换排序弹窗',
+      ctrlR: 'Ctrl+R - 切换筛选弹窗',
+    },
   }
 }; 

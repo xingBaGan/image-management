@@ -151,7 +151,6 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
     const top = Math.min(selectionStart.y, selectionEnd.y);
     const width = Math.abs(selectionEnd.x - selectionStart.x);
     const height = Math.abs(selectionEnd.y - selectionStart.y);
-    console.log('selection', left, top, width, height);
     return {
       position: 'fixed',
       left: `calc(${left}px + 12rem)`,

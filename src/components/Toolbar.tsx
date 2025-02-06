@@ -23,6 +23,9 @@ interface ToolbarProps {
   isSettingsOpen: boolean;
   filterColors: string[];
   setFilterColors: (colors: string[]) => void;
+  searchButtonRef: React.RefObject<HTMLElement>;
+  sortButtonRef: React.RefObject<HTMLElement>;
+  filterButtonRef: React.RefObject<HTMLElement>;
 }
 
 interface SearchTag {
@@ -54,6 +57,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
   setIsSettingsOpen,
   filterColors,
   setFilterColors,
+  searchButtonRef,
+  sortButtonRef,
+  filterButtonRef,
 }) => {
   const { t } = useLanguage();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -122,7 +128,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && inputValue.trim()) {
       const newTag = {
         id: Date.now().toString(),
@@ -132,6 +138,11 @@ const Toolbar: React.FC<ToolbarProps> = ({
       setTags(newTags);
       setInputValue('');
       onSearch(newTags.map(tag => tag.text));
+    } else if (e.key === 'Escape') {
+      setIsSearchOpen(false);
+      setInputValue('');
+      setTags([]);
+      onSearch([]);
     }
   };
 
@@ -177,21 +188,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
       onFilter(newOptions);
       return newOptions;
     });
-  };
-
-  const getFilterIcon = (type: Filter['type']) => {
-    switch (type) {
-      case 'colors':
-        return <Palette className="w-4 h-4" />;
-      case 'ratio':
-        return <Image className="w-4 h-4" />;
-      case 'rating':
-        return <Star className="w-4 h-4" />;
-      case 'formats':
-        return <FileJson className="w-4 h-4" />;
-      default:
-        return null;
-    }
   };
 
   const filterPopup = () => {
@@ -338,18 +334,22 @@ const Toolbar: React.FC<ToolbarProps> = ({
                         type="text"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        onKeyDown={handleKeyDown}
+                        onKeyDown={handleInputKeyDown}
                         placeholder={tags.length ? t('pressEnterToAddTag') : t('searchImages')}
                         className="flex-1 min-w-[100px] bg-transparent border-none outline-none dark:text-white"
                       />
+                      <div className="flex items-center">
+                        <span className="mr-2 text-xs text-gray-400 dark:text-gray-500">{t('escapeToExit')}</span>
+                        <Search className="flex-shrink-0 text-gray-400" size={20}/>
+                      </div>
                     </div>
-                    <Search className="flex-shrink-0 text-gray-400" size={20} />
                   </div>
                 ) : (
                   <button
-                    onClick={handleSearchClick}
+                    ref={searchButtonRef as React.RefObject<HTMLButtonElement>}
                     className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700dark:text-rose-300"
-                    title={t('search')}
+                    title={`${t('search')} (Ctrl+F)`}
+                    onClick={handleSearchClick}
                   >
                     <Search size={20} />
                   </button>
@@ -387,7 +387,12 @@ const Toolbar: React.FC<ToolbarProps> = ({
                   onMouseEnter={() => setIsDropdownOpen(true)}
                   onMouseLeave={() => setIsDropdownOpen(false)}
                 >
-                  <button className="flex items-center px-3 py-2 space-x-2 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <button 
+                    ref={sortButtonRef as React.RefObject<HTMLButtonElement>}
+                    className="flex items-center px-3 py-2 space-x-2 rounded-lg sort-button dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                    title={`${t('sortBy')} (Ctrl+S)`}
+                    onClick={() => setIsDropdownOpen(prev => !prev)}
+                  >
                     {sortDirection === 'asc' ? <SortAsc size={20} /> : <SortDesc size={20} />}
                     <span>{t('sortBy')}{getSortLabel()}</span>
                   </button>
@@ -449,13 +454,14 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
               <div ref={filterRef} className="relative">
                 <button
-                  onClick={() => setIsFilterOpen(!isFilterOpen)}
+                  ref={filterButtonRef as React.RefObject<HTMLButtonElement>}
                   className={`p-2 rounded-lg ${
                     isFilterOpen || Object.values(filterOptions).some(v => Array.isArray(v) ? v.length > 0 : v !== null)
                       ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
-                  title={t('filter')}
+                  title={`${t('filter')} (Ctrl+R)`}
+                  onClick={() => setIsFilterOpen(!isFilterOpen)}
                 >
                   <div className="relative">
                     <FilterIcon size={20} />

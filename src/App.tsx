@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar';
 import MediaGrid from './components/MediaGrid';
@@ -14,6 +14,7 @@ import MessageBox from './components/MessageBox';
 import { useSettings } from './contexts/SettingsContext';
 import './App.css';
 import { useLanguage } from './contexts/LanguageContext';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 function App() {
   const { settings } = useSettings();
@@ -21,6 +22,7 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<FilterType>(FilterType.Photos);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [viewingMedia, setViewingMedia] = useState<LocalImageData | null>(null);
   const [sortBy, setSortBy] = useState<SortType>(SortType.Date);
   const [sortDirection, setSortDirection] = useState<SortDirection>(SortDirection.Desc);
   const [images, setImages] = useState<LocalImageData[]>([]);
@@ -41,10 +43,8 @@ function App() {
   });
   const [filterColors, setFilterColors] = useState<string[]>([]);
   const [messageBox, setMessageBox] = useState<{
-
     isOpen: boolean;
     message: string;
-
     type: 'info' | 'success' | 'warning' | 'error';
   }>({
     isOpen: false,
@@ -52,10 +52,19 @@ function App() {
     type: 'info'
   });
 
+  // 添加 refs 用于快捷键操作
+  const searchButtonRef = useRef<HTMLElement>(null);
+  const sortButtonRef = useRef<HTMLElement>(null);
+  const filterButtonRef = useRef<HTMLElement>(null);
+
   useEffect(() => {
     setSelectedImages(new Set());
     setSelectedImageForInfo(null);
   }, [selectedCategory]);
+
+  useEffect(() => {
+    setSelectedImageForInfo(viewingMedia);
+  }, [viewingMedia]);
 
   useEffect(() => {
     if (selectedCategory === FilterType.Favorites) {
@@ -575,6 +584,21 @@ function App() {
     });
   }, [images, sortBy, sortDirection, filter, selectedCategory, categories, searchTags, multiFilter, filterColors]);
 
+  // 使用快捷键 hook
+  useKeyboardShortcuts({
+    selectedImages,
+    setSelectedImages,
+    handleBulkDelete,
+    handleFavorite,
+    handleOpenInEditor,
+    images,
+    filteredImages: filteredAndSortedImages,
+    searchButtonRef,
+    sortButtonRef,
+    filterButtonRef,
+    setViewMode,
+    setViewingMedia,
+  });
 
   return (
         <div className="flex h-screen backdrop-blur-md dark:bg-gray-900 bg-white/20"
@@ -616,6 +640,9 @@ function App() {
                 onFilter={setMultiFilter}
                 filterColors={filterColors}
                 setFilterColors={setFilterColors}
+                searchButtonRef={searchButtonRef}
+                sortButtonRef={sortButtonRef}
+                filterButtonRef={filterButtonRef}
               />
               <div className="flex overflow-y-auto flex-1">
                 <div className={`flex-1 ${isZenMode ? 'mr-0' : 'mr-60'}`}>

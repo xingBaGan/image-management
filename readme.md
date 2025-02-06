@@ -168,7 +168,7 @@ npm run electron:build --linux
 - [x] Video preview optimization
 - [x] Image information viewing
 - [x] Color classification support
-- [ ] Multi-language support
+- [x] Multi-language support
 - [ ] Shortcut key support
 - [ ] ComfyUI integration - Support image processing through ComfyUI
 - [ ] Extensible plugin system
