@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 def download_model(model_name: str, models_dir: str = "models") -> bool:
     """
-    从Cloudflare下载模型文件
+    从HuggingFace下载模型文件
     
     Args:
         model_name: 模型名称（不包含扩展名）
@@ -25,7 +25,8 @@ def download_model(model_name: str, models_dir: str = "models") -> bool:
     
     print(f"使用模型目录: {models_dir}")
     
-    cloudflare_url = "https://huggingface.co/honmo/wd14-collection/blob/main"  # 替换为你的 Worker URL
+    # 使用正确的raw文件下载链接
+    base_url = "https://huggingface.co/honmo/wd14-collection/resolve/main"
     files_to_download = [f"{model_name}.onnx", f"{model_name}.csv"]
     
     try:
@@ -38,7 +39,7 @@ def download_model(model_name: str, models_dir: str = "models") -> bool:
                 continue
             
             # 下载文件
-            url = f"{cloudflare_url}/{filename}"
+            url = f"{base_url}/{filename}?download=true"
             print(f"下载文件: {filename}")
             
             response = requests.get(url, stream=True)

@@ -1,6 +1,8 @@
 ## Environment Installation
 [Chinese Version](install.zh.md)
 
+requirement: python 3.10+
+
 Run the appropriate installation script [in the resources directory] according to your operating system:
 
 - Windows: Double-click to run `install.bat`

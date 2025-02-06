@@ -2,6 +2,8 @@
 
 [English Version](install.en.md)
 
+requirement: python 3.10+
+
 根据您的操作系统，运行相应的安装脚本[在resources目录下]：
 
 - Windows: 双击运行 `install.bat`

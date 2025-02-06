@@ -80,9 +80,16 @@ class AITagger:
         # 加载模型
         model_path = os.path.join(self.models_dir, f"{model_name}.onnx")
         if not os.path.exists(model_path):
-            raise FileNotFoundError(f"Model {model_name} not found in {self.models_dir}")
+            raise FileNotFoundError(f"模型文件不存在: {model_path}")
             
-        model = ort.InferenceSession(model_path, providers=self.providers)
+        # 检查文件大小
+        if os.path.getsize(model_path) == 0:
+            raise ValueError(f"模型文件损坏或为空: {model_path}")
+            
+        try:
+            model = ort.InferenceSession(model_path, providers=self.providers)
+        except Exception as e:
+            raise RuntimeError(f"加载模型失败: {str(e)}")
         
         # 加载和预处理图片
         image = Image.open(image_path)
