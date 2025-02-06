@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FileJson, Settings as SettingsIcon, Filter as FilterIcon, Star, Image, Palette, XCircle } from 'lucide-react';
+import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FileJson, Settings as SettingsIcon, Filter as FilterIcon, Star, Image, Palette, XCircle, Keyboard } from 'lucide-react';
 import { ViewMode, SortType, Category, FilterOptions, Filter } from '../types';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
 import { useLanguage } from '../contexts/LanguageContext';
 import FilterPopup from './FilterPopup';
+import ShortcutsHelp from './ShortcutsHelp';
 
 interface ToolbarProps {
   viewMode: ViewMode;
@@ -78,6 +79,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isShortcutsHelpOpen, setIsShortcutsHelpOpen] = useState(false);
   
   const filters: Filter[] = [
     {
@@ -481,10 +483,22 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
                 {filterPopup()}
               </div>
+
+              <button
+                onClick={() => setIsShortcutsHelpOpen(true)}
+                className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-rose-300"
+                title={t('shortcuts.show')}
+              >
+                <Keyboard size={20} />
+              </button>
             </>
           )}
         </div>
       </div>
+      <ShortcutsHelp
+        isOpen={isShortcutsHelpOpen}
+        onClose={() => setIsShortcutsHelpOpen(false)}
+      />
     </>
   );
 };

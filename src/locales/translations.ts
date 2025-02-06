@@ -160,6 +160,7 @@ export const translations = {
     // Shortcuts
     shortcuts: {
       title: 'Keyboard Shortcuts',
+      show: 'Show Keyboard Shortcuts',
       escape: 'ESC - Deselect all images',
       delete: 'Delete - Delete selected images',
       ctrlA: 'Ctrl+A - Select all images',
@@ -332,6 +333,7 @@ export const translations = {
     // 快捷键
     shortcuts: {
       title: '键盘快捷键',
+      show: '显示键盘快捷键',
       escape: 'ESC - 取消选择所有图片',
       delete: 'Delete - 删除选中的图片',
       ctrlA: 'Ctrl+A - 选择所有图片',
