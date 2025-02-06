@@ -169,11 +169,11 @@ npm run electron:build --linux
 - [x] Image information viewing
 - [x] Color classification support
 - [x] Multi-language support
-- [ ] Shortcut key support
-- [ ] ComfyUI integration - Support image processing through ComfyUI
+- [x] Shortcut key support
 - [ ] Extensible plugin system
    - [ ] Image editing features
    - [ ] More AI model integration
+- [ ] ComfyUI integration - Support image processing through ComfyUI
 
 ## Contributing
 
