@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { MediaInfo } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface MediaViewerProps {
   media: MediaInfo;
@@ -16,6 +17,8 @@ const MediaViewer: React.FC<MediaViewerProps> = ({
   onPrevious,
   onNext,
 }) => {
+  const { t } = useLanguage();
+
   if (!media) return null;
 
   useEffect(() => {
@@ -40,8 +43,8 @@ const MediaViewer: React.FC<MediaViewerProps> = ({
       <button
         onClick={onClose}
         className="absolute top-4 right-4 p-2 text-white rounded-full transition-colors hover:bg-white/10"
-        title="关闭"
-        aria-label="关闭"
+        title={t('close')}
+        aria-label={t('close')}
       >
         <X size={24} />
       </button>
@@ -50,8 +53,8 @@ const MediaViewer: React.FC<MediaViewerProps> = ({
         <button
           onClick={(e) => { e.stopPropagation(); onPrevious(); }}
           className="absolute left-4 top-1/2 p-2 text-white rounded-full transition-colors -translate-y-1/2 hover:bg-white/10"
-          title="上一张"
-          aria-label="上一张"
+          title={t('previous')}
+          aria-label={t('previous')}
         >
           <ChevronLeft size={32} />
         </button>
@@ -61,8 +64,8 @@ const MediaViewer: React.FC<MediaViewerProps> = ({
         <button
           onClick={(e) => { e.stopPropagation(); onNext(); }}
           className="absolute right-4 top-1/2 p-2 text-white rounded-full transition-colors -translate-y-1/2 hover:bg-white/10"
-          title="下一张"
-          aria-label="下一张"
+          title={t('next')}
+          aria-label={t('next')}
         >
           <ChevronRight size={32} />
         </button>
@@ -77,7 +80,7 @@ const MediaViewer: React.FC<MediaViewerProps> = ({
             className="max-w-full max-h-[80vh] rounded-lg"
             poster={media.thumbnail}
           >
-            Your browser does not support the video tag.
+            {t('videoNotSupported')}
           </video>
         ) : (
           <img

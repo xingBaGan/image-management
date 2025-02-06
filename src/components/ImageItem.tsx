@@ -1,6 +1,7 @@
 import React, { memo, useState } from 'react';
 import { Heart, MoreVertical, Check, Paintbrush2 } from 'lucide-react';
 import { LocalImageData } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ImageItemProps {
   image: LocalImageData;
@@ -22,6 +23,7 @@ const ImageItem: React.FC<ImageItemProps> = memo(({
   viewMode
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
+  const { t } = useLanguage();
 
   if (viewMode === 'list') {
     return (
@@ -73,7 +75,7 @@ const ImageItem: React.FC<ImageItemProps> = memo(({
       )}
       <div className="flex absolute top-4 right-4 z-10 items-center space-x-2 opacity-0 transition-all duration-300 ease-in-out transform translate-y-2 group-hover:opacity-100 group-hover:translate-y-0">
         <button
-          title={image.favorite ? "取消收藏" : "收藏"}
+          title={image.favorite ? t('removeFromFavorites') : t('addToFavorites')}
           onClick={(e) => {
             e.stopPropagation();
             onFavorite(image.id);
@@ -91,7 +93,7 @@ const ImageItem: React.FC<ImageItemProps> = memo(({
           onMouseLeave={() => setShowDropdown(false)}
         >
           <button
-            title="更多选项"
+            title={t('moreOptions')}
             onClick={(e) => {
               e.stopPropagation();
             }}
@@ -114,7 +116,7 @@ const ImageItem: React.FC<ImageItemProps> = memo(({
                 }}
                 className="flex items-center px-4 py-2 text-xs text-center text-gray-700 hover:bg-gray-100 hover:rounded-lg dark:text-gray-300 dark:hover:bg-gray-700"
               >
-                在编辑器中打开
+                {t('openInEditor')}
               </div>
               <div
                 onClick={(e) => {
@@ -124,7 +126,7 @@ const ImageItem: React.FC<ImageItemProps> = memo(({
                 }}
                 className="flex items-center px-4 py-2 text-xs text-center text-gray-700 hover:bg-gray-100 hover:rounded-lg dark:text-gray-300 dark:hover:bg-gray-700"
               >
-                打开所在文件夹
+                {t('openContainingFolder')}
               </div>
             </div>
           )}

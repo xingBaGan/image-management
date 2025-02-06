@@ -6,6 +6,7 @@ import { LocalImageData } from '../types';
 import { ImageGridBaseProps, handleContextMenu } from './ImageGridBase';
 import ImageItem from './ImageItem';
 import VideoItem from './VideoItem';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const ITEM_HEIGHT = 80; // 每行的高度
 const OVERSCAN_COUNT = 5; // 预渲染的行数
@@ -26,6 +27,7 @@ const Row = memo(({ data, index, style }: {
     index: number;
     style: React.CSSProperties;
 }) => {
+    const { t } = useLanguage();
     const {
         images,
         selectedImages,
@@ -66,7 +68,7 @@ const Row = memo(({ data, index, style }: {
             </div>
             <div className="flex gap-4 justify-between items-center w-50">
                 <div className="text-gray-500 dark:text-white min-w-15">
-                    {(image.size / 1024 / 1024).toFixed(2)} MB
+                    {t('listFileSize').replace('{size}', (image.size / 1024 / 1024).toFixed(2))}
                 </div>
                 <div className="flex items-center text-gray-500 dark:text-white">
                     <Calendar size={16} className="mr-2" />
@@ -98,6 +100,7 @@ const ListView: React.FC<ImageGridBaseProps> = ({
     setViewingMedia,
     onOpenInEditor,
 }) => {
+    const { t } = useLanguage();
     const listRef = useRef<List>(null);
     const [isScrolling, setIsScrolling] = useState(false);
 
@@ -150,10 +153,10 @@ const ListView: React.FC<ImageGridBaseProps> = ({
         <div className="h-full bg-white bg-opacity-60 rounded-lg shadow dark:bg-gray-800 dark:bg-opacity-60">
             <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 border-b dark:border-gray-700 font-medium text-gray-500 dark:text-rose-400">
                 <div className="w-12"></div>
-                <div>Name</div>
-                <div>Size</div>
-                <div>dateModified</div>
-                <div className="w-20">Actions</div>
+                <div>{t('listName')}</div>
+                <div>{t('listSize')}</div>
+                <div>{t('listDateModified')}</div>
+                <div className="w-20">{t('listActions')}</div>
             </div>
             <div className="h-[calc(100%-60px)]">
                 <AutoSizer>

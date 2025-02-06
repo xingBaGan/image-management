@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Tag, X, Plus } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface MediaTagsProps {
   tags: string[];
@@ -12,6 +13,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
   mediaId,
   onTagsUpdate,
 }) => {
+  const { t } = useLanguage();
   const [selectedTags, setSelectedTags] = useState<string[]>(tags);
   const [inputValue, setInputValue] = useState('');
 
@@ -20,7 +22,6 @@ const MediaTags: React.FC<MediaTagsProps> = ({
   }, [tags]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    
     setInputValue(e.target.value);
   };
 
@@ -60,7 +61,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
             <button
               onClick={() => removeTag(tag)}
               className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-500 dark:hover:text-red-400 focus:outline-none"
-              aria-label={`删除标签 ${tag}`}
+              aria-label={t('deleteTag').replace('{tag}', tag)}
             >
               <X size={14} />
             </button>
@@ -72,7 +73,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
         value={inputValue}
         onChange={handleInputChange}
         onKeyDown={handleInputKeyDown}
-        placeholder="输入标签"
+        placeholder={t('tagInput')}
         className="p-1 mt-2 w-full text-sm placeholder-gray-500 text-gray-700 bg-transparent outline-none border-t-1dark:text-rose-300 dark:placeholder-gray-400"
       />
     </div>

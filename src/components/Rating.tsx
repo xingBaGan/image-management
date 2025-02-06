@@ -1,13 +1,16 @@
 import React from 'react';
 import { Star } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface RatingProps {
   value: number;
   onChange: (value: number) => void;
   size?: number;
+  type?: 'image' | 'video';
 }
 
-const Rating: React.FC<RatingProps> = ({ value = 0, onChange, size = 20 }) => {
+const Rating: React.FC<RatingProps> = ({ value = 0, onChange, size = 20, type = 'image' }) => {
+  const { t } = useLanguage();
   const [hoverValue, setHoverValue] = React.useState<number | null>(null);
 
   return (
@@ -17,7 +20,7 @@ const Rating: React.FC<RatingProps> = ({ value = 0, onChange, size = 20 }) => {
         return (
           <button
             key={star}
-            title={`评分 ${star} 星`}
+            title={`${t(type === 'video' ? 'rateVideo' : 'rateImage')} ${star}`}
             className={`transition-all duration-200 ease-in-out transform hover:scale-110 ${
               filled ? 'text-yellow-400' : 'text-gray-300 dark:text-black-600'
             }`}

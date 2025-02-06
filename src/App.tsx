@@ -3,7 +3,7 @@ import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar';
 import MediaGrid from './components/MediaGrid';
 import ImageInfoSidebar from './components/ImageInfoSidebar';
-import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ColorInfo,  } from './types';
+import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ColorInfo, ImportFile } from './types';
 import { SortType, FilterType, SortDirection} from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
 import { addTagsToImages } from './services/tagService';
@@ -13,10 +13,11 @@ import DeleteConfirmDialog from './components/DeleteConfirmDialog';
 import MessageBox from './components/MessageBox';
 import { useSettings } from './contexts/SettingsContext';
 import './App.css';
-import { ThemeProvider } from './contexts/ThemeContext';
+import { useLanguage } from './contexts/LanguageContext';
 
 function App() {
   const { settings } = useSettings();
+  const { t } = useLanguage();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<FilterType>(FilterType.Photos);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -70,7 +71,6 @@ function App() {
         img.id === id ? { ...img, favorite: !img.favorite } : img
       );
 
-      // 保存更新后的图片数据到 JSON 文件，同时保存categories
       await window.electron.saveImagesToJson(
         updatedImages.map(img => ({
           ...img,
@@ -82,7 +82,7 @@ function App() {
 
       setImages(updatedImages);
     } catch (error) {
-      console.error('更新收藏状态失败:', error);
+      console.error(t('updateFavoritesFailed').replace('{error}', String(error)));
     }
   };
 
@@ -139,7 +139,6 @@ function App() {
 
   const handleBulkDelete = async () => {
     try {
-      // 过滤掉被选中的图片
       const updatedImages = images.filter(img => !selectedImages.has(img.id));
 
       const newCategories = categories.map(category => {
@@ -150,7 +149,7 @@ function App() {
           count: newImages.length
         };
       });
-      // 保存更新后的图片数据到 JSON 文件，同时保存categories
+
       await window.electron.saveImagesToJson(
         updatedImages.map(img => ({
           ...img,
@@ -159,12 +158,12 @@ function App() {
         })),
         newCategories
       );
-      // 更新状态
+
       setImages(updatedImages);
       setCategories(newCategories);
       setSelectedImages(new Set());
     } catch (error) {
-      console.error('删除图片失败:', error);
+      console.error(t('deleteFailed').replace('{error}', String(error)));
     }
   };
 
@@ -249,19 +248,19 @@ function App() {
   const bulkActions = [
     {
       icon: <Trash2 size={20} />,
-      label: 'Delete',
+      label: t('delete'),
       onClick: handleBulkDelete
     },
     {
       icon: <FolderPlus size={20} />,
-      label: 'Add to Category',
+      label: t('addToCategory'),
       onClick: () => { },
       categories: categories,
       onSelectCategories: handleAddToCategory
     },
     {
       icon: <Tags size={20} />,
-      label: 'Add Tags',
+      label: t('addTags'),
       onClick: handleAddTags
     }
   ];
@@ -274,12 +273,26 @@ function App() {
       const newImages = await window.electron.showOpenDialog();
       if (newImages.length > 0) {
         setImportState(ImportStatus.Importing);
-        const updatedImages = await processMedia(newImages as any, images, categories, setImportState);
+        const updatedImages = await processMedia(
+          newImages.map(file => ({
+            ...file,
+            dateCreated: new Date().toISOString(),
+            dateModified: new Date(file.lastModified).toISOString(),
+            arrayBuffer: async () => new ArrayBuffer(0),
+            text: async () => '',
+            stream: () => new ReadableStream(),
+            slice: () => new Blob(),
+            type: file.type || 'image/jpeg'
+          })) as unknown as ImportFile[],
+          images,
+          categories,
+          setImportState
+        );
         setImages([...images, ...updatedImages]);
         setImportState(ImportStatus.Imported);
       }
     } catch (error) {
-      console.error('导入图片失败:', error);
+      console.error(t('importFailed').replace('{error}', String(error)));
     }
   };
 
@@ -296,7 +309,6 @@ function App() {
     const loadImages = async () => {
       try {
         const result = await window.electron.loadImagesFromJson('images.json');
-        // 转换数据格式
         const convertedImages = result.images.map(img => ({
           ...img,
           dateCreated: img.dateCreated,
@@ -305,25 +317,24 @@ function App() {
         setImages(convertedImages);
         setCategories(result.categories || []);
       } catch (error) {
-        console.error('加载图片数据失败:', error);
+        console.error(t('loadImagesFailed').replace('{error}', String(error)));
       }
     };
 
     loadImages();
-  }, []);
+  }, [t]);
 
   const handleAddCategory = async (newCategory: Category) => {
-    // 确保新分类包含 images 数组
-    const categoryWithImages = {
-      ...newCategory,
-      images: [],
-      count: 0
-    };
-
-    const updatedCategories = [...categories, categoryWithImages];
-    setCategories(updatedCategories);
-
     try {
+      const categoryWithImages = {
+        ...newCategory,
+        images: [],
+        count: 0
+      };
+
+      const updatedCategories = [...categories, categoryWithImages];
+      setCategories(updatedCategories);
+
       await window.electron.saveImagesToJson(
         images.map(img => ({
           ...img,
@@ -333,13 +344,12 @@ function App() {
         updatedCategories
       );
     } catch (error) {
-      console.error('保存分类失败:', error);
+      console.error(t('addCategoryFailed').replace('{error}', String(error)));
     }
   };
 
   const handleRenameCategory = async (categoryId: string, newName: string) => {
     try {
-      // 更新内存中的分类数据
       const updatedCategories = categories.map(category =>
         category.id === categoryId
           ? { ...category, name: newName }
@@ -347,23 +357,20 @@ function App() {
       );
       setCategories(updatedCategories);
 
-      // 使用 saveCategories 保存更新后的分类
       await window.electron.saveCategories(updatedCategories);
     } catch (error) {
-      console.error('重命名分类失败:', error);
+      console.error(t('renameCategoryFailed').replace('{error}', String(error)));
     }
   };
 
   const handleDeleteCategory = async (categoryId: string) => {
     try {
-      // 从内存中移除分类
       const updatedCategories = categories.filter(category => category.id !== categoryId);
       setCategories(updatedCategories);
 
-      // 保存更新后的分类到文件系统
       await window.electron.saveCategories(updatedCategories);
     } catch (error) {
-      console.error('删除分类失败:', error);
+      console.error(t('deleteCategoryFailed').replace('{error}', String(error)));
     }
   };
 
@@ -396,11 +403,9 @@ function App() {
 
   useEffect(() => {
     const handlePaste = async (e: ClipboardEvent) => {
-      // 检查事件目标是否在 MediaGrid 区域内
+      const mediaGridElement = document.querySelector('.media-grid');
       const target = e.target as HTMLElement;
-      const mediaGridElement = document.querySelector('.media-grid-container');
-      
-      // 如果点击目标不在 MediaGrid 内，或者目标是输入框/文本框，则不处理粘贴事件
+
       if (!mediaGridElement?.contains(target) || 
           target.tagName === 'INPUT' || 
           target.tagName === 'TEXTAREA' ||
@@ -421,7 +426,7 @@ function App() {
       if (isUrl || isFilePath) {
         try {
           setImportState(ImportStatus.Importing);
-          let newImages;
+          let newImages: LocalImageData[];
           
           if (isUrl) {
             // 使用主进程下载图片
@@ -432,34 +437,49 @@ function App() {
             const ext = result.type?.split('/').pop() || 'jpg';
             newImages = [{
               id: Date.now().toString(),
-              path: result.localPath,
-              name: result.fileName,
+              path: result.localPath || '',
+              name: result.fileName || '',
               extension: ext,
-              size: result.size,
+              size: result.size || 0,
               dateCreated: new Date().toISOString(),
               dateModified: new Date().toISOString(),
               tags: [],
               favorite: false,
               categories: [],
-              type: 'image'
+              type: 'image',
+              colors: []
             }];
           } else {
             // 处理本地文件路径
             newImages = await window.electron.processDirectory(clipboardText);
           }
 
-          const updatedImages = await processMedia(newImages, images, categories, setImportState);
+          const updatedImages = await processMedia(
+            newImages.map(img => ({
+              ...img,
+              lastModified: new Date(img.dateModified).getTime(),
+              webkitRelativePath: '',
+              arrayBuffer: async () => new ArrayBuffer(0),
+              text: async () => '',
+              stream: () => new ReadableStream(),
+              slice: () => new Blob(),
+              type: img.type || 'image/jpeg'
+            })) as unknown as ImportFile[],
+            images,
+            categories,
+            setImportState
+          );
           setImages([...images, ...updatedImages]);
           setMessageBox({
             isOpen: true,
-            message: '导入成功',
+            message: t('importSuccess'),
             type: 'success'
           });
         } catch (error: any) {
-          console.error('导入失败:', error);
+          console.error(t('pasteImageFailed').replace('{error}', String(error)));
           setMessageBox({
             isOpen: true,
-            message: '导入失败: ' + (error.message || '未知错误'),
+            message: t('importFailed').replace('{error}', error.message || t('error')),
             type: 'error'
           });
         } finally {
@@ -470,7 +490,7 @@ function App() {
 
     document.addEventListener('paste', handlePaste);
     return () => document.removeEventListener('paste', handlePaste);
-  }, [images, categories]);
+  }, [images, categories, t]);
 
   const handleOpenInEditor = useCallback((path: string) => {
     window.electron.openInEditor(path);
@@ -557,99 +577,97 @@ function App() {
 
 
   return (
-    <ThemeProvider>
-      <div className="flex h-screen backdrop-blur-md dark:bg-gray-900 bg-white/20"
-        style={{
-          backgroundImage: `url('${settings.backgroundUrl}')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}>
-        <div className="flex w-full h-full bg-white bg-opacity-25 backdrop-blur-sm">
-          {!isZenMode && (
-            <Sidebar
-              selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-              categories={categories}
-              filter={filter}
-              onFilterChange={setFilter}
-              onAddCategory={handleAddCategory}
-              onRenameCategory={handleRenameCategory}
-              onDeleteCategory={handleDeleteCategory}
-              onUpdateCategories={handleReorderCategories}
-              setShowDeleteConfirm={setShowDeleteConfirm}
-            />
-          )}
-          <div className="flex overflow-hidden relative flex-col flex-1">
-            <Toolbar
-              viewMode={viewMode}
-              sortBy={sortBy}
-              sortDirection={sortDirection}
-              onViewModeChange={setViewMode}
-              onSortChange={handleSort}
-              onSearch={handleSearch}
-              selectedCount={selectedImages.size}
-              bulkActions={selectedImages.size > 0 ? bulkActions : []}
-              onToggleSidebar={() => setIsZenMode(!isZenMode)}
-              onImport={handleImportImages}
-              isSidebarOpen={isZenMode}
-              setIsSettingsOpen={setIsSettingsOpen}
-              isSettingsOpen={isSettingsOpen}
-              onFilter={setMultiFilter}
-              filterColors={filterColors}
-              setFilterColors={setFilterColors}
-            />
-            <div className="flex overflow-y-auto flex-1">
-              <div className={`flex-1 ${isZenMode ? 'mr-0' : 'mr-60'}`}>
-                <MediaGrid
-                  images={filteredAndSortedImages}
-                  onFavorite={handleFavorite}
-                  viewMode={viewMode}
-                  selectedImages={selectedImages}
-                  onSelectImage={handleImageSelect}
-                  updateTagsByMediaId={updateTagsByMediaId}
-                  addImages={handleAddImages}
-                  existingImages={images}
-                  categories={categories}
-                  setImportState={setImportState}
-                  importState={importState}
-                  onOpenInEditor={handleOpenInEditor}
-                />
-              </div>
-              <div className="fixed right-0 bottom-0 top-16">
-                {!isZenMode && <ImageInfoSidebar
-                  image={selectedImageForInfo}
-                  onTagsUpdate={updateTagsByMediaId}
-                  onRateChange={handleRateChange}
-                  totalImages={filteredAndSortedImages.length}
-                  totalVideos={filteredAndSortedImages.length}
-                  type={selectedCategory === 'videos' ? 'video' : 'image'}
-                  setFilterColors={setFilterColors}
-                  setSelectedImages={setSelectedImages}
-                />}
+        <div className="flex h-screen backdrop-blur-md dark:bg-gray-900 bg-white/20"
+          style={{
+            backgroundImage: `url('${settings.backgroundUrl}')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}>
+          <div className="flex w-full h-full bg-white bg-opacity-25 backdrop-blur-sm">
+            {!isZenMode && (
+              <Sidebar
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+                categories={categories}
+                filter={filter}
+                onFilterChange={setFilter}
+                onAddCategory={handleAddCategory}
+                onRenameCategory={handleRenameCategory}
+                onDeleteCategory={handleDeleteCategory}
+                onUpdateCategories={handleReorderCategories}
+                setShowDeleteConfirm={setShowDeleteConfirm}
+              />
+            )}
+            <div className="flex overflow-hidden relative flex-col flex-1">
+              <Toolbar
+                viewMode={viewMode}
+                sortBy={sortBy}
+                sortDirection={sortDirection}
+                onViewModeChange={setViewMode}
+                onSortChange={handleSort}
+                onSearch={handleSearch}
+                selectedCount={selectedImages.size}
+                bulkActions={selectedImages.size > 0 ? bulkActions : []}
+                onToggleSidebar={() => setIsZenMode(!isZenMode)}
+                onImport={handleImportImages}
+                isSidebarOpen={isZenMode}
+                setIsSettingsOpen={setIsSettingsOpen}
+                isSettingsOpen={isSettingsOpen}
+                onFilter={setMultiFilter}
+                filterColors={filterColors}
+                setFilterColors={setFilterColors}
+              />
+              <div className="flex overflow-y-auto flex-1">
+                <div className={`flex-1 ${isZenMode ? 'mr-0' : 'mr-60'}`}>
+                  <MediaGrid
+                    images={filteredAndSortedImages}
+                    onFavorite={handleFavorite}
+                    viewMode={viewMode}
+                    selectedImages={selectedImages}
+                    onSelectImage={handleImageSelect}
+                    updateTagsByMediaId={updateTagsByMediaId}
+                    addImages={handleAddImages}
+                    existingImages={images}
+                    categories={categories}
+                    setImportState={setImportState}
+                    importState={importState}
+                    onOpenInEditor={handleOpenInEditor}
+                  />
+                </div>
+                <div className="fixed right-0 bottom-0 top-16">
+                  {!isZenMode && <ImageInfoSidebar
+                    image={selectedImageForInfo}
+                    onTagsUpdate={updateTagsByMediaId}
+                    onRateChange={handleRateChange}
+                    totalImages={filteredAndSortedImages.length}
+                    totalVideos={filteredAndSortedImages.length}
+                    type={selectedCategory === 'videos' ? 'video' : 'image'}
+                    setFilterColors={setFilterColors}
+                    setSelectedImages={setSelectedImages}
+                  />}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        {showDeleteConfirm && (
-          <DeleteConfirmDialog
-            onCancel={() => setShowDeleteConfirm(null)}
-            onConfirm={() => handleDeleteConfirm(showDeleteConfirm)}
+          {showDeleteConfirm && (
+            <DeleteConfirmDialog
+              onCancel={() => setShowDeleteConfirm(null)}
+              onConfirm={() => handleDeleteConfirm(showDeleteConfirm)}
+            />
+          )}
+          <MessageBox
+            isOpen={messageBox.isOpen}
+            onClose={messageBoxClose}
+            message={messageBox.message}
+            type={messageBox.type}
           />
-        )}
-        <MessageBox
-          isOpen={messageBox.isOpen}
-          onClose={messageBoxClose}
-          message={messageBox.message}
-          type={messageBox.type}
-        />
-        <Settings
-          isOpen={isSettingsOpen}
-          onClose={() => setIsSettingsOpen(false)}
-          setMessageBox={setMessageBox}
-          messageBox={messageBox}
-        />
-      </div>
-    </ThemeProvider>
+          <Settings
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+            setMessageBox={setMessageBox}
+            messageBox={messageBox}
+          />
+        </div>
   );
 }
 

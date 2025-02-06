@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { supportModes } from '../config';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ interface SettingsProps {
 
 const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, messageBox, setMessageBox }) => {
   const { settings, updateSettings } = useSettings();
+  const { t } = useLanguage();
   const [comfyUrl, setComfyUrl] = useState('');
   const [autoTagging, setAutoTagging] = useState(false);
   const [backgroundUrl, setBackgroundUrl] = useState('');
@@ -44,12 +46,12 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, messageBox, setMes
       setMessageBox({
         ...messageBox,
         isOpen: true,
-        message: '配置已保存',
+        message: t('configSaved'),
         type: 'success'
       });
       onClose();
     } catch (error) {
-      console.error('保存设置失败:', error);
+      console.error(t('saveFailed').replace('{error}', String(error)));
     }
   };
 
@@ -62,17 +64,17 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, messageBox, setMes
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            title="关闭"
+            title={t('close')}
           >
             <X size={20} />
           </button>
 
-          <h2 className="mb-4 text-xl font-semibold dark:text-white">设置</h2>
+          <h2 className="mb-4 text-xl font-semibold dark:text-white">{t('settingsTitle')}</h2>
           
           <div className="space-y-4">
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700dark:text-rose-300">
-                ComfyUI 服务器地址
+                {t('comfyServerUrl')}
               </label>
               <input
                 type="text"
@@ -85,23 +87,23 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, messageBox, setMes
 
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700dark:text-rose-300">
-                背景图片URL
+                {t('backgroundImageUrl')}
               </label>
               <input
                 type="text"
                 value={backgroundUrl}
                 onChange={(e) => setBackgroundUrl(e.target.value)}
-                placeholder="输入背景图片URL"
+                placeholder={t('enterBackgroundUrl')}
                 className="px-3 py-2 w-full rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
             </div>
 
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700dark:text-rose-300">
-                自动打标
+                {t('autoTagging')}
               </label>
               <input
-                title="自动打标"
+                title={t('autoTagging')}
                 type="checkbox"
                 checked={autoTagging}
                 onChange={(e) => setAutoTagging(e.target.checked)}
@@ -111,10 +113,10 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, messageBox, setMes
             
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700dark:text-rose-300">
-                模型名称
+                {t('modelName')}
               </label>
               <select
-                title="模型名称"
+                title={t('modelName')}
                 value={modelName}
                 onChange={(e) => setModelName(e.target.value)}
                 className="px-3 py-2 w-full rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -129,13 +131,13 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, messageBox, setMes
                 onClick={onClose}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-700dark:text-rose-300 dark:hover:bg-gray-600"
               >
-                取消
+                {t('cancel')}
               </button>
               <button
                 onClick={handleSave}
                 className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
               >
-                保存
+                {t('save')}
               </button>
             </div>
           </div>

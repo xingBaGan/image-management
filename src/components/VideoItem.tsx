@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from '
 import { Play, Check } from 'lucide-react';
 import type { LocalImageData } from '../types';
 import throttle from 'lodash/throttle';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface VideoItemProps {
   video: LocalImageData & { type: 'video'; duration?: number; thumbnail?: string };
@@ -21,6 +22,7 @@ const VideoItem: React.FC<VideoItemProps> = memo(({
   onDoubleClick,
   viewMode
 }) => {
+  const { t } = useLanguage();
   const [aspectRatio, setAspectRatio] = useState<number>(16 / 9);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -52,10 +54,10 @@ const VideoItem: React.FC<VideoItemProps> = memo(({
       videoRef.current.muted = true;
       setIsHovering(true);
       videoRef.current.play().catch(() => {
-        console.log('自动播放被阻止');
+        console.log(t('autoplayBlocked'));
       });
     }
-  }, [isVideoLoaded]);
+  }, [isVideoLoaded, t]);
 
   const handleMouseLeave = useCallback(() => {
     if (videoRef.current) {
@@ -82,10 +84,10 @@ const VideoItem: React.FC<VideoItemProps> = memo(({
     videoRef.current.currentTime = video.duration * progress;
     if (videoRef.current.paused) {
       videoRef.current.play().catch(() => {
-        console.log('自动播放被阻止');
+        console.log(t('autoplayBlocked'));
       });
     }
-  }, [isHovering, video.duration, isVideoLoaded, videoRef]);
+  }, [isHovering, video.duration, isVideoLoaded, videoRef, t]);
 
 
   useEffect(() => {

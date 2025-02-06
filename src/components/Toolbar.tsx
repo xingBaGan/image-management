@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FileJson, Settings as SettingsIcon, Filter as FilterIcon, Star, Image, Palette, XCircle } from 'lucide-react';
 import { ViewMode, SortType, Category, FilterOptions, Filter } from '../types';
 import ThemeToggle from './ThemeToggle';
+import LanguageToggle from './LanguageToggle';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ToolbarProps {
   viewMode: ViewMode;
@@ -52,6 +54,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   filterColors,
   setFilterColors,
 }) => {
+  const { t } = useLanguage();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
@@ -67,33 +70,33 @@ const Toolbar: React.FC<ToolbarProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
+  
   const filters: Filter[] = [
     {
       id: 'colors',
       type: 'colors',
-      label: '颜色',
+      label: t('colors'),
       options: [],
       isMultiple: false
     },
     {
       id: 'ratio',
       type: 'ratio',
-      label: '比例',
+      label: t('ratio'),
       options: ['4:3', '16:9', '1:1', '3:4', '9:16'],
       isMultiple: true
     },
     {
       id: 'rating',
       type: 'rating',
-      label: '评分',
+      label: t('rating'),
       options: ['1', '2', '3', '4', '5'],
       isMultiple: false
     },
     {
       id: 'formats',
       type: 'formats',
-      label: '格式',
+      label: t('formats'),
       options: ['PNG', 'JPG', 'GIF', 'WEBP'],
       isMultiple: true
     }
@@ -143,14 +146,14 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
   const getSortLabel = () => {
     switch (sortBy) {
-      case 'name':
-        return 'Name';
-      case 'date':
-        return 'Date';
-      case 'size':
-        return 'Size';
+      case SortType.Date:
+        return t('sort.date');
+      case SortType.Name:
+        return t('sort.name');
+      case SortType.Size:
+        return t('sort.size');
       default:
-        return 'Sort by';
+        return t('sort.date');
     }
   };
 
@@ -219,7 +222,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                             setFilterColors(newColors);
                           }}
                           className="p-0.5 rounded-full hover:bg-white/20 transition-colors"
-                          title="移除颜色"
+                          title={t('removeColor')}
                         >
                           <X size={14} />
                         </button>
@@ -231,7 +234,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
             }
             return (
               <div key={filter.id} className="space-y-2">
-
                 <div className="flex items-center space-x-2">
                   {getFilterIcon(filter.type)}
                   <span className="text-sm font-medium dark:text-white">{filter.label}</span>
@@ -250,6 +252,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                           ? 'bg-blue-100 border-blue-300 text-blue-700 dark:bg-blue-900 dark:border-blue-700 dark:text-blue-300'
                           : 'border-gray-300 dark:border-gray-600'
                       }`}
+                      title={filter.type === 'rating' ? t('rateImage') : undefined}
                     >
                       {option}
                     </button>
@@ -271,7 +274,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
           <button
             onClick={onToggleSidebar}
             className="p-2 rounded-lg hover:bg-gray-100 hover:bg-opacity-80 dark:hover:bg-gray-700 dark:hover:bg-opacity-80"
-            title={isSidebarOpen ? "收起侧边栏" : "展开侧边栏"}
+            title={isSidebarOpen ? t('hideSidebar') : t('showSidebar')}
           >
             <Menu size={20} />
           </button>
@@ -279,15 +282,16 @@ const Toolbar: React.FC<ToolbarProps> = ({
           <button
             onClick={onImport}
             className="flex items-center px-4 py-2 space-x-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
-            title="导入图片"
+            title={t('import')}
           >
             <Import size={20} />
           </button>
+          <LanguageToggle />
           <ThemeToggle />
           {selectedCount > 0 ? (
             <>
               <span className="text-sm text-gray-600dark:text-rose-300">
-                {selectedCount} selected
+                {t('selected').replace('{count}', selectedCount.toString())}
               </span>
               <div className="h-6 border-l dark:border-gray-600" />
               <div className="flex items-center space-x-2">
@@ -303,10 +307,10 @@ const Toolbar: React.FC<ToolbarProps> = ({
                               dropdown.classList.toggle('hidden');
                             }
                           }}
-                          title={action.label}
+                          title={t(action.label.toLowerCase())}
                         >
                           {action.icon}
-                          <span>{action.label}</span>
+                          <span>{t(action.label.toLowerCase())}</span>
                         </button>
                         
                         <div 
@@ -347,7 +351,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                                 }
                               }}
                             >
-                              确认
+                              {t('confirm')}
                             </button>
                           </div>
                         </div>
@@ -356,10 +360,10 @@ const Toolbar: React.FC<ToolbarProps> = ({
                       <button
                         onClick={action.onClick}
                         className="flex items-center px-3 py-2 space-x-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700dark:text-rose-300"
-                        title={action.label}
+                        title={t(action.label.toLowerCase())}
                       >
                         {action.icon}
-                        <span>{action.label}</span>
+                        <span>{t(action.label.toLowerCase())}</span>
                       </button>
                     )}
                   </div>
@@ -379,7 +383,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                         >
                           {tag.text}
                           <button
-                            title="删除标签"
+                            title={t('removeTag')}
                             onClick={() => removeTag(tag.id)}
                             className="ml-1 hover:text-blue-600 dark:hover:text-blue-400"
                           >
@@ -393,7 +397,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder={tags.length ? "Press Enter to add tag" : "Search images..."}
+                        placeholder={tags.length ? t('pressEnterToAddTag') : t('searchImages')}
                         className="flex-1 min-w-[100px] bg-transparent border-none outline-none dark:text-white"
                       />
                     </div>
@@ -403,7 +407,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                   <button
                     onClick={handleSearchClick}
                     className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700dark:text-rose-300"
-                    title="搜索"
+                    title={t('search')}
                   >
                     <Search size={20} />
                   </button>
@@ -418,6 +422,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                       ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
+                  title={t('gridView')}
                 >
                   <Grid size={20} />
                 </button>
@@ -428,6 +433,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                       ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
+                  title={t('listView')}
                 >
                   <List size={20} />
                 </button>
@@ -441,8 +447,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 >
                   <button className="flex items-center px-3 py-2 space-x-2 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
                     {sortDirection === 'asc' ? <SortAsc size={20} /> : <SortDesc size={20} />}
-                    <span>Sort by {getSortLabel()}</span>
+                    <span>{t('sortBy')}{getSortLabel()}</span>
                   </button>
+
                   {isDropdownOpen && (
                     <div className="absolute left-0 top-[calc(100%-5px)] z-50 py-1 mt-1 w-48 bg-white rounded-lg border shadow-lg dark:text-white dark:bg-gray-800 dark:border-gray-700">
                       <button
@@ -451,23 +458,26 @@ const Toolbar: React.FC<ToolbarProps> = ({
                           sortBy === SortType.Name ? 'text-blue-600 dark:text-blue-300' : ''
                         }`}
                       >
-                        Name
+                        {t('sort.name')}
                       </button>
+
                       <button
                         onClick={() => onSortChange(SortType.Date)}
                         className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:text-red-300 dark:hover:bg-gray-700 ${
                           sortBy === SortType.Date ? 'text-blue-600 dark:text-blue-300' : ''
                         }`}
                       >
-                        Date
+                        {t('sort.date')}
                       </button>
                       <button
                         onClick={() => onSortChange(SortType.Size)}
+
                         className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:text-red-300 dark:hover:bg-gray-700 ${
                           sortBy === SortType.Size ? 'text-blue-600 dark:text-blue-300' : ''
                         }`}
                       >
-                        Size
+                        {t('sort.size')}
+
                       </button>
                     </div>
                   )}
@@ -478,19 +488,19 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 onClick={async () => {
                   const result = await window.electron.openImageJson();
                   if (!result.success) {
-                    console.error('打开配置文件失败:', result.error);
+                    console.error(t('configOpenFailed').replace('{error}', result.error || ''));
                   }
                 }}
                 className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700dark:text-rose-300"
-                title="打开配置文件"
-                aria-label="打开配置文件"
+                title={t('openConfig')}
+                aria-label={t('openConfig')}
               >
                 <FileJson className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setIsSettingsOpen(true)}
                 className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700dark:text-rose-300"
-                title="设置"
+                title={t('settings')}
               >
                 <SettingsIcon size={20} />
               </button>
@@ -503,7 +513,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                       ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
-                  title="筛选"
+                  title={t('filter')}
                 >
                   <div className="relative">
                     <FilterIcon size={20} />

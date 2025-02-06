@@ -50,10 +50,14 @@ export interface Settings {
   modelName: string;
 }
 
-export interface ImportFile extends File {
+export interface ImportFile extends Omit<File, 'arrayBuffer' | 'text' | 'stream' | 'slice'> {
   dateCreated: string;
   dateModified: string;
   thumbnail?: string;
+  arrayBuffer: () => Promise<ArrayBuffer>;
+  text: () => Promise<string>;
+  stream: () => ReadableStream;
+  slice: (start?: number, end?: number, contentType?: string) => Blob;
 }
 
 export enum ImportStatus {

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface MessageBoxProps {
   isOpen: boolean;
@@ -16,6 +17,8 @@ const MessageBox: React.FC<MessageBoxProps> = ({
   type = 'info',
   duration = 3000,
 }) => {
+  const { t } = useLanguage();
+
   useEffect(() => {
     if (isOpen && duration > 0) {
       const timer = setTimeout(() => {
@@ -47,7 +50,7 @@ const MessageBox: React.FC<MessageBoxProps> = ({
         <button
           onClick={onClose}
           className="p-1 hover:opacity-80 transition-opacity"
-          title="关闭"
+          title={t('close')}
         >
           <X size={16} />
         </button>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Color {
     color: string;
@@ -11,12 +12,12 @@ interface ColorPaletteProps {
     setSelectedImages: (images: Set<string>) => void;
 }
 
-
 const ColorPalette: React.FC<ColorPaletteProps> = ({
     colors,
     setFilterColors,
     setSelectedImages,
 }) => {
+    const { t } = useLanguage();
     const [activeColorIndex, setActiveColorIndex] = useState<number | null>(null);
     const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
 
@@ -65,7 +66,9 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
                         <div className="absolute -top-12 left-1/2 z-10 px-2 py-1 text-xs text-white whitespace-nowrap bg-gray-800 rounded opacity-0 transition-opacity duration-200 transform -translate-x-1/2 group-hover:opacity-100">
                             {typeof color === 'string' ? color : color.color}
                             {typeof color !== 'string' && (
-                                <div className="text-gray-300">占比: {color.percentage}%</div>
+                                <div className="text-gray-300">
+                                    {t('percentage').replace('{value}', color.percentage?.toString() || '0')}
+                                </div>
                             )}
                             <div className="absolute bottom-0 left-1/2 w-2 h-2 bg-gray-800 transform rotate-45 -translate-x-1/2 translate-y-1/2"></div>
                         </div>
@@ -88,13 +91,13 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
                                     }}
                                 >
                                     <button
-                                        className="px-4 py-2 w-full text-xs text-center hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white"
+                                        className="px-4 py-2 w-full text-xs text-center whitespace-nowrap hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             handleSetFilterColor(color);
                                         }}
                                     >
-                                        选择为筛选颜色
+                                        {t('selectAsFilterColor')}
                                     </button>
                                 </div>
                             </>

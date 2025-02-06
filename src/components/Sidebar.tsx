@@ -6,6 +6,7 @@ import {
 import { Category, FilterType } from '../types';
 import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from './StrictModeDroppable';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SidebarProps {
   selectedCategory: FilterType;
@@ -30,6 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onUpdateCategories,
   setShowDeleteConfirm,
 }) => {
+  const { t } = useLanguage();
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
@@ -108,10 +110,10 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-4">
         <div className="space-y-2">
           {[
-            { id: 'photos', icon: Image, label: '所有图片' },
-            { id: 'videos', icon: Video, label: '所有视频' },
-            { id: 'recent', icon: Clock, label: '最近添加' }, 
-            { id: 'favorites', icon: Heart, label: '收藏' }
+            { id: 'photos', icon: Image, label: t('photos') },
+            { id: 'videos', icon: Video, label: t('videos') },
+            { id: 'recent', icon: Clock, label: t('recent') },
+            { id: 'favorites', icon: Heart, label: t('favorites') }
           ].map(({ id, icon: Icon, label }) => (
             <button
               key={id}
@@ -126,14 +128,13 @@ const Sidebar: React.FC<SidebarProps> = ({
           ))}
         </div>
 
-
         <div className="mt-6">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-rose-400">分类</h3>
+            <h3 className="text-sm font-medium text-gray-500 dark:text-rose-400">{t('categories')}</h3>
             <button
               onClick={() => setIsAddingCategory(true)}
               className="p-1 text-gray-500 hover:text-gray-700 dark:text-white dark:hover:text-rose-400"
-              title="添加分类"
+              title={t('addCategory')}
             >
               <FolderPlus size={16} />
             </button>
@@ -153,7 +154,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     setNewCategoryName('');
                   }
                 }}
-                placeholder="分类名称"
+                placeholder={t('categoryName')}
                 className="flex-1 px-2 py-1 text-sm rounded-lg border dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 autoFocus
               />
@@ -213,9 +214,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                                 }}
                                 className="flex-1 px-2 py-1 w-full text-sm bg-transparent rounded border dark:text-white edit-input"
                                 autoFocus
-                                placeholder="输入分类名称"
-                                title="编辑分类名称"
-                                aria-label="编辑分类名称"
+                                placeholder={t('categoryName')}
+                                title={t('categoryName')}
+                                aria-label={t('categoryName')}
                               />
                             ) : (
                               <>
@@ -241,15 +242,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                                   setShowDropdown(showDropdown === category.id ? null : category.id);
                                 }}
                                 className="p-1 text-gray-400 opacity-0 group-hover:opacity-100 hover:text-gray-600 dark:hover:text-gray-300 dropdown-button"
-                                title="更多操作"
-                                aria-label="更多操作"
+                                title={t('moreActions')}
+                                aria-label={t('moreActions')}
                               >
                                 <MoreVertical size={14} />
                               </button>
 
                               {showDropdown === category.id && (
-                                <div className="absolute
-                                 right-[-5] z-10 mt-2 w-48 bg-white rounded-md ring-1 ring-black ring-opacity-5 shadow-lg dark:bg-gray-700 dropdown-content">
+                                <div className="absolute right-[-5] z-10 mt-2 w-48 bg-white rounded-md ring-1 ring-black ring-opacity-5 shadow-lg dark:bg-gray-700 dropdown-content">
                                   <div className="py-1">
                                     <button
                                       onClick={(e) => {
@@ -261,14 +261,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                                       className="flex items-center px-4 py-2 w-full text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
                                     >
                                       <Edit2 size={14} className="mr-2" />
-                                      重命名
+                                      {t('rename')}
                                     </button>
                                     <button
                                       onClick={() => handleDeleteRequest(category.id)}
                                       className="flex items-center px-4 py-2 w-full text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-600"
                                     >
                                       <Trash2 size={14} className="mr-2" />
-                                      删除
+                                      {t('delete')}
                                     </button>
                                   </div>
                                 </div>
