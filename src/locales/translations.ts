@@ -111,6 +111,8 @@ export const translations = {
     percentage: 'Percentage: {value}%',
     selectAsFilterColor: 'Add to filter color',
     colorPalette: 'Color Palette',
+    colorPrecision: 'Color Precision',
+
     // Media Viewer
     previous: 'Previous',
     next: 'Next',
@@ -267,6 +269,7 @@ export const translations = {
     percentage: '占比: {value}%',
     selectAsFilterColor: '选择为筛选颜色',
     colorPalette: '颜色面板',
+    colorPrecision: '颜色精度',
 
     // Media Viewer
     previous: '上一张',

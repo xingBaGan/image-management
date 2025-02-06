@@ -7,7 +7,7 @@ import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ColorI
 import { SortType, FilterType, SortDirection} from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
 import { addTagsToImages } from './services/tagService';
-import { processMedia } from './utils';
+import { processMedia, isSimilarColor } from './utils';
 import Settings from './components/Settings';
 import DeleteConfirmDialog from './components/DeleteConfirmDialog';
 import MessageBox from './components/MessageBox';
@@ -36,10 +36,12 @@ function App() {
     colors: [],
     ratio: [],
     rating: null,
-    formats: []
+    formats: [],
+    precision: 0.85
   });
   const [filterColors, setFilterColors] = useState<string[]>([]);
   const [messageBox, setMessageBox] = useState<{
+
     isOpen: boolean;
     message: string;
 
@@ -520,44 +522,42 @@ function App() {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       filtered = images.filter(img => new Date(img.dateModified) >= sevenDaysAgo);
     } else if (selectedCategory !== FilterType.Photos) {
-      // 如果选中的不是 'photos'（所有图片），且不是特殊过滤器（favorites/recent）
-      // 查找选中分类下的所有图片
       const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
       if (selectedCategoryData) {
         filtered = images.filter(img =>
-          // 检查图片是否属于当前选中的分类
           img.categories?.includes(selectedCategory) ||
-          // 或者检查图片 ID 是否在分类的 images 数组中
           selectedCategoryData.images?.includes(img.id)
         );
       }
     }
+
     filtered = filtered.filter(img => {
       if (filterColors.length > 0) {
-        console.log('filter colors', filterColors);
-        return filterColors.some(color => img.colors.some((c: string | ColorInfo) => typeof c === 'string' ? c === color : c.color === color));
+        // 使用颜色相似度比较
+        return filterColors.some(filterColor => 
+          img.colors.some((c: string | ColorInfo) => {
+            const imgColor = typeof c === 'string' ? c : c.color;
+            return isSimilarColor(imgColor, filterColor, multiFilter.precision); // 使用0.85的精度
+          })
+        );
       }
-      if (multiFilter.ratio.length > 0) {
 
+      if (multiFilter.ratio.length > 0) {
         return multiFilter.ratio.every(ratio => img.ratio === ratio);
       }
       if (typeof multiFilter.rating === 'number') {
         return img.rating === multiFilter.rating;
       }
-
       if (multiFilter.formats.length > 0) {
         const ext = img.extension.toLowerCase();
         return multiFilter.formats.some(format => ext.endsWith(format.toLowerCase()));
       }
       return true;
-
     });
+
     // 然后对过滤后的结果进行排序
-
-
     return [...filtered].sort((a, b) => {
       let comparison = 0;
-
 
       switch (sortBy) {
         case SortType.Name:

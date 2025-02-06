@@ -151,15 +151,16 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
     const top = Math.min(selectionStart.y, selectionEnd.y);
     const width = Math.abs(selectionEnd.x - selectionStart.x);
     const height = Math.abs(selectionEnd.y - selectionStart.y);
-
+    console.log('selection', left, top, width, height);
     return {
       position: 'fixed',
-      left: `${left}px`,
-      top: `${top}px`,  
+      left: `calc(${left}px + 12rem)`,
+      top: `calc(${top}px + 4rem)`,  
       width: `${width}px`,
       height: `${height}px`,
       backgroundColor: 'rgba(59, 130, 246, 0.2)',
       border: '1px solid rgb(59, 130, 246)',
+
       pointerEvents: 'none',
       zIndex: 10,
     } as React.CSSProperties;
@@ -173,7 +174,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
 
   return (
     <div 
-      className="media-grid-container relative p-4"
+      className="relative p-4 media-grid-container"
       style={{ height: 'calc(100vh - 4rem)' }}
     >
       {viewingMedia && (

@@ -291,4 +291,50 @@ export function formatDate(date: string | number | Date): string {
     minute: '2-digit',
     second: '2-digit'
   });
-} 
+}
+
+/**
+ * 将16进制颜色转换为RGB值
+ */
+const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
+};
+
+/**
+ * 计算两个颜色的相似度
+ * @param color1 第一个颜色（16进制）
+ * @param color2 第二个颜色（16进制）
+ * @param precision 精度 (0.1 ~ 1)，值越大表示要求的相似度越高
+ * @returns 如果颜色相似返回true，否则返回false
+ */
+export const isSimilarColor = (color1: string, color2: string, precision: number = 0.8): boolean => {
+  // 确保精度在有效范围内
+  precision = Math.max(0.1, Math.min(1, precision));
+  
+  // 转换为RGB
+  const rgb1 = hexToRgb(color1);
+  const rgb2 = hexToRgb(color2);
+  
+  if (!rgb1 || !rgb2) return false;
+  
+  // 计算欧几里得距离
+  const distance = Math.sqrt(
+    Math.pow(rgb1.r - rgb2.r, 2) +
+    Math.pow(rgb1.g - rgb2.g, 2) +
+    Math.pow(rgb1.b - rgb2.b, 2)
+  );
+  
+  // 最大可能距离是 sqrt(255^2 + 255^2 + 255^2) ≈ 441.67
+  const maxDistance = Math.sqrt(3 * Math.pow(255, 2));
+  
+  // 计算相似度（0到1之间）
+  const similarity = 1 - (distance / maxDistance);
+  
+  // 根据精度判断是否相似
+  return similarity >= precision;
+}; 

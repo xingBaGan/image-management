@@ -1,5 +1,5 @@
 import React, { memo, useState } from 'react';
-import { Heart, MoreVertical, Check, Paintbrush2 } from 'lucide-react';
+import { Heart, MoreVertical, Check } from 'lucide-react';
 import { LocalImageData } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 

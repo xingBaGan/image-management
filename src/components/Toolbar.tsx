@@ -4,6 +4,7 @@ import { ViewMode, SortType, Category, FilterOptions, Filter } from '../types';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
 import { useLanguage } from '../contexts/LanguageContext';
+import FilterPopup from './FilterPopup';
 
 interface ToolbarProps {
   viewMode: ViewMode;
@@ -61,7 +62,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
     colors: filterColors,
     ratio: [],
     rating: null,
-    formats: []
+    formats: [],
+    precision: 0.85
   });
 
   const [inputValue, setInputValue] = useState('');
@@ -75,30 +77,25 @@ const Toolbar: React.FC<ToolbarProps> = ({
     {
       id: 'colors',
       type: 'colors',
-      label: t('colors'),
-      options: [],
-      isMultiple: false
+      label: t('colors')
     },
     {
       id: 'ratio',
       type: 'ratio',
       label: t('ratio'),
-      options: ['4:3', '16:9', '1:1', '3:4', '9:16'],
-      isMultiple: true
+      options: ['4:3', '16:9', '1:1', '3:4', '9:16']
     },
     {
       id: 'rating',
       type: 'rating',
       label: t('rating'),
-      options: ['1', '2', '3', '4', '5'],
-      isMultiple: false
+      options: ['1', '2', '3', '4', '5']
     },
     {
       id: 'formats',
       type: 'formats',
       label: t('formats'),
-      options: ['PNG', 'JPG', 'GIF', 'WEBP'],
-      isMultiple: true
+      options: ['jpg', 'png', 'gif', 'webp']
     }
   ];
 
@@ -157,20 +154,22 @@ const Toolbar: React.FC<ToolbarProps> = ({
     }
   };
 
-  const handleFilterChange = (type: keyof FilterOptions, value: string) => {
+  const handleFilterChange = (type: keyof FilterOptions, value: string | number) => {
     setFilterOptions(prev => {
       const newOptions = { ...prev };
       if (type === 'rating') {
-        if (newOptions.rating === parseInt(value)) {
+        if (newOptions.rating === parseInt(value as string)) {
           newOptions.rating = null; // 取消选择
         } else {
-          newOptions.rating = parseInt(value);
+          newOptions.rating = parseInt(value as string);
         }
+      } else if (type === 'precision') {
+        newOptions.precision = value as number;
       } else {
         const arr = newOptions[type] as string[];
-        const index = arr.indexOf(value);
+        const index = arr.indexOf(value as string);
         if (index === -1) {
-          arr.push(value);
+          arr.push(value as string);
         } else {
           arr.splice(index, 1);
         }
@@ -198,71 +197,14 @@ const Toolbar: React.FC<ToolbarProps> = ({
   const filterPopup = () => {
     if (!isFilterOpen) return null;
     return (
-      <div className="absolute left-0 top-[calc(100%+8px)] z-50 p-4 w-80 bg-white rounded-lg border shadow-lg dark:bg-gray-800 dark:border-gray-700">
-        <div className="space-y-4">
-          {filters.map(filter => {
-            if (filter.type === 'colors') {
-              return (
-                <div key={filter.id} className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    {getFilterIcon(filter.type)}
-                    <span className="text-sm font-medium dark:text-white">{filter.label}</span>
-                  </div>
-                  <div className='flex flex-wrap gap-2'>
-                    {filterColors.map(color => (
-                      <div 
-                        key={color} 
-                        className="flex relative gap-1 items-center px-3 py-1 text-sm text-white rounded-full border group" 
-                        style={{ backgroundColor: color }}
-                      >
-                        {color}
-                        <button
-                          onClick={() => {
-                            const newColors = filterColors.filter(c => c !== color);
-                            setFilterColors(newColors);
-                          }}
-                          className="p-0.5 rounded-full hover:bg-white/20 transition-colors"
-                          title={t('removeColor')}
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            }
-            return (
-              <div key={filter.id} className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  {getFilterIcon(filter.type)}
-                  <span className="text-sm font-medium dark:text-white">{filter.label}</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {filter.options?.map(option => (
-                    <button
-                      key={option}
-                      onClick={() => handleFilterChange(filter.type as keyof FilterOptions, option)}
-                      className={`px-3 py-1 text-sm rounded-full border ${
-                        filter.type === 'rating'
-                          ? filterOptions.rating === parseInt(option)
-                            ? 'bg-blue-100 border-blue-300 text-blue-700 dark:bg-blue-900 dark:border-blue-700 dark:text-blue-300'
-                            : 'border-gray-300 dark:border-gray-600'
-                          : (filterOptions[filter.type as keyof FilterOptions] as string[]).includes(option)
-                          ? 'bg-blue-100 border-blue-300 text-blue-700 dark:bg-blue-900 dark:border-blue-700 dark:text-blue-300'
-                          : 'border-gray-300 dark:border-gray-600'
-                      }`}
-                      title={filter.type === 'rating' ? t('rateImage') : undefined}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <FilterPopup
+        isOpen={isFilterOpen}
+        filters={filters}
+        filterColors={filterColors}
+        setFilterColors={setFilterColors}
+        filterOptions={filterOptions}
+        onFilterChange={handleFilterChange}
+      />
     )
   }
 

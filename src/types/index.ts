@@ -127,6 +127,7 @@ export interface FilterOptions {
   ratio: string[];
   rating: number | null;
   formats: string[];
+  precision: number;
 }
 
 
@@ -135,7 +136,6 @@ export interface Filter {
   type: 'colors' | 'ratio' | 'rating' | 'formats';
   label: string;
   options?: string[];
-  isMultiple?: boolean;
 }
 
 declare global {
