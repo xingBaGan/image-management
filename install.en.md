@@ -1,10 +1,12 @@
 ## Environment Installation
+[Chinese Version](install.zh.md)
 
 Run the appropriate installation script [in the resources directory] according to your operating system:
 
 - Windows: Double-click to run `install.bat`
 - Linux: Run `install.sh`
 - macOS: Run `install.command`
+
 
 The installation process will automatically:
 1. Create Python virtual environment

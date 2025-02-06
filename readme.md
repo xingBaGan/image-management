@@ -1,151 +1,151 @@
-# 图迹 - 图片管理工具
+# atujii - Image Management Tool
+[Chinese Version](readme.zh.md)
 
-[English Version](readme.en.md)
+A clean and elegant local image management tool to help you easily manage and organize your images and video resources.
 
-一个简洁优雅的本地图片管理工具，帮助你轻松管理和组织图片与视频资源。
 
-图片管理
+Image Management
 ![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/pn1.png)
 
-video 管理
+Video Management
 ![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/pn2.png)
 
-## 主要功能
+## Main Features
 
-### 媒体管理
-- [x] 图片浏览 - 支持网格视图和列表视图
-- [x] 图片收藏 - 一键收藏喜欢的图片
-- [x] 图片分类 - 灵活的分类管理系统
-- [x] 媒体导入 - 支持批量导入本地图片和视频
-   - [x] 文件夹导入
-   - [x] 拖放导入
-- [x] 媒体搜索 - 支持按名称、标签搜索
-- [x] 视频支持 
-  - [x] 视频预览和播放
-  - [x] 智能缩略图生成
-  - [x] 鼠标悬停预览
-  - [x] 视频时间轴预览
-- [x] 批量操作 - 支持批量删除、分类等操作
-- [x] AI 标签 - 支持使用 AI 自动为图片添加标签
+### Media Management
+- [x] Image Browsing - Supports grid view and list view
+- [x] Image Favorites - One-click to favorite images
+- [x] Image Classification - Flexible classification management system
+- [x] Media Import - Supports batch import of local images and videos
+   - [x] Folder import
+   - [x] Drag and drop import
+- [x] Media Search - Search by name and tags
+- [x] Video Support 
+  - [x] Video preview and playback
+  - [x] Smart thumbnail generation
+  - [x] Mouse hover preview
+  - [x] Video timeline preview
+- [x] Batch Operations - Supports batch delete, classify, and other operations
+- [x] AI Tags - Supports automatic AI tagging for images
 
-### 分类功能
-- [x] 智能分类 - 内置最近、图片、收藏夹、视频等智能分类
-- [x] 自定义分类 - 支持创建、编辑、删除自定义分类
-- [x] 分类管理 - 支持将媒体添加到多个分类
-- [x] 标签系统 - 支持为媒体添加多个标签
+### Classification Features
+- [x] Smart Classification - Built-in Recent, Images, Favorites, Videos, and other smart categories
+- [x] Custom Classification - Support creating, editing, and deleting custom categories
+- [x] Category Management - Support adding media to multiple categories
+- [x] Tag System - Support adding multiple tags to media
 
-### 界面功能
-- [x] 双视图模式 - 支持网格视图和列表视图切换
-- [x] 排序功能 - 支持按名称、日期、大小排序
-- [x] 暗色主题 - 自适应系统暗色模式
-- [x] 响应式设计 - 完美适配各种屏幕尺寸
-- [x] 拖放支持 - 支持拖放导入媒体文件
-- [x] 框选功能 - 支持框选多个媒体文件
-- [x] 自定义背景图
+### Interface Features
+- [x] Dual View Mode - Switch between grid view and list view
+- [x] Sorting Function - Sort by name, date, size
+- [x] Dark Theme - Auto-adapts to system dark mode
+- [x] Responsive Design - Perfect adaptation to various screen sizes
+- [x] Drag and Drop Support - Support drag and drop media file import
+- [x] Box Selection - Support box selection of multiple media files
+- [x] Custom Background Image
 
-### AI 功能
-- [x] AI 自动标签 - 使用深度学习模型自动识别图片内容并添加标签
-- [x] ComfyUI 工作流 - 支持自定义 ComfyUI 工作流进行图片处理
-- [x] 批量处理 - 支持批量进行 AI 标签识别
-- [x] 标签管理 - 支持编辑和管理 AI 生成的标签
+### AI Features
+- [x] AI Auto-tagging - Use deep learning models to automatically identify image content and add tags
+- [x] ComfyUI Workflow - Support custom ComfyUI workflows for image processing
+- [x] Batch Processing - Support batch AI tag recognition
+- [x] Tag Management - Support editing and managing AI-generated tags
 
-## 使用指南
+## User Guide
 
-安装查看 [install.md](install.md)
+For installation instructions, see [install.en.md](install.en.md)
 
-### 基础操作
+### Basic Operations
 
-1. **浏览媒体**
-   - 切换视图模式: 点击工具栏的网格/列表图标
-   - 排序: 点击工具栏的排序按钮，选择排序方式
-   - 查看大图: 双击任意媒体可放大查看
-   - 视频预览: 鼠标悬停在视频上可预览，移动鼠标可快速预览不同时间点
-   - 筛选: 使用工具栏的筛选按钮，可按照文件类型、大小、日期等条件进行筛选
+1. **Browse Media**
+   - Switch View Mode: Click the grid/list icon in the toolbar
+   - Sort: Click the sort button in the toolbar to choose sorting method
+   - View Large Image: Double-click any media to enlarge
+   - Video Preview: Hover mouse over video to preview, move mouse to quickly preview different timestamps
+   - Filter: Use the filter button in the toolbar to filter by file type, size, date, and other conditions
 
-2. **导入媒体**
-   - 点击工具栏的"导入"按钮
-   - 或直接拖放文件到应用窗口
-   - 支持 jpg、jpeg、png、gif 等常见图片格式
-   - 支持 mp4、mov、avi、webm 等视频格式
+2. **Import Media**
+   - Click the "Import" button in the toolbar
+   - Or directly drag and drop files into the application window
+   - Supports common image formats like jpg, jpeg, png, gif
+   - Supports video formats like mp4, mov, avi, webm
 
-3. **管理收藏**
-   - 点击媒体右上角的心形图标收藏/取消收藏
-   - 在侧边栏点击"收藏夹"查看所有收藏内容
+3. **Manage Favorites**
+   - Click the heart icon in the top right of media to favorite/unfavorite
+   - Click "Favorites" in the sidebar to view all favorited content
 
-### 分类管理
+### Category Management
 
-1. **创建分类**
-   - 点击侧边栏底部的"New Category"按钮
-   - 输入分类名称并确认
+1. **Create Category**
+   - Click the "New Category" button at the bottom of the sidebar
+   - Enter category name and confirm
 
-2. **编辑分类**
-   - 鼠标悬停在分类上显示编辑按钮
-   - 点击编辑按钮修改分类名称
-   - 点击删除按钮删除分类
+2. **Edit Category**
+   - Hover mouse over category to show edit button
+   - Click edit button to modify category name
+   - Click delete button to remove category
 
-3. **添加媒体到分类**
-   - 选择一个或多个媒体文件
-   - 点击"Add to Category"按钮
-   - 选择目标分类确认添加
+3. **Add Media to Category**
+   - Select one or multiple media files
+   - Click "Add to Category" button
+   - Select target category to confirm addition
 
-### 批量操作
+### Batch Operations
 
-1. **选择媒体**
-   - 点击选中单个媒体
-   - 按住 Shift 点击可选择一个范围
-   - 在空白处按住鼠标拖动可框选多个媒体
+1. **Select Media**
+   - Click to select single media
+   - Hold Shift and click to select a range
+   - Hold mouse and drag in empty space to box select multiple media
 
-2. **批量操作**
-   - 选中媒体后显示批量操作工具栏
-   - 支持批量删除
-   - 支持批量添加到分类
-   - 支持批量添加标签
+2. **Batch Operations**
+   - Batch operation toolbar appears after selecting media
+   - Support batch delete
+   - Support batch add to category
+   - Support batch add tags
 
-### AI 功能使用
+### Using AI Features
 
-1. **AI 标签**
-   - 选择一个或多个媒体文件
-   - 点击工具栏的"AI Tag"按钮
-   - 等待 AI 自动识别并添加标签
-   - 可以手动编辑和管理标签
+1. **AI Tags**
+   - Select one or multiple media files
+   - Click "AI Tag" button in toolbar
+   - Wait for AI to automatically recognize and add tags
+   - Can manually edit and manage tags
 
-2. **ComfyUI 集成**
-   - 确保已正确安装 ComfyUI
-   - 在设置中配置 ComfyUI 路径
-   - 选择要处理的媒体文件
-   - 选择预设的工作流或导入自定义工作流
-   - 执行处理
+2. **ComfyUI Integration**
+   - Ensure ComfyUI is properly installed
+   - Configure ComfyUI path in settings
+   - Select media files to process
+   - Choose preset workflow or import custom workflow
+   - Execute processing
 
-## 技术栈
+## Tech Stack
 
-- Electron - 跨平台桌面应用框架
-- React - 用户界面构建
-- TypeScript - 类型安全的 JavaScript
-- Tailwind CSS - 原子化 CSS 框架
-- Vite - 现代前端构建工具
-- FFmpeg - 视频处理
-- Python - AI 功能支持
-- ComfyUI - AI 图像处理
+- Electron - Cross-platform desktop application framework
+- React - User interface building
+- TypeScript - Type-safe JavaScript
+- Tailwind CSS - Atomic CSS framework
+- Vite - Modern frontend build tool
+- FFmpeg - Video processing
+- Python - AI feature support
+- ComfyUI - AI image processing
 
-## 开发指南
+## Development Guide
 
-1. 安装依赖
+1. Install Dependencies
 
 ```bash
-# 安装 Node.js 依赖
+# Install Node.js dependencies
 npm install
 
-# 安装 Python 依赖
+# Install Python dependencies
 pip install -r requirements.txt
 ```
 
-2. 开发模式运行
+2. Run in Development Mode
 
 ```bash
 npm run electron:dev
 ```
 
-3. 打包
+3. Build
 
 ```bash
 npm run electron:build --win
@@ -153,32 +153,32 @@ npm run electron:build --mac
 npm run electron:build --linux
 ```
 
-## 注意事项
+## Notes
 
-- 首次运行会在用户数据目录创建配置文件
-- 支持的图片格式: jpg、jpeg、png、gif
-- 支持的视频格式: mp4、mov、avi、webm
-- AI 功能需要安装相应的 Python 环境和依赖
-- ComfyUI 功能需要正确配置 ComfyUI 环境
-- 建议定期备份配置文件(images.json)
+- First run will create configuration file in user data directory
+- Supported image formats: jpg, jpeg, png, gif
+- Supported video formats: mp4, mov, avi, webm
+- AI features require corresponding Python environment and dependencies
+- ComfyUI features require proper ComfyUI environment configuration
+- Recommended to regularly backup configuration file (images.json)
 
-## 未来计划
+## Future Plans
 
-- [x] 图片标签系统
-- [x] 视频预览优化
-- [x] 图片信息查看
-- [x] 支持颜色分类
-- [ ] 多语言支持
-- [ ] 快捷键支持
-- [ ] ComfyUI 集成 - 支持通过 ComfyUI 进行图片处理
-- [ ] 可扩展的插件系统
-   - [ ] 图片编辑功能
-   - [ ] 更多 AI 模型集成
+- [x] Image tag system
+- [x] Video preview optimization
+- [x] Image information viewing
+- [x] Color classification support
+- [ ] Multi-language support
+- [ ] Shortcut key support
+- [ ] ComfyUI integration - Support image processing through ComfyUI
+- [ ] Extensible plugin system
+   - [ ] Image editing features
+   - [ ] More AI model integration
 
-## 贡献指南
+## Contributing
 
-欢迎提交 Issue 和 Pull Request 来帮助改进这个项目。
+Welcome to submit Issues and Pull Requests to help improve this project.
 
-## 许可证
+## License
 
-MIT License
+MIT License 
