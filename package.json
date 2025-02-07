@@ -1,5 +1,5 @@
 {
-  "name": "atujji",
+  "name": "atujii",
   "private": true,
   "version": "0.2.0",
   "description": "ai image management tool",
@@ -68,8 +68,8 @@
     "vite": "^5.4.2"
   },
   "build": {
-    "appId": "com.atujji",
-    "productName": "atujji",
+    "appId": "com.atujii",
+    "productName": "atujii",
     "directories": {
       "output": "dist-electron"
     },
@@ -188,7 +188,7 @@
       "perMachine": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "atujji"
+      "shortcutName": "atujii"
     },
     "linux": {
       "target": [
@@ -217,11 +217,11 @@
       "icon": "build/icons",
       "category": "Graphics",
       "maintainer": "jzj",
-      "vendor": "atujji",
+      "vendor": "atujii",
       "synopsis": "图片管理工具",
       "description": "一个简洁优雅的本地图片管理工具",
       "desktop": {
-        "Name": "atujji",
+        "Name": "atujii",
         "Comment": "图片管理工具",
         "Categories": "Graphics;Photography;Utility;"
       }
@@ -229,7 +229,7 @@
     "publish": {
       "provider": "github",
       "owner": "xingBaGan",
-      "repo": "atujji",
+      "repo": "atujii",
       "releaseType": "release"
     }
   }
