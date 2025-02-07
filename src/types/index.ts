@@ -100,6 +100,8 @@ interface ElectronAPI {
   }>;
   showInFolder: (filePath: string) => Promise<{ success: boolean; error?: string }>;
   getMainColor: (imagePath: string) => Promise<string[]>;
+  onRemoteImagesDownloaded: (callback: (result: { success: boolean; error?: string }) => void) => void;
+  removeRemoteImagesDownloadedListener: (callback: (result: { success: boolean; error?: string }) => void) => void;
 }
 
 

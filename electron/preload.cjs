@@ -21,4 +21,10 @@ contextBridge.exposeInMainWorld('electron', {
   openInEditor: (filePath) => ipcRenderer.invoke('open-in-photoshop', filePath),
   downloadUrlImage: (url) => ipcRenderer.invoke('download-url-image', url),
   showInFolder: (filePath) => ipcRenderer.invoke('show-in-folder', filePath),
+  onRemoteImagesDownloaded: (callback) => {
+    ipcRenderer.on('remote-images-downloaded', (event, result) => callback(result));
+  },
+  removeRemoteImagesDownloadedListener: (callback) => {
+    ipcRenderer.removeListener('remote-images-downloaded', callback);
+  }
 });

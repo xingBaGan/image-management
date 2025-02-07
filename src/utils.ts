@@ -254,7 +254,7 @@ export const generateVideoThumbnail = async (file: File | ImportFile): Promise<[
         video.removeAttribute('src');
         video.load();
         
-        resolve([thumbnail, video.videoWidth, video.videoHeight]);
+        resolve([thumbnail, canvas.width, canvas.height]);
       } catch (error) {
         cleanupAndReject(`处理视频帧失败: ${error}`);
       }

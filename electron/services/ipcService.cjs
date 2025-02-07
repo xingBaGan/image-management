@@ -5,6 +5,7 @@ const probe = require('probe-image-size');
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path.replace('app.asar', 'app.asar.unpacked');
 const ffprobePath = require('@ffprobe-installer/ffprobe').path.replace('app.asar', 'app.asar.unpacked');
+const fsPromises = require('fs').promises;
 const isDev = !app.isPackaged;
 const { saveImageToLocal } = require('./FileService.cjs');
 // 设置 ffmpeg 和 ffprobe 路径
@@ -148,11 +149,12 @@ const getImageSize = async (filePath) => {
     if (['.mp4', '.mov', '.avi', '.webm'].includes(ext)) {
       return { width: 0, height: 0 };
     }
-
+    if (filePath.startsWith('local-image://')) {
+      filePath = decodeURIComponent(filePath.replace('local-image://', ''));
+    }
     // 读取图片文件
     const buffer = await fsPromises.readFile(filePath);
     const dimensions = probe.sync(buffer);
-    
     if (!dimensions) {
       console.warn(`无法获取图片尺寸: ${filePath}`);
       return { width: 0, height: 0 };
@@ -291,7 +293,6 @@ ipcMain.handle('download-url-image', async (_, url) => {
       fileName = fileName + '.' + ext;
     }
     const localPath = await saveImageToLocal(imageBuffer, fileName, ext);
-
     return {
       success: true,
       localPath,
@@ -509,3 +510,11 @@ ipcMain.handle('process-directory', async (event, dirPath) => {
     throw new Error('处理目录失败: ' + error.message);
   }
 });
+
+module.exports = {
+  getImageSize,
+  processDirectory,
+  getVideoDuration,
+  generateVideoThumbnail,
+  generateHashId
+};

@@ -8,7 +8,7 @@ const { saveImageToLocal } = require('./services/FileService.cjs');
 const { loadSettings, saveSettings, initializeSettings } = require('./services/settingService.cjs');
 const isDev = !app.isPackaged;
 // 获取设置文件路径
-
+const { getImageSize } = require('./services/ipcService.cjs');
 
 const loadEnvConfig = () => {
   try {
@@ -173,8 +173,10 @@ const downloadRemoteImagesInBackground = async (jsonPath) => {
           hasUpdates = true;
           // 更新特定图片的路径
           const currentData = JSON.parse(await fsPromises.readFile(jsonPath, 'utf-8'));
+          // 获取图片的宽高
+          const dimensions = await getImageSize(localPath); 
           const updatedImagesList = currentData.images.map(currentImg =>
-            currentImg.id === img.id ? { ...currentImg, path: localPath } : currentImg
+            currentImg.id === img.id ? { ...currentImg, path: localPath, width: dimensions.width, height: dimensions.height } : currentImg
           );
           // 保存更新后的数据
           await fsPromises.writeFile(
@@ -182,6 +184,10 @@ const downloadRemoteImagesInBackground = async (jsonPath) => {
             JSON.stringify({ ...currentData, images: updatedImagesList }, null, 2),
             'utf-8'
           );
+          // 通知所有窗口下载完成
+          BrowserWindow.getAllWindows().forEach(window => {
+            window.webContents.send('remote-images-downloaded', { success: true });
+          });
         }
       })
     );
@@ -193,6 +199,10 @@ const downloadRemoteImagesInBackground = async (jsonPath) => {
     }
   } catch (error) {
     console.error('后台下载图片时出错:', error);
+    // 通知所有窗口下载失败
+    BrowserWindow.getAllWindows().forEach(window => {
+      window.webContents.send('remote-images-downloaded', { success: false, error: error.message });
+    });
   }
 };
 

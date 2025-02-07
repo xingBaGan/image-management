@@ -1,4 +1,6 @@
 const fs = require('fs');
+const path = require('path');
+const { app } = require('electron');
 
 // 获取应用数据目录中的 JSON 文件路径
 const saveImageToLocal = async (imageData, fileName, ext) => {

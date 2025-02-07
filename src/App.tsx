@@ -287,8 +287,8 @@ function App() {
         const updatedImages = await processMedia(
           newImages.map(file => ({
             ...file,
-            dateCreated: new Date().toISOString(),
-            dateModified: new Date(file.lastModified).toISOString(),
+            dateCreated: file?.dateCreated || new Date().toISOString(),
+            dateModified: file?.dateModified || new Date().toISOString(),
             arrayBuffer: async () => new ArrayBuffer(0),
             text: async () => '',
             stream: () => new ReadableStream(),
@@ -333,6 +333,12 @@ function App() {
     };
 
     loadImages();
+
+    window.electron.onRemoteImagesDownloaded(()=>{});
+
+    return () => {
+      window.electron.removeRemoteImagesDownloadedListener(()=>{});
+    };
   }, [t]);
 
   const handleAddCategory = async (newCategory: Category) => {
@@ -414,10 +420,9 @@ function App() {
 
   useEffect(() => {
     const handlePaste = async (e: ClipboardEvent) => {
-      const mediaGridElement = document.querySelector('.media-grid');
       const target = e.target as HTMLElement;
 
-      if (!mediaGridElement?.contains(target) || 
+      if (
           target.tagName === 'INPUT' || 
           target.tagName === 'TEXTAREA' ||
           target.getAttribute('contenteditable') === 'true') {
