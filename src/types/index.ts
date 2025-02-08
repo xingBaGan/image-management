@@ -22,6 +22,7 @@ export interface MediaInfo  {
   extension: string;
   rating?: number;
   ratio?: string;
+  thumbnail?: string;
 }
 
 export interface ColorInfo {

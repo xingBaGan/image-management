@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import Sidebar from './components/Sidebar';
-import Toolbar from './components/Toolbar';
+import Toolbar from './components/Toolbar/index';
 import MediaGrid from './components/MediaGrid';
 import ImageInfoSidebar from './components/ImageInfoSidebar';
 import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ColorInfo, ImportFile } from './types';
 import { SortType, FilterType, SortDirection} from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
+
 import { addTagsToImages } from './services/tagService';
 import { processMedia, isSimilarColor } from './utils';
 import Settings from './components/Settings';
@@ -563,10 +564,11 @@ function App() {
         return img.rating === multiFilter.rating;
       }
       if (multiFilter.formats.length > 0) {
-        const ext = img.extension.toLowerCase();
-        return multiFilter.formats.some(format => ext.endsWith(format.toLowerCase()));
+        const ext = img?.extension?.toLowerCase();
+        return multiFilter.formats.some(format => ext?.endsWith(format.toLowerCase()));
       }
       return true;
+
     });
 
     // 然后对过滤后的结果进行排序
