@@ -549,7 +549,7 @@ function App() {
       if (filterColors.length > 0) {
         // 使用颜色相似度比较
         return filterColors.some(filterColor => 
-          img.colors.some((c: string | ColorInfo) => {
+          (img.colors || []).some((c: string | ColorInfo) => {
             const imgColor = typeof c === 'string' ? c : c.color;
             return isSimilarColor(imgColor, filterColor, multiFilter.precision); // 使用0.85的精度
           })
