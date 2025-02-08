@@ -1,6 +1,55 @@
 #!/bin/bash
 cd "$(dirname "$0")"
 
+# 检查是否安装了 Python
+if ! command -v python3 &> /dev/null; then
+    echo "Python3 未安装，正在安装..."
+    if command -v apt-get &> /dev/null; then
+        sudo apt-get update
+        sudo apt-get install -y python3
+    elif command -v yum &> /dev/null; then
+        sudo yum install -y python3
+    elif command -v brew &> /dev/null; then
+        brew install python3
+    else
+        echo "无法自动安装 Python3，请手动安装后重试"
+        read -p "按任意键继续..."
+        exit 1
+    fi
+fi
+
+# 检查是否安装了 pip
+if ! command -v pip3 &> /dev/null; then
+    echo "pip3 未安装，正在安装..."
+    if command -v apt-get &> /dev/null; then
+        sudo apt-get install -y python3-pip
+    elif command -v yum &> /dev/null; then
+        sudo yum install -y python3-pip
+    elif command -v brew &> /dev/null; then
+        curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+        python3 get-pip.py
+        rm get-pip.py
+    else
+        echo "无法自动安装 pip3，请手动安装后重试"
+        read -p "按任意键继续..."
+        exit 1
+    fi
+fi
+
+# 检查是否安装了 python3-venv
+if command -v apt-get &> /dev/null; then
+    if ! dpkg -l | grep -q python3-venv; then
+        echo "正在安装 python3-venv..."
+        sudo apt-get update
+        sudo apt-get install -y python3-venv
+    fi
+elif command -v yum &> /dev/null; then
+    if ! rpm -qa | grep -q python3-venv; then
+        echo "正在安装 python3-venv..."
+        sudo yum install -y python3-venv
+    fi
+fi
+
 # 获取资源路径
 RESOURCES_PATH="resources"
 if [[ -f "Image Management.AppImage" ]]; then
