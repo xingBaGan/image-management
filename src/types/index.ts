@@ -8,12 +8,14 @@ export interface Category {
   count: number;
 }
 
+export type MediaType = 'image' | 'video';
+
 export interface MediaInfo  {
   id: string;
   name: string;
   path: string;
   size: number;
-  type: string;
+  type: MediaType;
   dateCreated: string;
   dateModified: string;
   url?: string;
@@ -22,7 +24,6 @@ export interface MediaInfo  {
   extension: string;
   rating?: number;
   ratio?: string;
-  thumbnail?: string;
 }
 
 export interface ColorInfo {
@@ -30,13 +31,29 @@ export interface ColorInfo {
   percentage: number;
 }
 
-export interface LocalImageData extends MediaInfo {
+// 基础媒体类型
+export interface BaseMediaData extends MediaInfo {
   url?: string;
   favorite?: boolean;
   tags: string[];
   categories?: string[];
   colors: (string | ColorInfo)[];
 }
+
+// 图片特定类型
+export interface ImageData extends BaseMediaData {
+  type: 'image';
+}
+
+// 视频特定类型
+export interface VideoData extends BaseMediaData {
+  type: 'video';
+  duration?: number;
+  thumbnail?: string;
+}
+
+// 统一类型
+export type LocalImageData = ImageData | VideoData;
 
 export type BulkAction = {
   icon: React.ReactNode;
@@ -150,3 +167,12 @@ declare global {
 export type { ElectronAPI };
 
 export {};
+
+// 添加类型守卫函数
+export function isVideoMedia(media: LocalImageData): media is VideoData {
+  return media.type === 'video';
+}
+
+export function isImageMedia(media: LocalImageData): media is ImageData {
+  return media.type === 'image';
+}

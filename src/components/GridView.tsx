@@ -1,6 +1,6 @@
 import React, { memo, useCallback } from 'react';
 import Masonry from 'react-masonry-css';
-import { LocalImageData } from '../types';
+import { LocalImageData, VideoData, isVideoMedia } from '../types';
 import { ImageGridBaseProps, handleContextMenu, breakpointColumns } from './ImageGridBase';
 import ImageItem from './ImageItem';
 import VideoItem from './VideoItem';
@@ -17,7 +17,7 @@ const MediaItem = memo(({ media, props, onOpenInEditor }: { media: LocalImageDat
     <div ref={ref}>
       {inView && (
         media.type === 'video' ? (
-          <VideoItem video={media as LocalImageData & { type: 'video'; duration?: number; thumbnail?: string }} {...props} />
+          <VideoItem video={isVideoMedia(media) ? media : media as VideoData} {...props} />
         ) : (
           <ImageItem image={media} {...props} onOpenInEditor={onOpenInEditor} />
         )

@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback, memo } from 'react';
 import { FileText, Calendar, Heart } from 'lucide-react';
 import { FixedSizeList as List, areEqual } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import { LocalImageData } from '../types';
+import { LocalImageData, VideoData, isVideoMedia } from '../types';
 import { ImageGridBaseProps, handleContextMenu } from './ImageGridBase';
 import ImageItem from './ImageItem';
 import VideoItem from './VideoItem';
@@ -122,20 +122,29 @@ const ListView: React.FC<ImageGridBaseProps> = ({
     }, [setViewingMedia]);
 
     const renderMediaItem = useCallback((media: LocalImageData) => {
-        const props = {
+        const baseProps = {
             isSelected: selectedImages.has(media.id),
-            onSelect: (e: React.MouseEvent) => onSelectImage(media.id, e.shiftKey),
-            onDoubleClick: (e: React.MouseEvent) => setViewingMedia?.(media),
             onFavorite,
             viewMode,
         };
 
-        return media.type === 'video' ? (
-            <VideoItem video={media as LocalImageData & { type: 'video'; duration?: number; thumbnail?: string }} {...props} />
-        ) : (
-            <ImageItem image={media} {...props} onOpenInEditor={onOpenInEditor} />
-        );
-    }, [selectedImages, onSelectImage, setViewingMedia, onFavorite, viewMode]);
+        if (media.type === 'video') {
+            const videoProps = {
+                ...baseProps,
+                onSelect: (id: string, selected: boolean) => onSelectImage(id, false),
+                onOpenInEditor,
+            };
+            return <VideoItem video={isVideoMedia(media) ? media : media as VideoData} {...videoProps} />;
+        } else {
+            const imageProps = {
+                ...baseProps,
+                onSelect: (e: React.MouseEvent) => onSelectImage(media.id, e.shiftKey),
+                onDoubleClick: (e: React.MouseEvent) => setViewingMedia?.(media),
+                onOpenInEditor,
+            };
+            return <ImageItem image={media} {...imageProps} />;
+        }
+    }, [selectedImages, onSelectImage, setViewingMedia, onFavorite, viewMode, onOpenInEditor]);
 
     const itemData = {
         images,
