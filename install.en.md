@@ -28,4 +28,9 @@ If the automatic download fails, you can choose the following methods to downloa
    - Quark Network Disk Link: https://pan.quark.cn/s/fb8705d883c3
    - After downloading, extract the files to the `models` directory under the program's resources directory
 
+3. Download from Alternative Source:
+   - Google Drive Link: https://drive.google.com/drive/folders/1UaAV0LF4xOB6h384XFQyxzeMyUa830Q2?usp=sharing
+   - After downloading, extract the files to the `models` directory under the program's resources directory
+
+
 Note: If the models directory under resources doesn't exist, you need to create it manually. 
