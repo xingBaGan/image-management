@@ -58,7 +58,7 @@ const saveSettings = async (settings) => {
 const initializeSettings = async () => {
 	const settings = await loadSettings();
 	if (settings.ComfyUI_URL) {
-		ComfyUI_URL = settings.ComfyUI_URL;
+		return settings.ComfyUI_URL;
 	}
 };
 

@@ -88,7 +88,7 @@ interface ElectronAPI {
   isRemoteComfyUI: () => Promise<boolean>;
   readFile: (filePath: string) => Promise<Buffer>;
   tagImage: (imagePath: string, modelName: string) => Promise<string[]>;
-  processDirectory: (dirPath: string) => Promise<LocalImageData[]>;
+  processDirectoryFiles: (dirPath: string) => Promise<LocalImageData[]>;
   openInEditor: (filePath: string) => Promise<{ success: boolean; error?: string }>;
   downloadUrlImage: (url: string) => Promise<{
     success: boolean;

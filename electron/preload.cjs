@@ -17,7 +17,7 @@ contextBridge.exposeInMainWorld('electron', {
   readFile: (filePath) => ipcRenderer.invoke('read-file', filePath),
   tagImage: (imagePath, modelName) => ipcRenderer.invoke('tag-image', imagePath, modelName),
   getMainColor: (imagePath) => ipcRenderer.invoke('get-main-color', imagePath),
-  processDirectory: (dirPath) => ipcRenderer.invoke('process-directory', dirPath),
+  processDirectoryFiles: (dirPath) => ipcRenderer.invoke('process-directory', dirPath),
   openInEditor: (filePath) => ipcRenderer.invoke('open-in-photoshop', filePath),
   downloadUrlImage: (url) => ipcRenderer.invoke('download-url-image', url),
   showInFolder: (filePath) => ipcRenderer.invoke('show-in-folder', filePath),

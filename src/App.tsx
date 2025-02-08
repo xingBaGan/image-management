@@ -467,7 +467,7 @@ function App() {
             }];
           } else {
             // 处理本地文件路径
-            newImages = await window.electron.processDirectory(clipboardText);
+            newImages = await window.electron.processDirectoryFiles(clipboardText);
           }
 
           const updatedImages = await processMedia(

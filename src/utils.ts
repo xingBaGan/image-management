@@ -172,7 +172,7 @@ export const handleDrop = async (
     const newImages = await processMedia(files as ImportFile[], existingImages, categories, setImportState);
     addImages(newImages as LocalImageData[]);
   } else {
-    const images = await window.electron.processDirectory(firstFile);
+    const images = await window.electron.processDirectoryFiles(firstFile);
     addImages(images);
   }
 };

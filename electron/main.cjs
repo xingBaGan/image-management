@@ -311,7 +311,7 @@ const initializeUserData = async () => {
 let serverProcess = null;
 async function startComfyUIServer() {
   // 初始化设置
-  await initializeSettings();
+  ComfyUI_URL = await initializeSettings();
   // 启动 ComfyUI 服务器
   serverProcess = await _startComfyUIServer(ComfyUI_URL);
   // 当应用退出时关闭服务器
