@@ -7,6 +7,7 @@ const isDev = !app.isPackaged;
 const path = require('path');
 const fs = require('fs');
 const fsPromises = require('fs').promises;
+const { generateHashId } = require('../utils/index.cjs');
 // 设置 ffmpeg 和 ffprobe 路径
 ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);

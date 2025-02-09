@@ -173,7 +173,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
 
   return (
     <div 
-      className="relative p-4 media-grid-container"
+      className="relative pr-1 media-grid-container"
       style={{ height: 'calc(100vh - 4rem)' }}
     >
       {viewingMedia && (

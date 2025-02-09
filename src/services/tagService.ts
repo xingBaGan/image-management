@@ -1,4 +1,5 @@
 import { ImportStatus, LocalImageData } from '../types';
+import { getMainColor } from '../utils';
 
 const baseUrl = 'http://localhost:3000';
 
@@ -52,6 +53,11 @@ export async function addTagsToImages(
       selectedImages.map(async (image) => {
         const imagePath = await getLocalImagePath(image.path);
         const newTags = await window.electron.tagImage(imagePath, modelName);
+        if (!image?.colors?.length) {
+          const colors = await getMainColor(imagePath);
+          image.colors = colors;
+        }
+
         if (newTags.length > 0) {
         // 合并现有标签和新标签，去重
           return {

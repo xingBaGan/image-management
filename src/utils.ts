@@ -61,8 +61,9 @@ export const getImageSize = async (file: File) => {
   });
 };
 
-export const getMainColor = async (file: File) => {
-  const colors = await window.electron.getMainColor(file.path);
+export const getMainColor = async (payload: File | string) => {
+  const path = typeof payload === 'string' ? payload : payload.path;
+  const colors = await window.electron.getMainColor(path);
   return colors;
 };
 
