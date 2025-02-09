@@ -10,11 +10,8 @@ git submodule update --init --recursive
 ```
 
 ```bash
-git submodule update --remote
-```
-
-```bash
 cd comfyui_client
+git submodule update --remote
 npm install
 npm run build
 ```

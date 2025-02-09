@@ -66,6 +66,7 @@ export interface Settings {
   autoTagging: boolean;
   backgroundUrl: string;
   modelName: string;
+  autoColor: boolean;
 }
 
 export interface ImportFile extends Omit<File, 'arrayBuffer' | 'text' | 'stream' | 'slice'> {

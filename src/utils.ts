@@ -98,6 +98,7 @@ export const processMedia = async (
   }
 
   const autoTaggingEnabled = (await window.electron.loadSettings()).autoTagging;
+  const autoColorEnabled = (await window.electron.loadSettings()).autoColor;
   const updatedImages = await Promise.all(filteredNewImages.map(async file => {
     const newId = generateHashId(file.path, file.size);
     const type = file.type.startsWith('video') ? 'video' : 'image';
@@ -124,8 +125,7 @@ export const processMedia = async (
     const extension = (file as any).extension || file.name.split('.').pop() || file.type.split('/').pop() || 'jpg';
     let colors: string[] = [];
     setImportState(ImportStatus.Importing);
-
-    if (isImage) {
+    if (autoColorEnabled && isImage) {
       colors = await getMainColor(file);
     }
     const ratio = await getRatio(width || imageSize.width, height || imageSize.height);

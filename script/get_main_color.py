@@ -7,13 +7,11 @@ try:
     import cupy as cp
     from cupy.cuda import runtime
     USE_GPU = True
-    # print(f"GPU模式已启用 - CUDA版本: {runtime.runtimeGetVersion()}")
+    print(f"GPU模式已启用 - CUDA版本: {runtime.runtimeGetVersion()}")
 except ImportError:
     from sklearn.cluster import KMeans
     USE_GPU = False
-    print("警告: GPU加速库未安装，将使用CPU模式运行")
-    print("如需GPU加速，请安装：")
-    print("pip install cupy-cuda12x")  # 根据你的CUDA版本选择对应的包
+    print("警告: GPU加速库未安装，将使用CPU模式运行,如需GPU加速，请安装对应CUDA版本的cupy-cuda, pip install cupy-cuda12x")
 
 
 def get_dominant_colors_kmeans(image_path, num_colors=5):

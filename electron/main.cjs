@@ -348,9 +348,9 @@ app.whenReady().then(async () => {
 
   if (isDev) {
     try {
-      await session.defaultSession.loadExtension(
-        'C:/Users/jzj/AppData/Local/Microsoft/Edge/User Data/Default/Extensions/gpphkfbcpidddadnkolkpfckpihlkkil/6.0.1_0'
-      );
+      // await session.defaultSession.loadExtension(
+      //   'C:/Users/jzj/AppData/Local/Microsoft/Edge/User Data/Default/Extensions/gpphkfbcpidddadnkolkpfckpihlkkil/6.0.1_0'
+      // );
     } catch (e) {
       console.log('React Devtools 加载失败', e);
     }

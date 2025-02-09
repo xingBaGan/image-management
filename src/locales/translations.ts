@@ -81,6 +81,7 @@ export const translations = {
     save: 'Save',
     configSaved: 'Configuration saved',
     saveFailed: 'Failed to save settings: {error}',
+    autoColor: 'Auto Color',
 
     // Dialogs
     deleteConfirmTitle: 'Confirm Delete',
@@ -255,7 +256,7 @@ export const translations = {
     save: '保存',
     configSaved: '配置已保存',
     saveFailed: '保存设置失败：{error}',
-
+    autoColor: '自动取色',
     // 对话框
     deleteConfirmTitle: '确认删除',
     deleteConfirmMessage: '确定要删除此项吗？',

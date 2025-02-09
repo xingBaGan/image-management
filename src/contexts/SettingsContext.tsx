@@ -6,6 +6,7 @@ export interface Settings {
   autoTagging: boolean;
   backgroundUrl: string;
   modelName: string;
+  autoColor: boolean;
 }
 
 interface SettingsContextType {
@@ -23,6 +24,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     autoTagging: false,
     backgroundUrl: '',
     modelName: defaultModel,
+    autoColor: false,
   });
 
   const loadSettings = async () => {
@@ -33,6 +35,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         autoTagging: loadedSettings.autoTagging || false,
         backgroundUrl: loadedSettings.backgroundUrl || '',
         modelName: loadedSettings.modelName || defaultModel,
+        autoColor: loadedSettings.autoColor || false,
       });
     } catch (error) {
       console.error('加载设置失败:', error);

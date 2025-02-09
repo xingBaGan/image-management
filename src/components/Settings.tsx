@@ -19,19 +19,25 @@ interface SettingsProps {
   }) => void;
 }
 
-const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, messageBox, setMessageBox }) => {
+const Settings: React.FC<SettingsProps> = ({ 
+  isOpen,
+  onClose,
+  messageBox,
+  setMessageBox,
+ }) => {
   const { settings, updateSettings } = useSettings();
   const { t } = useLanguage();
   const [comfyUrl, setComfyUrl] = useState('');
   const [autoTagging, setAutoTagging] = useState(false);
   const [backgroundUrl, setBackgroundUrl] = useState('');
   const [modelName, setModelName] = useState('');
-
+  const [autoColor, setAutoColor] = useState(false);
   useEffect(() => {
     if (isOpen) {
       setComfyUrl(settings.ComfyUI_URL);
       setAutoTagging(settings.autoTagging);
       setBackgroundUrl(settings.backgroundUrl);
+      setAutoColor(settings.autoColor);
     }
   }, [isOpen, settings]);
 
@@ -42,6 +48,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, messageBox, setMes
         autoTagging: autoTagging,
         backgroundUrl: backgroundUrl,
         modelName: modelName,
+        autoColor: autoColor,
       });
       setMessageBox({
         ...messageBox,
@@ -110,7 +117,18 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, messageBox, setMes
                 className="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
             </div>
-            
+            <div>
+              <label className="block mb-1 text-sm font-medium text-gray-700dark:text-rose-300">
+                {t('autoColor')}
+              </label>
+              <input
+                title={t('autoColor')}
+                type="checkbox"
+                checked={autoColor}
+                onChange={(e) => setAutoColor(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+            </div>
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700dark:text-rose-300">
                 {t('modelName')}
