@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld('electron', {
   readFile: (filePath) => ipcRenderer.invoke('read-file', filePath),
   tagImage: (imagePath, modelName) => ipcRenderer.invoke('tag-image', imagePath, modelName),
   getMainColor: (imagePath) => ipcRenderer.invoke('get-main-color', imagePath),
+  getQueueStatus: () => ipcRenderer.invoke('get-queue-status'),
   processDirectoryFiles: (dirPath) => ipcRenderer.invoke('process-directory', dirPath),
   openInEditor: (filePath) => ipcRenderer.invoke('open-in-photoshop', filePath),
   downloadUrlImage: (url) => ipcRenderer.invoke('download-url-image', url),
@@ -26,5 +27,11 @@ contextBridge.exposeInMainWorld('electron', {
   },
   removeRemoteImagesDownloadedListener: (callback) => {
     ipcRenderer.removeListener('remote-images-downloaded', callback);
+  },
+  onQueueUpdate: (callback) => {
+    ipcRenderer.on('queue-update', (event, status) => callback(status));
+  },
+  removeQueueUpdateListener: (callback) => {
+    ipcRenderer.removeListener('queue-update', callback);
   }
 });

@@ -56,15 +56,23 @@ const saveSettings = async (settings) => {
 };
 
 
-const initializeSettings = async () => {
+const getComfyURL = async () => {
 	const settings = await loadSettings();
 	if (settings.ComfyUI_URL) {
 		return settings.ComfyUI_URL;
 	}
 };
 
+const getModelName = async () => {
+	const settings = await loadSettings();
+	if (settings.modelName) {
+		return settings.modelName;
+	}
+};
+
 module.exports = {
-	initializeSettings,
+	getComfyURL,
+	getModelName,
 	loadSettings,
 	saveSettings,
 };

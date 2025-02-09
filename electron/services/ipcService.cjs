@@ -3,12 +3,13 @@ const path = require('path');
 const fs = require('fs');
 const fsPromises = require('fs').promises;
 const { generateHashId } = require('../utils/index.cjs');
-const { initializeSettings } = require('./settingService.cjs');
+const { getComfyURL } = require('./settingService.cjs');
 const { saveImageToLocal, loadImagesData, getJsonFilePath } = require('./FileService.cjs');
 const { getVideoDuration, generateVideoThumbnail, getImageSize, processDirectoryFiles } = require('./mediaService.cjs');
 const { tagImage, getMainColor } = require(path.join(__dirname, '../../', 'script', 'script.cjs'))
+const { tagQueue, colorQueue } = require('./queueService.cjs');
 const isRemoteComfyUI = function () {
-  const ComfyUI_URL = initializeSettings();
+  const ComfyUI_URL = getComfyURL();
   return !(ComfyUI_URL.includes('localhost') || ComfyUI_URL.includes('127.0.0.1'));
 }
 
@@ -280,17 +281,46 @@ ipcMain.handle('read-file', async (event, filePath) => {
 });
 
 ipcMain.handle('tag-image', async (event, imagePath, modelName) => {
-  imagePath = decodeURIComponent(imagePath);
-  imagePath = imagePath.replace('local-image://', '');
-  return await tagImage(imagePath, modelName);
+  const taskId = `tag-${Date.now()}`;
+  try {
+    return await tagQueue.addTask(async () => {
+      imagePath = decodeURIComponent(imagePath);
+      imagePath = imagePath.replace('local-image://', '');
+      return await tagImage(imagePath, modelName);
+    }, taskId);
+  } catch (error) {
+    console.error('Image tagging failed:', error);
+    throw error;
+  }
 });
 
 ipcMain.handle('get-main-color', async (event, imagePath) => {
-  imagePath = decodeURIComponent(imagePath);
-  imagePath = imagePath.replace('local-image://', '');
-  return await getMainColor(imagePath);
+  const taskId = `color-${Date.now()}`;
+  try {
+    return await colorQueue.addTask(async () => {
+      imagePath = decodeURIComponent(imagePath);
+      imagePath = imagePath.replace('local-image://', '');
+      return await getMainColor(imagePath);
+    }, taskId);
+  } catch (error) {
+    console.error('Color extraction failed:', error);
+    throw error;
+  }
 });
 
+// 获取队列状态的处理程序
+ipcMain.handle('get-queue-status', async () => {
+  return {
+    tag: {
+      queueLength: tagQueue.getQueueLength(),
+      runningTasks: tagQueue.getRunningTasks()
+    },
+    color: {
+      queueLength: colorQueue.getQueueLength(),
+      runningTasks: colorQueue.getRunningTasks()
+    }
+  };
+});
 
 ipcMain.handle('process-directory', async (event, dirPath) => {
   try {

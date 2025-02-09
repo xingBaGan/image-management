@@ -5,7 +5,7 @@ const fsPromises = require('fs/promises');
 const { Menu } = require('electron');
 const { spawn } = require('child_process');
 const { saveImageToLocal } = require('./services/FileService.cjs');
-const { loadSettings, saveSettings, initializeSettings } = require('./services/settingService.cjs');
+const { loadSettings, saveSettings, getComfyURL } = require('./services/settingService.cjs');
 const isDev = !app.isPackaged;
 // 获取设置文件路径
 const { getImageSize } = require('./services/ipcService.cjs');
@@ -311,7 +311,7 @@ const initializeUserData = async () => {
 let serverProcess = null;
 async function startComfyUIServer() {
   // 初始化设置
-  ComfyUI_URL = await initializeSettings();
+  ComfyUI_URL = await getComfyURL();
   // 启动 ComfyUI 服务器
   serverProcess = await _startComfyUIServer(ComfyUI_URL);
   // 当应用退出时关闭服务器
