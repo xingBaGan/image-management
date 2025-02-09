@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FileJson, Settings as SettingsIcon, Filter as FilterIcon, Star, Image, Palette, XCircle, Keyboard } from 'lucide-react';
 import { ViewMode, SortType, Category, FilterOptions, Filter } from '../types';
 import ThemeToggle from './ThemeToggle';
@@ -192,7 +192,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
     });
   };
 
-  const filterPopup = () => {
+  const filterPopup = useMemo(() => {
     if (!isFilterOpen) return null;
     return (
       <FilterPopup
@@ -204,11 +204,18 @@ const Toolbar: React.FC<ToolbarProps> = ({
         onFilterChange={handleFilterChange}
       />
     )
-  }
-
+  }, [
+    isFilterOpen,
+    filters,
+    filterColors,
+    setFilterColors,
+    filterOptions,
+    handleFilterChange
+  ]);
 
   return (
     <>
+
       <div className="flex relative z-20 justify-between items-center px-6 h-16 bg-white bg-opacity-30 border-b backdrop-blur-sm dark:bg-gray-800 dark:bg-opacity-30 dark:border-gray-700">
         <div className="flex items-center space-x-4">
           <button

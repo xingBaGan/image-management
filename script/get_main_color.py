@@ -14,10 +14,23 @@ except ImportError:
     print("警告: GPU加速库未安装，将使用CPU模式运行,如需GPU加速，请安装对应CUDA版本的cupy-cuda, pip install cupy-cuda12x")
 
 
+def resize_image_if_needed(image, max_size=1024):
+    """
+    如果图片太大，将其缩放到合适大小
+    """
+    if max(image.size) > max_size:
+        ratio = max_size / max(image.size)
+        new_size = tuple(int(x * ratio) for x in image.size)
+        return image.resize(new_size, Image.LANCZOS)
+    return image
+
 def get_dominant_colors_kmeans(image_path, num_colors=5):
     # 打开图片
     img = Image.open(image_path)
     img = img.convert('RGB')
+    
+    # 缩放大图
+    img = resize_image_if_needed(img)
     
     # 转换为numpy数组
     img_array = np.array(img)

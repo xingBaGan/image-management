@@ -45,6 +45,16 @@ class AITagger:
                     models.append(model_name)
         return models
 
+    def resize_image_if_needed(self, image, max_size=2048):
+        """
+        如果图片太大，将其缩放到合适大小
+        """
+        if max(image.size) > max_size:
+            ratio = max_size / max(image.size)
+            new_size = tuple(int(x * ratio) for x in image.size)
+            return image.resize(new_size, Image.LANCZOS)
+        return image
+
     def tag_image(self, 
                  image_path: str,
                  model_name: str = None,
@@ -93,6 +103,7 @@ class AITagger:
         
         # 加载和预处理图片
         image = Image.open(image_path)
+        image = self.resize_image_if_needed(image)
         input_name = model.get_inputs()[0].name
         height = model.get_inputs()[0].shape[1]
         
