@@ -3,7 +3,7 @@ import { Menu, Import } from 'lucide-react';
 import { ViewMode, SortType, FilterOptions } from '../../types';
 import ThemeToggle from '../ThemeToggle';
 import LanguageToggle from '../LanguageToggle';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLocale } from '../../contexts/LanguageContext';
 import FilterPopup from '../FilterPopup';
 import ShortcutsHelp from '../ShortcutsHelp';
 import SearchBar from './SearchBar';
@@ -54,7 +54,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   sortButtonRef,
   filterButtonRef,
 }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isShortcutsHelpOpen, setIsShortcutsHelpOpen] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
@@ -119,7 +119,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                   onOpenConfig={async () => {
                     const result = await window.electron.openImageJson();
                     if (!result.success) {
-                      console.error(t('configOpenFailed').replace('{error}', result.error || ''));
+                      console.error(t('configOpenFailed', { error: result.error || '' }));
                     }
                   }}
                   setIsSettingsOpen={setIsSettingsOpen}

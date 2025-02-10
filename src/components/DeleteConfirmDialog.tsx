@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLocale } from '../contexts/LanguageContext';
 
 interface DeleteConfirmDialogProps {
   onCancel: () => void;
@@ -7,7 +7,7 @@ interface DeleteConfirmDialogProps {
 }
 
 const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({ onCancel, onConfirm }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
 
   return (
     <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50">

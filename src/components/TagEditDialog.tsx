@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLocale } from '../contexts/LanguageContext';
 
 interface TagEditDialogProps {
   isOpen: boolean;
@@ -15,7 +15,7 @@ const TagEditDialog: React.FC<TagEditDialogProps> = ({
   onConfirm,
   initialTag,
 }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
   const [tagValue, setTagValue] = useState(initialTag);
 
   useEffect(() => {

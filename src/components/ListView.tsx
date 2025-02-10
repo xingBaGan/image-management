@@ -6,7 +6,7 @@ import { LocalImageData, VideoData, isVideoMedia } from '../types';
 import { ImageGridBaseProps, handleContextMenu } from './ImageGridBase';
 import ImageItem from './ImageItem';
 import VideoItem from './VideoItem';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLocale } from '../contexts/LanguageContext';
 
 const ITEM_HEIGHT = 80; // 每行的高度
 const OVERSCAN_COUNT = 5; // 预渲染的行数
@@ -27,7 +27,7 @@ const Row = memo(({ data, index, style }: {
     index: number;
     style: React.CSSProperties;
 }) => {
-    const { t } = useLanguage();
+    const { t } = useLocale();
     const {
         images,
         selectedImages,
@@ -68,7 +68,7 @@ const Row = memo(({ data, index, style }: {
             </div>
             <div className="flex gap-4 justify-between items-center w-50">
                 <div className="text-gray-500 dark:text-white min-w-15">
-                    {t('listFileSize').replace('{size}', (image.size / 1024 / 1024).toFixed(2))}
+                    {t('listFileSize', { size: (image.size / 1024 / 1024).toFixed(2) })}
                 </div>
                 <div className="flex items-center text-gray-500 dark:text-white">
                     <Calendar size={16} className="mr-2" />
@@ -100,7 +100,7 @@ const ListView: React.FC<ImageGridBaseProps> = ({
     setViewingMedia,
     onOpenInEditor,
 }) => {
-    const { t } = useLanguage();
+    const { t } = useLocale();
     const listRef = useRef<List>(null);
     const [isScrolling, setIsScrolling] = useState(false);
 

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { MediaInfo } from '../types';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLocale } from '../contexts/LanguageContext';
 
 interface MediaViewerProps {
   media: MediaInfo;
@@ -17,7 +17,7 @@ const MediaViewer: React.FC<MediaViewerProps> = ({
   onPrevious,
   onNext,
 }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
 
   if (!media) return null;
 

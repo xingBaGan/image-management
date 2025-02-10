@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Tag, X, Plus } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLocale } from '../contexts/LanguageContext';
 
 interface MediaTagsProps {
   tags: string[];
@@ -13,7 +13,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
   mediaId,
   onTagsUpdate,
 }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
   const [selectedTags, setSelectedTags] = useState<string[]>(tags);
   const [inputValue, setInputValue] = useState('');
 
@@ -61,7 +61,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
             <button
               onClick={() => removeTag(tag)}
               className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-500 dark:hover:text-red-400 focus:outline-none"
-              aria-label={t('deleteTag').replace('{tag}', tag)}
+              aria-label={t('deleteTag', { tag })}
             >
               <X size={14} />
             </button>

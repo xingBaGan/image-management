@@ -14,12 +14,12 @@ import DeleteConfirmDialog from './components/DeleteConfirmDialog';
 import MessageBox from './components/MessageBox';
 import { useSettings } from './contexts/SettingsContext';
 import './App.css';
-import { useLanguage } from './contexts/LanguageContext';
+import { useLocale } from './contexts/LanguageContext';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 function App() {
   const { settings } = useSettings();
-  const { t } = useLanguage();
+  const { t } = useLocale();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<FilterType>(FilterType.Photos);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -94,7 +94,7 @@ function App() {
 
       setImages(updatedImages);
     } catch (error) {
-      console.error(t('updateFavoritesFailed').replace('{error}', String(error)));
+      console.error(t('updateFavoritesFailed', { error: String(error) }));
     }
   };
 
@@ -175,7 +175,7 @@ function App() {
       setCategories(newCategories);
       setSelectedImages(new Set());
     } catch (error) {
-      console.error(t('deleteFailed').replace('{error}', String(error)));
+      console.error(t('deleteFailed', { error: String(error) }));
     }
   };
 
@@ -304,7 +304,7 @@ function App() {
         setImportState(ImportStatus.Imported);
       }
     } catch (error) {
-      console.error(t('importFailed').replace('{error}', String(error)));
+      console.error(t('importFailed', { error: String(error) }));
     }
   };
 
@@ -329,7 +329,7 @@ function App() {
         setImages(convertedImages);
         setCategories(result.categories || []);
       } catch (error) {
-        console.error(t('loadImagesFailed').replace('{error}', String(error)));
+        console.error(t('loadImagesFailed', { error: String(error) }));
       }
     };
 
@@ -362,7 +362,7 @@ function App() {
         updatedCategories
       );
     } catch (error) {
-      console.error(t('addCategoryFailed').replace('{error}', String(error)));
+      console.error(t('addCategoryFailed', { error: String(error) }));
     }
   };
 
@@ -377,7 +377,7 @@ function App() {
 
       await window.electron.saveCategories(updatedCategories);
     } catch (error) {
-      console.error(t('renameCategoryFailed').replace('{error}', String(error)));
+      console.error(t('renameCategoryFailed', { error: String(error) }));
     }
   };
 
@@ -388,7 +388,7 @@ function App() {
 
       await window.electron.saveCategories(updatedCategories);
     } catch (error) {
-      console.error(t('deleteCategoryFailed').replace('{error}', String(error)));
+      console.error(t('deleteCategoryFailed', { error: String(error) }));
     }
   };
 
@@ -493,13 +493,13 @@ function App() {
             type: 'success'
           });
         } catch (error: any) {
-          console.error(t('pasteImageFailed').replace('{error}', String(error)));
+          console.error(t('pasteImageFailed', { error: String(error) }));
           setMessageBox({
             isOpen: true,
-            message: t('importFailed').replace('{error}', error.message || t('error')),
+            message: t('importFailed', { error: error.message || t('error') }),
             type: 'error'
           });
-          console.error(t('pasteImageFailed').replace('{error}', String(error)));
+          console.error(t('pasteImageFailed', { error: String(error) }));
         } finally {
           setImportState(ImportStatus.Imported);
         }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, Keyboard } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLocale } from '../contexts/LanguageContext';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 
 interface ShortcutsHelpProps {
@@ -49,7 +49,7 @@ const shortcutsMarkdown = `# Keyboard Shortcuts 键盘快捷键
 > 注意：在 macOS 上使用 \`⌘\` (Command) 键代替 \`Ctrl\` 键`;
 
 const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onClose }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
 
   if (!isOpen) return null;
 

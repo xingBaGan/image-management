@@ -1,6 +1,6 @@
 import React from 'react';
 import { Star } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLocale } from '../contexts/LanguageContext';
 
 interface RatingProps {
   value: number;
@@ -10,7 +10,7 @@ interface RatingProps {
 }
 
 const Rating: React.FC<RatingProps> = ({ value = 0, onChange, size = 20, type = 'image' }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
   const [hoverValue, setHoverValue] = React.useState<number | null>(null);
 
   return (

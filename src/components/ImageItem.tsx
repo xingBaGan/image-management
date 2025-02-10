@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react';
 import { Heart, MoreVertical, Check } from 'lucide-react';
 import { LocalImageData } from '../types';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLocale } from '../contexts/LanguageContext';
 
 interface ImageItemProps {
   image: LocalImageData;
@@ -23,7 +23,7 @@ const ImageItem: React.FC<ImageItemProps> = memo(({
   viewMode
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
-  const { t } = useLanguage();
+  const { t } = useLocale();
 
   if (viewMode === 'list') {
     return (

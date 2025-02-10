@@ -4,7 +4,7 @@ import { formatFileSize, formatDate } from '../utils';
 import MediaTags from './MediaTags';
 import Rating from './Rating';
 import ColorPalette from './ColorPalette';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLocale } from '../contexts/LanguageContext';
 
 interface ImageInfoSidebarProps {
     image: LocalImageData | null;
@@ -27,7 +27,7 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
     setFilterColors,
     setSelectedImages,
 }) => {
-    const { t } = useLanguage();
+    const { t } = useLocale();
 
     if (!image) return (
         <div className="overflow-y-auto p-4 w-60 border-l border-gray-200 backdrop-blur-md bg-white/30 dark:bg-gray-800/30 dark:border-gray-700"
@@ -41,7 +41,7 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
                         <h3 className="text-lg font-semibold dark:text-white">{t('videoInfo')}</h3>
                     </div>
                     <div className="text-sm text-gray-500 dark:text-white">
-                        {t('totalVideos').replace('{count}', totalVideos.toString())}
+                        {t('totalVideos', { count: totalVideos })}
                     </div>
                 </>
             ) : (
@@ -50,7 +50,7 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
                         <h3 className="text-lg font-semibold dark:text-white">{t('basicInfo')}</h3>
                     </div>
                     <div className="text-sm text-gray-500 dark:text-white">
-                        {t('totalImages').replace('{count}', totalImages.toString())}
+                        {t('totalImages', { count: totalImages })}
                     </div>
                 </>
             )}

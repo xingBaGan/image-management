@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLocale } from '../contexts/LanguageContext';
 
 interface Color {
     color: string;
@@ -17,7 +17,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
     setFilterColors,
     setSelectedImages,
 }) => {
-    const { t } = useLanguage();
+    const { t } = useLocale();
     const [activeColorIndex, setActiveColorIndex] = useState<number | null>(null);
     const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
 
@@ -67,7 +67,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
                             {typeof color === 'string' ? color : color.color}
                             {typeof color !== 'string' && (
                                 <div className="text-gray-300">
-                                    {t('percentage').replace('{value}', color.percentage?.toString() || '0')}
+                                    {t('percentage', { value: color.percentage?.toString() || '0' })}
                                 </div>
                             )}
                             <div className="absolute bottom-0 left-1/2 w-2 h-2 bg-gray-800 transform rotate-45 -translate-x-1/2 translate-y-1/2"></div>

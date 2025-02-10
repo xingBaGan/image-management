@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { ImportStatus } from '../types';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLocale } from '../contexts/LanguageContext';
 
 interface DragOverlayProps {
   isDragging: boolean;
@@ -9,7 +9,7 @@ interface DragOverlayProps {
 }
 
 const DragOverlay: React.FC<DragOverlayProps> = ({ isDragging, importState }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
 
   if (!isDragging && importState === ImportStatus.Imported) return null;
   const isImporting = importState === ImportStatus.Importing || importState === ImportStatus.Tagging;

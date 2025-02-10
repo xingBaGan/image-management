@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { FileJson, Settings as SettingsIcon, FilterIcon, Keyboard } from 'lucide-react';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLocale } from '../../contexts/LanguageContext';
 import { FilterOptions } from '../../types';
 
 interface ToolbarButtonsProps {
@@ -24,7 +24,7 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
   filterButtonRef,
   filterRef
 }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

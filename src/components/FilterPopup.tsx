@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Image, FileJson, Star, Palette } from 'lucide-react';
 import { Filter, FilterOptions } from '../types';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLocale } from '../contexts/LanguageContext';
 
 interface FilterPopupProps {
   isOpen: boolean;
@@ -20,7 +20,7 @@ const FilterPopup: React.FC<FilterPopupProps> = ({
   filterOptions,
   onFilterChange,
 }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
 
   if (!isOpen) return null;
 

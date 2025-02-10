@@ -50,9 +50,9 @@ export const translations = {
     dateModified: 'Date Modified',
     tags: 'Tags',
     tagsHint: '(Press Enter to add tag, Backspace to delete)',
-    totalImages: '{count} images',
-    totalVideos: '{count} videos',
-    selected: '{count} selected',
+    totalImages: '{{count}} images',
+    totalVideos: '{{count}} videos',
+    selected: '{{count}} selected',
 
     // Search
     searchImages: 'Search images...',
@@ -66,8 +66,8 @@ export const translations = {
     importSuccess: 'Import successful',
     updateSuccess: 'Update successful',
     error: 'An error occurred',
-    importFailed: 'Import failed: {error}',
-    updateFavoritesFailed: 'Failed to update favorites status: {error}',
+    importFailed: 'Import failed: {{error}}',
+    updateFavoritesFailed: 'Failed to update favorites status: {{error}}',
     videoTaggingNotSupported: 'Video tagging is not supported yet',
 
     // Settings
@@ -80,7 +80,7 @@ export const translations = {
     close: 'Close',
     save: 'Save',
     configSaved: 'Configuration saved',
-    saveFailed: 'Failed to save settings: {error}',
+    saveFailed: 'Failed to save settings: {{error}}',
     autoColor: 'Auto Color',
 
     // Dialogs
@@ -104,13 +104,13 @@ export const translations = {
     editTag: 'Edit Tag',
     enterTagName: 'Enter tag name',
     closeDialog: 'Close dialog',
-    deleteTag: 'Delete tag {tag}',
+    deleteTag: 'Delete tag {{tag}}',
     addTag: 'Add tag',
     tagInput: 'Enter tag',
     editTagTitle: 'Edit Tag',
 
     // Colors
-    percentage: 'Percentage: {value}%',
+    percentage: 'Percentage: {{value}}%',
     selectAsFilterColor: 'Add to filter color',
     colorPalette: 'Color Palette',
     colorPrecision: 'Color Precision',
@@ -140,23 +140,23 @@ export const translations = {
     listView: 'List View',
     searchPlaceholder: 'Search images...',
     enterToAddTag: 'Press Enter to add tag',
-    configOpenFailed: 'Failed to open config file: {error}',
+    configOpenFailed: 'Failed to open config file: {{error}}',
 
     // List View
     listName: 'Name',
     listSize: 'Size',
     listDateModified: 'Date Modified',
     listActions: 'Actions',
-    listFileSize: '{size} MB',
+    listFileSize: '{{size}} MB',
 
     // App Status
-    updateFailed: 'Update failed: {error}',
-    deleteFailed: 'Failed to delete images: {error}',
-    addCategoryFailed: 'Failed to add category: {error}',
-    renameCategoryFailed: 'Failed to rename category: {error}',
-    deleteCategoryFailed: 'Failed to delete category: {error}',
-    loadImagesFailed: 'Failed to load images: {error}',
-    pasteImageFailed: 'Failed to paste image: {error}',
+    updateFailed: 'Update failed: {{error}}',
+    deleteFailed: 'Failed to delete images: {{error}}',
+    addCategoryFailed: 'Failed to add category: {{error}}',
+    renameCategoryFailed: 'Failed to rename category: {{error}}',
+    deleteCategoryFailed: 'Failed to delete category: {{error}}',
+    loadImagesFailed: 'Failed to load images: {{error}}',
+    pasteImageFailed: 'Failed to paste image: {{error}}',
 
     // Shortcuts
     shortcuts: {
@@ -225,9 +225,9 @@ export const translations = {
     dateModified: '修改日期',
     tags: '标签',
     tagsHint: '(按回车添加标签，按退格键删除)',
-    totalImages: '{count}张图片',
-    totalVideos: '{count}个视频',
-    selected: '已选择{count}项',
+    totalImages: '{{count}}张图片',
+    totalVideos: '{{count}}个视频',
+    selected: '已选择{{count}}项',
 
     // 搜索
     searchImages: '搜索图片...',
@@ -241,8 +241,8 @@ export const translations = {
     importSuccess: '导入成功',
     updateSuccess: '更新成功',
     error: '发生错误',
-    importFailed: '导入失败：{error}',
-    updateFavoritesFailed: '更新收藏状态失败：{error}',
+    importFailed: '导入失败：{{error}}',
+    updateFavoritesFailed: '更新收藏状态失败：{{error}}',
     videoTaggingNotSupported: '视频文件暂不支持批量打标签',
 
     // 设置
@@ -255,7 +255,7 @@ export const translations = {
     close: '关闭',
     save: '保存',
     configSaved: '配置已保存',
-    saveFailed: '保存设置失败：{error}',
+    saveFailed: '保存设置失败：{{error}}',
     autoColor: '自动取色',
     // 对话框
     deleteConfirmTitle: '确认删除',
@@ -278,13 +278,13 @@ export const translations = {
     editTag: '编辑标签',
     enterTagName: '输入标签名称',
     closeDialog: '关闭对话框',
-    deleteTag: '删除标签 {tag}',
+    deleteTag: '删除标签 {{tag}}',
     addTag: '添加标签',
     tagInput: '输入标签',
     editTagTitle: '编辑标签',
 
     // 颜色
-    percentage: '占比: {value}%',
+    percentage: '占比: {{value}}%',
     selectAsFilterColor: '选择为筛选颜色',
     colorPalette: '颜色面板',
     colorPrecision: '颜色精度',
@@ -313,23 +313,23 @@ export const translations = {
     listView: '列表视图',
     searchPlaceholder: '搜索图片...',
     enterToAddTag: '按回车添加标签',
-    configOpenFailed: '打开配置文件失败：{error}',
+    configOpenFailed: '打开配置文件失败：{{error}}',
 
     // List View
     listName: '名称',
     listSize: '大小',
     listDateModified: '修改日期',
     listActions: '操作',
-    listFileSize: '{size} MB',
+    listFileSize: '{{size}} MB',
 
     // 应用状态
-    updateFailed: '更新失败：{error}',
-    deleteFailed: '删除图片失败：{error}',
-    addCategoryFailed: '添加分类失败：{error}',
-    renameCategoryFailed: '重命名分类失败：{error}',
-    deleteCategoryFailed: '删除分类失败：{error}',
-    loadImagesFailed: '加载图片失败：{error}',
-    pasteImageFailed: '粘贴图片失败：{error}',
+    updateFailed: '更新失败：{{error}}',
+    deleteFailed: '删除图片失败：{{error}}',
+    addCategoryFailed: '添加分类失败：{{error}}',
+    renameCategoryFailed: '重命名分类失败：{{error}}',
+    deleteCategoryFailed: '删除分类失败：{{error}}',
+    loadImagesFailed: '加载图片失败：{{error}}',
+    pasteImageFailed: '粘贴图片失败：{{error}}',
 
     // 快捷键
     shortcuts: {

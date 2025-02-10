@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { supportModes } from '../config';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLocale } from '../contexts/LanguageContext';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -26,7 +26,7 @@ const Settings: React.FC<SettingsProps> = ({
   setMessageBox,
  }) => {
   const { settings, updateSettings } = useSettings();
-  const { t } = useLanguage();
+  const { t } = useLocale();
   const [comfyUrl, setComfyUrl] = useState('');
   const [autoTagging, setAutoTagging] = useState(false);
   const [backgroundUrl, setBackgroundUrl] = useState('');
@@ -58,7 +58,7 @@ const Settings: React.FC<SettingsProps> = ({
       });
       onClose();
     } catch (error) {
-      console.error(t('saveFailed').replace('{error}', String(error)));
+      console.error(t('saveFailed', { error: String(error) }));
     }
   };
 

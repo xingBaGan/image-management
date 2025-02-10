@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Category } from '../../types';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLocale } from '../../contexts/LanguageContext';
 
 interface BulkAction {
   icon: React.ReactNode;
@@ -16,13 +16,13 @@ interface BulkActionsProps {
 }
 
 const BulkActions: React.FC<BulkActionsProps> = ({ selectedCount, bulkActions }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   return (
     <>
       <span className="text-sm text-gray-600 dark:text-rose-300">
-        {t('selected').replace('{count}', selectedCount.toString())}
+        {t('selected', { count: selectedCount })}
       </span>
       <div className="h-6 border-l dark:border-gray-600" />
       <div className="flex items-center space-x-2">

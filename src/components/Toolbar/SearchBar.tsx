@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Search, X } from 'lucide-react';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLocale } from '../../contexts/LanguageContext';
 
 interface SearchTag {
   id: string;
@@ -13,7 +13,7 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ onSearch, searchButtonRef }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [tags, setTags] = useState<SearchTag[]>([]);

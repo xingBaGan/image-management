@@ -6,7 +6,7 @@ import {
 import { Category, FilterType } from '../types';
 import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from './StrictModeDroppable';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLocale } from '../contexts/LanguageContext';
 
 interface SidebarProps {
   selectedCategory: FilterType;
@@ -31,7 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onUpdateCategories,
   setShowDeleteConfirm,
 }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState<string | null>(null);

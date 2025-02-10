@@ -1,33 +1,33 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { translations } from '../locales/translations';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from './i18n';
 
 type Language = 'en' | 'zh';
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('zh');
+  const [language, setLanguageState] = useState<Language>(() => 
+    (localStorage.getItem('language') as Language) || 'zh'
+  );
 
-  const t = useCallback((key: string) => {
-    const keys = key.split('.');
-    let value: any = translations[language];
-    
-    for (const k of keys) {
-      if (value === undefined) return key;
-      value = value[k];
-    }
-    
-    return value || key;
-  }, [language]);
+  const setLanguage = useCallback((lang: Language) => {
+    setLanguageState(lang);
+    localStorage.setItem('language', lang);
+    i18n.changeLanguage(lang);
+  }, []);
+
+  useEffect(() => {
+    i18n.changeLanguage(language);
+  }, []);
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage }}>
       {children}
     </LanguageContext.Provider>
   );
@@ -39,4 +39,11 @@ export const useLanguage = () => {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;
+};
+
+// 导出一个便捷的 hook，用于获取翻译函数和当前语言
+export const useLocale = () => {
+  const { t } = useTranslation();
+  const { language, setLanguage } = useLanguage();
+  return { t, language, setLanguage };
 }; 

@@ -3,7 +3,7 @@ import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FileJson, Setti
 import { ViewMode, SortType, Category, FilterOptions, Filter } from '../types';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLocale } from '../contexts/LanguageContext';
 import FilterPopup from './FilterPopup';
 import ShortcutsHelp from './ShortcutsHelp';
 
@@ -62,7 +62,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   sortButtonRef,
   filterButtonRef,
 }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SortAsc, SortDesc } from 'lucide-react';
 import { SortType } from '../../types';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLocale } from '../../contexts/LanguageContext';
 
 interface SortDropdownProps {
   sortBy: SortType;
@@ -16,7 +16,7 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
   onSortChange,
   sortButtonRef
 }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const getSortLabel = () => {

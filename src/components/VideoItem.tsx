@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from '
 import { Play, Check } from 'lucide-react';
 import type { LocalImageData } from '../types';
 import throttle from 'lodash/throttle';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLocale } from '../contexts/LanguageContext';
 
 interface VideoItemProps {
   video: LocalImageData & { type: 'video'; duration?: number; thumbnail?: string };
@@ -22,7 +22,7 @@ const VideoItem: React.FC<VideoItemProps> = memo(({
   onDoubleClick,
   viewMode
 }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
   const [aspectRatio, setAspectRatio] = useState<number>(16 / 9);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Grid, List } from 'lucide-react';
 import { ViewMode } from '../../types';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLocale } from '../../contexts/LanguageContext';
 
 interface ViewModeToggleProps {
   viewMode: ViewMode;
@@ -9,7 +9,7 @@ interface ViewModeToggleProps {
 }
 
 const ViewModeToggle: React.FC<ViewModeToggleProps> = ({ viewMode, onViewModeChange }) => {
-  const { t } = useLanguage();
+  const { t } = useLocale();
 
   return (
     <div className="flex items-center pl-4 space-x-2 border-l dark:border-gray-700">
