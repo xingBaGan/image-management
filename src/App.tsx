@@ -3,8 +3,7 @@ import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar/index';
 import MediaGrid from './components/MediaGrid';
 import ImageInfoSidebar from './components/ImageInfoSidebar';
-import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ColorInfo, ImportFile } from './types';
-import { SortType, FilterType, SortDirection} from './types';
+import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ColorInfo, ImportFile, FilterType, SortType, SortDirection } from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
 
 import { addTagsToImages } from './services/tagService';
@@ -16,6 +15,8 @@ import { useSettings } from './contexts/SettingsContext';
 import './App.css';
 import { useLocale } from './contexts/LanguageContext';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useCategoryOperations } from './hooks/useCategoryOperations';
+import { useImageOperations } from './hooks/useImageOperations';
 
 function App() {
   const { settings } = useSettings();
@@ -30,10 +31,8 @@ function App() {
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [isZenMode, setIsZenMode] = useState<boolean>(false);
   const [filter, setFilter] = useState<FilterType>(FilterType.All);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [searchTags, setSearchTags] = useState<string[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-  const [importState, setImportState] = useState<ImportStatus>(ImportStatus.Imported);
   const [selectedImageForInfo, setSelectedImageForInfo] = useState<LocalImageData | null>(null);
   const [multiFilter, setMultiFilter] = useState<FilterOptions>({
     colors: [],
@@ -58,6 +57,45 @@ function App() {
   const sortButtonRef = useRef<HTMLElement>(null);
   const filterButtonRef = useRef<HTMLElement>(null);
 
+  // 使用 category hook
+  const {
+    categories,
+    setCategories,
+    handleAddCategory: handleAddCategoryBase,
+    handleRenameCategory,
+    handleDeleteCategory,
+    handleReorderCategories,
+    handleAddToCategory: handleAddToCategoryBase,
+  } = useCategoryOperations();
+
+  // 使用 image operations hook
+  const {
+    images: mediaList,
+    setImages: setMediaList,
+    importState,
+    setImportState,
+    handleFavorite: handleFavoriteBase,
+    handleImportImages: handleImportImagesBase,
+    handleAddImages: handleAddImagesBase,
+    handleBulkDelete: handleBulkDeleteBase,
+    updateTagsByMediaId: updateTagsByMediaIdBase,
+    handleRateChange: handleRateChangeBase,
+    loadImages,
+  } = useImageOperations();
+
+  // 包装函数以提供正确的参数
+  const handleAddCategory = async (category: Category) => {
+    await handleAddCategoryBase(category, mediaList);
+  };
+
+  const handleAddToCategory = async (selectedCategoryIds: string[]) => {
+    const updatedImages = await handleAddToCategoryBase(selectedImages, selectedCategoryIds, mediaList);
+    if (updatedImages) {
+      setMediaList(updatedImages);
+      setSelectedImages(new Set());
+    }
+  };
+
   useEffect(() => {
     setSelectedImages(new Set());
     setSelectedImageForInfo(null);
@@ -78,24 +116,7 @@ function App() {
   }, [selectedCategory]);
 
   const handleFavorite = async (id: string) => {
-    try {
-      const updatedImages = images.map((img) =>
-        img.id === id ? { ...img, favorite: !img.favorite } : img
-      );
-
-      await window.electron.saveImagesToJson(
-        updatedImages.map(img => ({
-          ...img,
-          dateCreated: img.dateCreated,
-          dateModified: img.dateModified
-        })),
-        categories
-      );
-
-      setImages(updatedImages);
-    } catch (error) {
-      console.error(t('updateFavoritesFailed', { error: String(error) }));
-    }
+    await handleFavoriteBase(id, categories);
   };
 
   const handleSearch = (tags: string[]) => {
@@ -139,7 +160,7 @@ function App() {
       if (newSelection.size > 0) {
         // 获取第一个选中的图片ID
         const firstSelectedId = Array.from(newSelection)[0];
-        const selectedImage = images.find(img => img.id === firstSelectedId);
+        const selectedImage = mediaList.find(img => img.id === firstSelectedId);
         setSelectedImageForInfo(selectedImage || null);
       } else {
         setSelectedImageForInfo(null);
@@ -150,85 +171,10 @@ function App() {
   };
 
   const handleBulkDelete = async () => {
-    try {
-      const updatedImages = images.filter(img => !selectedImages.has(img.id));
-
-      const newCategories = categories.map(category => {
-        const newImages = category.images?.filter(id => !selectedImages.has(id)) || [];
-        return {
-          ...category,
-          images: newImages,
-          count: newImages.length
-        };
-      });
-
-      await window.electron.saveImagesToJson(
-        updatedImages.map(img => ({
-          ...img,
-          dateCreated: img.dateCreated,
-          dateModified: img.dateModified
-        })),
-        newCategories
-      );
-
-      setImages(updatedImages);
+    const newCategories = await handleBulkDeleteBase(selectedImages, categories);
+    if (newCategories) {
       setCategories(newCategories);
       setSelectedImages(new Set());
-    } catch (error) {
-      console.error(t('deleteFailed', { error: String(error) }));
-    }
-  };
-
-  const handleAddToCategory = async (selectedCategories: string[]) => {
-    try {
-      // 更新图片的分类信息
-      const updatedImages = images.map(img => {
-        if (selectedImages.has(img.id)) {
-          return {
-            ...img,
-            categories: Array.from(new Set([...(img.categories || []), ...selectedCategories]))
-          };
-        }
-        return img;
-      });
-
-      // 更新分类中的图片信息
-      const updatedCategories = categories.map(category => {
-        if (selectedCategories.includes(category.id)) {
-          // 获取当前分类下所有图片 ID
-          const existingImages = category.images || [];
-          // 添加新选中的图片 ID
-          const newImages = Array.from(selectedImages);
-          // 合并并去重
-          const allImages = Array.from(new Set([...existingImages, ...newImages]));
-
-          return {
-            ...category,
-            images: allImages,
-            count: allImages.length
-          };
-        }
-        return category;
-      });
-
-      // 将 MediaInfo 转换为 LocalImageData
-      const localImageDataList: LocalImageData[] = updatedImages.map(img => {
-        const { dateCreated, dateModified, ...rest } = img;
-        return {
-          ...rest,
-          dateCreated: dateCreated,
-          dateModified: dateModified
-        };
-      });
-
-      // 保存更新后的图片数据和分类数据
-      await window.electron.saveImagesToJson(localImageDataList, updatedCategories);
-
-      setImages(updatedImages);
-      setCategories(updatedCategories);
-      setSelectedImages(new Set());
-    } catch (error) {
-      console.error('添加分类失败:', error);
     }
   };
 
@@ -242,17 +188,17 @@ function App() {
       return;
     }
     // 获取选中的图片
-    let selectedImagesList = images.filter(img => selectedImages.has(img.id));
+    let selectedImagesList = mediaList.filter(img => selectedImages.has(img.id));
     const { updatedImages, success } = await addTagsToImages(
       selectedImagesList,
-      images,
+      mediaList,
       categories,
       settings.modelName,
       setImportState,
     );
 
     if (success) {
-      setImages(updatedImages);
+      setMediaList(updatedImages);
       setSelectedImages(new Set());
     }
   };
@@ -281,137 +227,45 @@ function App() {
   };
 
   const handleImportImages = async () => {
-    try {
-      const newImages = await window.electron.showOpenDialog();
-      if (newImages.length > 0) {
-        setImportState(ImportStatus.Importing);
-        const updatedImages = await processMedia(
-          newImages.map(file => ({
-            ...file,
-            dateCreated: file?.dateCreated || new Date().toISOString(),
-            dateModified: file?.dateModified || new Date().toISOString(),
-            arrayBuffer: async () => new ArrayBuffer(0),
-            text: async () => '',
-            stream: () => new ReadableStream(),
-            slice: () => new Blob(),
-            type: file.type || 'image/jpeg'
-          })) as unknown as ImportFile[],
-          images,
-          categories,
-          setImportState
-        );
-        setImages([...images, ...updatedImages]);
-        setImportState(ImportStatus.Imported);
-      }
-    } catch (error) {
-      console.error(t('importFailed', { error: String(error) }));
-    }
+    await handleImportImagesBase(categories);
   };
 
   const handleAddImages = async (newImages: LocalImageData[]) => {
-    const newImagesData = newImages.filter(img => !images.some(existingImg => existingImg.id === img.id));
-    await window.electron.saveImagesToJson(
-      [...images, ...newImagesData],
-      categories
-    );
-    setImages([...images, ...newImagesData]);
+    await handleAddImagesBase(newImages, categories);
   };
+
   // 在组件加载时读取已保存的图片数据
   useEffect(() => {
-    const loadImages = async () => {
+    const initializeData = async () => {
       try {
-        const result = await window.electron.loadImagesFromJson('images.json');
-        const convertedImages = result.images.map(img => ({
-          ...img,
-          dateCreated: img.dateCreated,
-          dateModified: img.dateModified
-        }));
-        setImages(convertedImages);
-        setCategories(result.categories || []);
+        const result = await loadImages();
+        if (result) {
+          setMediaList(result.images);
+          setCategories(result.categories || []);
+        }
       } catch (error) {
         console.error(t('loadImagesFailed', { error: String(error) }));
       }
     };
 
-    loadImages();
+    initializeData();
 
     window.electron.onRemoteImagesDownloaded(()=>{});
 
     return () => {
       window.electron.removeRemoteImagesDownloadedListener(()=>{});
     };
-  }, [t]);
-
-  const handleAddCategory = async (newCategory: Category) => {
-    try {
-      const categoryWithImages = {
-        ...newCategory,
-        images: [],
-        count: 0
-      };
-
-      const updatedCategories = [...categories, categoryWithImages];
-      setCategories(updatedCategories);
-
-      await window.electron.saveImagesToJson(
-        images.map(img => ({
-          ...img,
-          dateCreated: img.dateCreated,
-          dateModified: img.dateModified
-        })),
-        updatedCategories
-      );
-    } catch (error) {
-      console.error(t('addCategoryFailed', { error: String(error) }));
-    }
-  };
-
-  const handleRenameCategory = async (categoryId: string, newName: string) => {
-    try {
-      const updatedCategories = categories.map(category =>
-        category.id === categoryId
-          ? { ...category, name: newName }
-          : category
-      );
-      setCategories(updatedCategories);
-
-      await window.electron.saveCategories(updatedCategories);
-    } catch (error) {
-      console.error(t('renameCategoryFailed', { error: String(error) }));
-    }
-  };
-
-  const handleDeleteCategory = async (categoryId: string) => {
-    try {
-      const updatedCategories = categories.filter(category => category.id !== categoryId);
-      setCategories(updatedCategories);
-
-      await window.electron.saveCategories(updatedCategories);
-    } catch (error) {
-      console.error(t('deleteCategoryFailed', { error: String(error) }));
-    }
-  };
+  }, [t, setCategories, loadImages]);
 
   const updateTagsByMediaId = (mediaId: string, newTags: string[]) => {
-    const updatedImages = images.map(img =>
-      img.id === mediaId ? { ...img, tags: newTags } : img
-    );
-    window.electron.saveImagesToJson(updatedImages, categories);
-    setImages(updatedImages);
+    updateTagsByMediaIdBase(mediaId, newTags, categories);
   };
 
   const handleRateChange = (mediaId: string, rate: number) => {
-    const updatedImages = images.map(img =>
-      img.id === mediaId ? { ...img, rating: rate } : img
-    );
-    window.electron.saveImagesToJson(updatedImages, categories);
-    setImages(updatedImages);
-    setSelectedImageForInfo(updatedImages.find(img => img.id === mediaId) || null);
-  };
-
-  const handleReorderCategories = (newCategories: Category[]) => {
-    window.electron.saveCategories(newCategories);
-    setCategories(newCategories);
+    const updatedImage = handleRateChangeBase(mediaId, rate, categories);
+    if (updatedImage) {
+      setSelectedImageForInfo(updatedImage);
+    }
   };
 
   const handleDeleteConfirm = (categoryId: string) => {
@@ -482,11 +336,11 @@ function App() {
               slice: () => new Blob(),
               type: img.type || 'image/jpeg'
             })) as unknown as ImportFile[],
-            images,
+            mediaList,
             categories,
             setImportState
           );
-          setImages([...images, ...updatedImages]);
+          setMediaList([...mediaList, ...updatedImages]);
           setMessageBox({
             isOpen: true,
             message: t('importSuccess'),
@@ -508,7 +362,7 @@ function App() {
 
     document.addEventListener('paste', handlePaste);
     return () => document.removeEventListener('paste', handlePaste);
-  }, [images, categories, t]);
+  }, [mediaList, categories, t]);
 
   const handleOpenInEditor = useCallback((path: string) => {
     window.electron.openInEditor(path);
@@ -516,7 +370,7 @@ function App() {
 
   const filteredAndSortedImages = useMemo(() => {
     // 首先根据 filter 和 selectedCategory 过滤图片
-    let filtered = images.filter(img => img.type !== 'video');
+    let filtered = mediaList.filter(img => img.type !== 'video') as LocalImageData[];
 
     // 添加标签过滤逻辑
     if (searchTags.length > 0) {
@@ -530,17 +384,17 @@ function App() {
     }
 
     if (selectedCategory === FilterType.Videos) {
-      filtered = images.filter(img => img.type === 'video');
+      filtered = mediaList.filter(img => img.type === 'video') as LocalImageData[];
     } else if (filter === FilterType.Favorites) {
       filtered = filtered.filter(img => img.favorite);
     } else if (filter === FilterType.Recent) {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      filtered = images.filter(img => new Date(img.dateModified) >= sevenDaysAgo);
+      filtered = mediaList.filter(img => new Date(img.dateModified) >= sevenDaysAgo);
     } else if (selectedCategory !== FilterType.Photos) {
       const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
       if (selectedCategoryData) {
-        filtered = images.filter(img =>
+        filtered = mediaList.filter(img =>
           img.categories?.includes(selectedCategory) ||
           selectedCategoryData.images?.includes(img.id)
         );
@@ -553,7 +407,7 @@ function App() {
         return filterColors.some(filterColor => 
           (img.colors || []).some((c: string | ColorInfo) => {
             const imgColor = typeof c === 'string' ? c : c.color;
-            return isSimilarColor(imgColor, filterColor, multiFilter.precision); // 使用0.85的精度
+            return isSimilarColor(imgColor, filterColor, multiFilter.precision);
           })
         );
       }
@@ -569,7 +423,6 @@ function App() {
         return multiFilter.formats.some(format => ext?.endsWith(format.toLowerCase()));
       }
       return true;
-
     });
 
     // 然后对过滤后的结果进行排序
@@ -590,7 +443,7 @@ function App() {
 
       return sortDirection === 'asc' ? -comparison : comparison;
     });
-  }, [images, sortBy, sortDirection, filter, selectedCategory, categories, searchTags, multiFilter, filterColors]);
+  }, [mediaList, sortBy, sortDirection, filter, selectedCategory, categories, searchTags, multiFilter, filterColors]);
 
   // 使用快捷键 hook
   useKeyboardShortcuts({
@@ -599,7 +452,7 @@ function App() {
     handleBulkDelete,
     handleFavorite,
     handleOpenInEditor,
-    images,
+    images: mediaList,
     filteredImages: filteredAndSortedImages,
     searchButtonRef,
     sortButtonRef,
@@ -662,7 +515,7 @@ function App() {
                     onSelectImage={handleImageSelect}
                     updateTagsByMediaId={updateTagsByMediaId}
                     addImages={handleAddImages}
-                    existingImages={images}
+                    existingImages={mediaList}
                     categories={categories}
                     setImportState={setImportState}
                     importState={importState}
