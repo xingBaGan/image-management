@@ -499,6 +499,7 @@ function App() {
             message: t('importFailed').replace('{error}', error.message || t('error')),
             type: 'error'
           });
+          console.error(t('pasteImageFailed').replace('{error}', String(error)));
         } finally {
           setImportState(ImportStatus.Imported);
         }

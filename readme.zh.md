@@ -5,10 +5,12 @@
 一个简洁优雅的本地图片管理工具，帮助你轻松管理和组织图片与视频资源。
 
 图片管理
-![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/pn1.png)
+![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v.3.0-1.png)
+
+![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v.0.3.0-2.png)
 
 video 管理
-![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/pn2.png)
+![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v.0.3.0-3.png)
 
 ## 主要功能
 
@@ -42,12 +44,15 @@ video 管理
 - [x] 拖放支持 - 支持拖放导入媒体文件
 - [x] 框选功能 - 支持框选多个媒体文件
 - [x] 自定义背景图
+- [x] 全局快捷键 - 支持常用操作的键盘快捷键
+- [x] 多语言支持 - 支持切换不同语言
 
 ### AI 功能
 - [x] AI 自动标签 - 使用深度学习模型自动识别图片内容并添加标签
 - [x] ComfyUI 工作流 - 支持自定义 ComfyUI 工作流进行图片处理
 - [x] 批量处理 - 支持批量进行 AI 标签识别
 - [x] 标签管理 - 支持编辑和管理 AI 生成的标签
+- [x] 主色提取 - 自动提取和按主色调分类图片
 
 ## 使用指南
 
@@ -170,10 +175,12 @@ npm run electron:build --linux
 - [x] 支持颜色分类
 - [x] 多语言支持
 - [x] 快捷键支持
+- [x] 主色提取
 - [ ] 可扩展的插件系统
    - [ ] 图片编辑功能
    - [ ] 更多 AI 模型集成
 - [ ] ComfyUI 集成 - 支持通过 ComfyUI 进行图片处理
+- [ ] 高级搜索过滤
 
 ## 贡献指南
 

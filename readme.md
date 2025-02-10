@@ -5,10 +5,12 @@ A clean and elegant local image management tool to help you easily manage and or
 
 
 Image Management
-![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/pn1.png)
+![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v.3.0-1.png)
+
+![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v.0.3.0-2.png)
 
 Video Management
-![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/pn2.png)
+![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v.0.3.0-3.png)
 
 ## Main Features
 
@@ -42,12 +44,15 @@ Video Management
 - [x] Drag and Drop Support - Support drag and drop media file import
 - [x] Box Selection - Support box selection of multiple media files
 - [x] Custom Background Image
+- [x] Global Shortcuts - Support keyboard shortcuts for common operations
+- [x] Multi-language Support - Support switching between different languages
 
 ### AI Features
 - [x] AI Auto-tagging - Use deep learning models to automatically identify image content and add tags
 - [x] ComfyUI Workflow - Support custom ComfyUI workflows for image processing
 - [x] Batch Processing - Support batch AI tag recognition
 - [x] Tag Management - Support editing and managing AI-generated tags
+- [x] Main Color Extraction - Automatically extract and classify images by main colors
 
 ## User Guide
 
@@ -170,9 +175,11 @@ npm run electron:build --linux
 - [x] Color classification support
 - [x] Multi-language support
 - [x] Shortcut key support
+- [x] Main color extraction
 - [ ] Extensible plugin system
    - [ ] Image editing features
    - [ ] More AI model integration
+   - [ ] Custom workflow templates
 - [ ] ComfyUI integration - Support image processing through ComfyUI
 
 ## Contributing
