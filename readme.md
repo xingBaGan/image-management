@@ -184,3 +184,7 @@ Welcome to submit Issues and Pull Requests to help improve this project.
 ## License
 
 MIT License 
+
+## 许可证
+
+本项目采用 [GNU General Public License v3.0](./LICENSE) 开源许可证。 

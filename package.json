@@ -8,7 +8,7 @@
     "email": "gan_xingba@126.com"
   },
   "type": "module",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
