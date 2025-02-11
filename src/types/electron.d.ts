@@ -1,17 +1,8 @@
-interface ElectronAPI {
-  loadSettings: () => Promise<{
-    ComfyUI_URL?: string;
-    [key: string]: any;
-  }>;
-  saveSettings: (settings: {
-    ComfyUI_URL: string;
-    [key: string]: any;
-  }) => Promise<boolean>;
-}
-
+import { ElectronAPI, Plugin } from './index';
 declare global {
   interface Window {
     electron: ElectronAPI;
+    plugins: PluginAPI
   }
 }
 

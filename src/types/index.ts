@@ -1,5 +1,19 @@
 export type ViewMode = 'grid' | 'list';
 
+export interface Plugin {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+}
+
+export interface PluginAPI {
+    on: (channel: string, callback: (...args: any[]) => void) => void;
+    removeListener: (channel: string, callback: (...args: any[]) => void) => void;
+    getPlugins: () => Promise<Plugin[]>;
+    initializePlugin: (pluginId: string) => Promise<void>;
+    setupPlugin: (plugin: Plugin) => void;
+}
 
 export interface Category {
   id: string;
@@ -86,7 +100,7 @@ export enum ImportStatus {
   Failed = 'failed',
 }
 
-interface ElectronAPI {
+export interface ElectronAPI {
   readDirectory: (path: string) => Promise<string[]>;
   readFileMetadata: (path: string) => Promise<{
     size: number;
@@ -158,16 +172,6 @@ export interface Filter {
   label: string;
   options?: string[];
 }
-
-declare global {
-  interface Window {
-    electron: ElectronAPI;
-  }
-}
-
-export type { ElectronAPI };
-
-export {};
 
 // 添加类型守卫函数
 export function isVideoMedia(media: LocalImageData): media is VideoData {

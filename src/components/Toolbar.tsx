@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Search, Grid, List, SortAsc, SortDesc, X, Menu, Import, FileJson, Settings as SettingsIcon, Filter as FilterIcon, Star, Image, Palette, XCircle, Keyboard } from 'lucide-react';
 import { ViewMode, SortType, Category, FilterOptions, Filter } from '../types';
 import ThemeToggle from './ThemeToggle';
@@ -192,7 +192,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
     });
   };
 
-  const filterPopup = useMemo(() => {
+  const filterPopup = useCallback(() => {
     if (!isFilterOpen) return null;
     return (
       <FilterPopup

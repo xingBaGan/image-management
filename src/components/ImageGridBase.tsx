@@ -14,7 +14,6 @@ export interface ImageGridBaseProps {
   importState: ImportStatus;
   setViewingMedia?: (media: LocalImageData | null) => void;
   onOpenInEditor: (path: string) => void;
-  showInFolder: (path: string) => void;
 }
 
 export interface MediaItemProps {
