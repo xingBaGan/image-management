@@ -10,6 +10,7 @@ interface ImageItemProps {
   onDoubleClick: (e: React.MouseEvent) => void;
   onFavorite: (id: string) => void;
   onOpenInEditor: (path: string) => void;
+  showInFolder: (path: string) => void;
   viewMode: 'grid' | 'list';
 }
 
@@ -20,6 +21,7 @@ const ImageItem: React.FC<ImageItemProps> = memo(({
   onDoubleClick,
   onFavorite,
   onOpenInEditor,
+  showInFolder,
   viewMode
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -121,7 +123,7 @@ const ImageItem: React.FC<ImageItemProps> = memo(({
               <div
                 onClick={(e) => {
                   e.stopPropagation();
-                  window.electron.showInFolder(image.path);
+                  showInFolder(image.path);
                   setShowDropdown(false);
                 }}
                 className="flex items-center px-4 py-2 text-xs text-center text-gray-700 hover:bg-gray-100 hover:rounded-lg dark:text-gray-300 dark:hover:bg-gray-700"

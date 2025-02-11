@@ -29,7 +29,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [mouseDownTime, setMouseDownTime] = useState<number>(0);
   const [mouseDownPos, setMouseDownPos] = useState<{ x: number, y: number } | null>(null);
-  const { openInEditor } = useElectron();
+  const { openInEditor, showInFolder } = useElectron();
 
   const handleTagsUpdate = (mediaId: string, newTags: string[]) => {
     updateTagsByMediaId(mediaId, newTags);
@@ -171,6 +171,10 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
     openInEditor(path);
   }, [openInEditor]);
 
+  const handleShowInFolder = useCallback((path: string) => {
+    showInFolder(path);
+  }, [showInFolder]);
+
   return (
     <div 
       className="relative pr-1 media-grid-container"
@@ -227,6 +231,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
             importState,
             setViewingMedia,
             onOpenInEditor: handleOpenInEditor,
+            showInFolder: handleShowInFolder,
           }} />
         ) : (
           <GridView {...{
@@ -243,6 +248,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
             importState,
             setViewingMedia,
             onOpenInEditor: handleOpenInEditor,
+            showInFolder: handleShowInFolder,
           }} />
         )}
       </div>

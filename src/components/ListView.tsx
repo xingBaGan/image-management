@@ -99,6 +99,7 @@ const ListView: React.FC<ImageGridBaseProps> = ({
     onSelectImage,
     setViewingMedia,
     onOpenInEditor,
+    showInFolder,
 }) => {
     const { t } = useLocale();
     const listRef = useRef<List>(null);
@@ -141,6 +142,7 @@ const ListView: React.FC<ImageGridBaseProps> = ({
                 onSelect: (e: React.MouseEvent) => onSelectImage(media.id, e.shiftKey),
                 onDoubleClick: (e: React.MouseEvent) => setViewingMedia?.(media),
                 onOpenInEditor,
+                showInFolder,
             };
             return <ImageItem image={media} {...imageProps} />;
         }
