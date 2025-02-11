@@ -9,6 +9,7 @@ const { loadSettings, saveSettings, getComfyURL } = require('./services/settingS
 const isDev = !app.isPackaged;
 // 获取设置文件路径
 const { getImageSize } = require('./services/ipcService.cjs');
+const { pluginManager } = require('./services/pluginService.cjs');
 
 const loadEnvConfig = () => {
   try {

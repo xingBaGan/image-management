@@ -58,7 +58,7 @@ ipcMain.handle('download-url-image', async (_, url) => {
     const http = require('http');
 
     const client = url.startsWith('https') ? https : http;
-    
+
     const imageBuffer = await new Promise((resolve, reject) => {
       client.get(url, (res) => {
         if (res.statusCode !== 200) {
@@ -332,10 +332,14 @@ ipcMain.handle('process-directory', async (event, dirPath) => {
   }
 });
 
+const pluginService = require('./pluginService.cjs');
+pluginService.initializeAndSetupIPC(ipcMain);
+
 module.exports = {
   getImageSize,
   processDirectoryFiles,
   getVideoDuration,
   generateVideoThumbnail,
-  generateHashId
+  generateHashId,
+  pluginService
 };

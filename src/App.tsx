@@ -27,7 +27,6 @@ function App() {
   const [viewingMedia, setViewingMedia] = useState<LocalImageData | null>(null);
   const [sortBy, setSortBy] = useState<SortType>(SortType.Date);
   const [sortDirection, setSortDirection] = useState<SortDirection>(SortDirection.Desc);
-  const [images, setImages] = useState<LocalImageData[]>([]);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [isZenMode, setIsZenMode] = useState<boolean>(false);
   const [filter, setFilter] = useState<FilterType>(FilterType.All);

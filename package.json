@@ -18,7 +18,7 @@
     "electron:build": "cd comfyui_client && npm run build && cd .. && tsc -p electron/tsconfig.json && vite build && node -e \"require('fs').cpSync('electron', 'dist-electron', {recursive: true})\" && electron-builder",
     "electron:preview": "electron .",
     "script": "cross-env NODE_ENV=development node script/script.cjs",
-    "python:install": "venv\\Scripts\\activate && pip install -r requirements.txt"
+    "python:download": "python dataset\\download.py"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",

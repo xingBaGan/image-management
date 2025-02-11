@@ -1,5 +1,12 @@
 # How to develop
 
+## Install dependencies
+
+at the root directory
+run install.bat on windows
+run install.sh on linux
+run install.command on macos
+
 node version: 20.15.0
 nrm use taobao
 

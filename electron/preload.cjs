@@ -33,5 +33,35 @@ contextBridge.exposeInMainWorld('electron', {
   },
   removeQueueUpdateListener: (callback) => {
     ipcRenderer.removeListener('queue-update', callback);
+  },
+  // 接收主进程消息的方法
+  on: (channel, callback) => {
+    if (channel === 'initialize-plugin') {  // 白名单校验
+      ipcRenderer.on(channel, (event, ...args) => callback(...args));
+    }
+  },
+  // 移除监听
+  removeListener: (channel, callback) => {
+    if (channel === 'initialize-plugin') {
+      ipcRenderer.removeListener(channel, callback);
+    }
+  }
+});
+
+// 暴露给主进程的方法
+contextBridge.exposeInMainWorld('plugins', {
+  getPlugins: () => ipcRenderer.invoke('get-plugins'),
+  initializePlugin: (pluginId) => ipcRenderer.invoke('plugin-setup', pluginId),
+  setupPlugin: (plugin) => {
+    if (plugin) {
+      console.log(`设置插件: ${plugin.name}`);
+      // setup 函数会通过 initialize-plugin 事件单独处理
+    }
+  },
+  on: (channel, callback) => {
+    ipcRenderer.on(channel, (event, ...args) => callback(...args));
+  },
+  removeListener: (channel, callback) => {
+    ipcRenderer.removeListener(channel, callback);
   }
 });
