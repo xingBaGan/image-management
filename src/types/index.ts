@@ -15,6 +15,13 @@ export interface PluginAPI {
     setupPlugin: (plugin: Plugin) => void;
 }
 
+export type AppendButtonsProps = {
+  icon: string;
+  onClick: (selectedImages: string[]) => void;
+  label: string;
+  eventId: string;
+}
+
 export interface Category {
   id: string;
   name: string;

@@ -80,8 +80,20 @@ function loadImagesData() {
 	}
 }
 
+function getImageById(id) {
+	const data = loadImagesData();
+	return data.images.find(img => img.id === id);
+}
+
+function getImagesByIds(ids) {
+	const data = loadImagesData();
+	return data.images.filter(img => ids.includes(img.id));
+}
+
 module.exports = {
 	saveImageToLocal,
 	loadImagesData,
 	getJsonFilePath,
+	getImageById,
+	getImagesByIds,
 }

@@ -1,13 +1,20 @@
 import React, { memo, useCallback } from 'react';
 import Masonry from 'react-masonry-css';
-import { LocalImageData, VideoData, isVideoMedia } from '../types';
+import { AppendButtonsProps, LocalImageData, VideoData, isVideoMedia } from '../types';
 import { ImageGridBaseProps, handleContextMenu, breakpointColumns } from './ImageGridBase';
 import ImageItem from './ImageItem';
 import VideoItem from './VideoItem';
 import { useInView } from 'react-intersection-observer';
 
+type MediaItemProps = { 
+  media: LocalImageData; 
+  props: any; 
+  onOpenInEditor: (path: string) => void; 
+  showInFolder: (path: string) => void;
+  gridItemAppendButtonsProps: AppendButtonsProps[];
+ }
 // 使用 memo 优化 MediaItem 组件的重渲染
-const MediaItem = memo(({ media, props, onOpenInEditor, showInFolder }: { media: LocalImageData; props: any; onOpenInEditor: (path: string) => void; showInFolder: (path: string) => void }) => {
+const MediaItem = memo(({ media, props, onOpenInEditor, showInFolder, gridItemAppendButtonsProps }: MediaItemProps) => {
   const { ref, inView } = useInView({
     threshold: 0,
     triggerOnce: true,
@@ -19,7 +26,13 @@ const MediaItem = memo(({ media, props, onOpenInEditor, showInFolder }: { media:
         media.type === 'video' ? (
           <VideoItem video={isVideoMedia(media) ? media : media as VideoData} {...props} />
         ) : (
-          <ImageItem image={media} {...props} onOpenInEditor={onOpenInEditor} showInFolder={showInFolder} />
+          <ImageItem 
+            image={media} 
+            onOpenInEditor={onOpenInEditor} 
+            showInFolder={showInFolder} 
+            gridItemAppendButtonsProps={gridItemAppendButtonsProps}
+            {...props} 
+          />
         )
       )}
     </div>
@@ -35,6 +48,7 @@ const GridView: React.FC<ImageGridBaseProps> = ({
   setViewingMedia,
   onOpenInEditor,
   showInFolder,
+  gridItemAppendButtonsProps,
 }) => {
   const renderMediaItem = useCallback((media: LocalImageData) => {
     const props = {
@@ -46,7 +60,13 @@ const GridView: React.FC<ImageGridBaseProps> = ({
       showInFolder,
     };
 
-    return <MediaItem media={media} props={props} onOpenInEditor={onOpenInEditor} showInFolder={showInFolder} />;
+    return <MediaItem 
+      media={media}
+      props={props}
+      onOpenInEditor={onOpenInEditor}
+      showInFolder={showInFolder}
+      gridItemAppendButtonsProps={gridItemAppendButtonsProps}
+    />;
   }, [selectedImages, onSelectImage, onFavorite, viewMode]);
 
   return (

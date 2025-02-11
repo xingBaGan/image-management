@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Menu, Import } from 'lucide-react';
-import { ViewMode, SortType, FilterOptions } from '../../types';
+import { ViewMode, SortType, FilterOptions, AppendButtonsProps } from '../../types';
 import ThemeToggle from '../ThemeToggle';
 import LanguageToggle from '../LanguageToggle';
 import { useLocale } from '../../contexts/LanguageContext';
@@ -11,7 +11,7 @@ import ViewModeToggle from './ViewModeToggle';
 import SortDropdown from './SortDropdown';
 import BulkActions from './BulkActions';
 import ToolbarButtons from './ToolbarButtons';
-
+import { getToolBarAppendButtonsProps } from '../../plugins';
 interface ToolbarProps {
   viewMode: ViewMode;
   sortBy: SortType;
@@ -32,6 +32,7 @@ interface ToolbarProps {
   searchButtonRef: React.RefObject<HTMLElement>;
   sortButtonRef: React.RefObject<HTMLElement>;
   filterButtonRef: React.RefObject<HTMLElement>;
+  selectedImages: Set<string>;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -53,6 +54,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   searchButtonRef,
   sortButtonRef,
   filterButtonRef,
+  selectedImages,
 }) => {
   const { t } = useLocale();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -65,6 +67,12 @@ const Toolbar: React.FC<ToolbarProps> = ({
     precision: 0.85
   });
   const filterRef = useRef<HTMLDivElement>(null);
+  const [appendButtonsProps, setAppendButtonsProps] = useState<AppendButtonsProps[]>([]);
+  
+  useEffect(() => {
+    setAppendButtonsProps(getToolBarAppendButtonsProps());
+  }, []);
+
   return (
     <>
       <div className="flex relative z-20 justify-between items-center px-6 h-16 bg-white bg-opacity-30 border-b backdrop-blur-sm dark:bg-gray-800 dark:bg-opacity-30 dark:border-gray-700">
@@ -92,6 +100,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
             <BulkActions
               selectedCount={selectedCount}
               bulkActions={bulkActions}
+              appendButtonsProps={appendButtonsProps}
+              selectedImages={selectedImages}
             />
           ) : (
             <>

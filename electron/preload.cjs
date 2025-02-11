@@ -1,5 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
+const parseArgs = (args) => {
+  return [...args].map(arg => JSON.parse(arg));
+}
+
 contextBridge.exposeInMainWorld('electron', {
   readDirectory: (path) => ipcRenderer.invoke('read-directory', path),
   readFileMetadata: (path) => ipcRenderer.invoke('read-file-metadata', path),
@@ -60,6 +64,9 @@ contextBridge.exposeInMainWorld('plugins', {
   },
   on: (channel, callback) => {
     ipcRenderer.on(channel, (event, ...args) => callback(...args));
+  },
+  send: (channel, ...args) => {
+    ipcRenderer.send(channel, ...parseArgs(args));
   },
   removeListener: (channel, callback) => {
     ipcRenderer.removeListener(channel, callback);

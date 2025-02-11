@@ -17,6 +17,7 @@ import { useLocale } from './contexts/LanguageContext';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useCategoryOperations } from './hooks/useCategoryOperations';
 import { useImageOperations } from './hooks/useImageOperations';
+import { getGridItemAppendButtonsProps } from './plugins';
 
 function App() {
   const { settings } = useSettings();
@@ -459,7 +460,9 @@ function App() {
     setViewMode,
     setViewingMedia,
   });
-
+  const gridItemAppendButtonsProps = useMemo(() => {
+    return getGridItemAppendButtonsProps();
+  }, []);
   return (
         <div className="flex h-screen backdrop-blur-md dark:bg-gray-900 bg-white/20"
           style={{
@@ -503,6 +506,7 @@ function App() {
                 searchButtonRef={searchButtonRef}
                 sortButtonRef={sortButtonRef}
                 filterButtonRef={filterButtonRef}
+                selectedImages={selectedImages}
               />
               <div className="flex overflow-y-auto flex-1">
                 <div className={`flex-1 ${isZenMode ? 'mr-0' : 'mr-60'}`}>
@@ -519,6 +523,7 @@ function App() {
                     setImportState={setImportState}
                     importState={importState}
                     onOpenInEditor={handleOpenInEditor}
+                    gridItemAppendButtonsProps={gridItemAppendButtonsProps}
                   />
                 </div>
                 <div className="fixed right-0 bottom-0 top-16">

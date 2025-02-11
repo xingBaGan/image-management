@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { app, BrowserWindow } = require('electron');
+const { getImagesByIds } = require('./FileService.cjs');
 
 
 function notifyAllWindows(name, data) {
@@ -19,11 +20,25 @@ class AtujiiClient {
 
   async addGridItemButton(options, callback) {
     // 通过 IPC 发送请求到主进程
-    notifyAllWindows(ADD_GRID_ITEM_BUTTON, options);
+    const eventId = options.id || options.name;
+    notifyAllWindows(ADD_GRID_ITEM_BUTTON, {
+      options,
+      eventId
+    });
+    this.ipcRenderer.on(eventId, (event, ids) => {
+      callback(getImagesByIds(ids)?.[0]);
+    });
   }
 
   async addToolBarItem(options, callback) {
-    notifyAllWindows(ADD_TOOL_BAR_ITEM, options);
+    const eventId = options.id || options.name;
+    notifyAllWindows(ADD_TOOL_BAR_ITEM, {
+      options,
+      eventId
+    });
+    this.ipcRenderer.on(eventId, (event, ids) => {
+      callback(getImagesByIds(ids));
+    });
   }
 }
 

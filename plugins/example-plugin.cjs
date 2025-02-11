@@ -7,8 +7,9 @@ module.exports = {
   setup(client) {
     // 添加网格项按钮
     client.addGridItemButton({
-      buttonText: '处理图片',
-      buttonIndex: 0
+      label: '处理图片',
+      icon: 'camera',
+      id: 'handle-image'
     }, async (clickedImage, client) => {
       // 处理点击的图片
       console.log('处理图片:', clickedImage);
@@ -16,8 +17,9 @@ module.exports = {
 
     // // 添加工具栏项
     client.addToolBarItem({
-      buttonText: '工具栏操作',
-      buttonIndex: 1
+      label: '工具栏操作',
+      icon: 'camera',
+      id: 'tool-bar-operation'
     }, async (selectedImage, client) => {
       // 处理选中的图片
       console.log('工具栏操作:', selectedImage);

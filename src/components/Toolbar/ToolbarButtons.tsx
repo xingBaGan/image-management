@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { FileJson, Settings as SettingsIcon, FilterIcon, Keyboard } from 'lucide-react';
 import { useLocale } from '../../contexts/LanguageContext';
 import { FilterOptions } from '../../types';
@@ -22,10 +22,9 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
   setIsFilterOpen,
   filterOptions,
   filterButtonRef,
-  filterRef
+  filterRef,
 }) => {
   const { t } = useLocale();
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -89,7 +88,7 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
         </button>
       </div>
 
-      <button
+      <button 
         onClick={() => setIsShortcutsHelpOpen(true)}
         className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-rose-300"
         title={t('shortcuts.show')}

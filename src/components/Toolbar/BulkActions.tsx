@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Category } from '../../types';
+import React, { useCallback, useState } from 'react';
+import { AppendButtonsProps, Category } from '../../types';
 import { useLocale } from '../../contexts/LanguageContext';
+import { DynamicIcon } from 'lucide-react/dynamic';
+
 
 interface BulkAction {
   icon: React.ReactNode;
@@ -13,9 +15,16 @@ interface BulkAction {
 interface BulkActionsProps {
   selectedCount: number;
   bulkActions: BulkAction[];
+  appendButtonsProps: AppendButtonsProps[];
+  selectedImages: Set<string>;
 }
 
-const BulkActions: React.FC<BulkActionsProps> = ({ selectedCount, bulkActions }) => {
+const BulkActions: React.FC<BulkActionsProps> = ({
+  selectedCount,
+  bulkActions,
+  appendButtonsProps,
+  selectedImages,
+}) => {
   const { t } = useLocale();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
@@ -26,9 +35,9 @@ const BulkActions: React.FC<BulkActionsProps> = ({ selectedCount, bulkActions })
       </span>
       <div className="h-6 border-l dark:border-gray-600" />
       <div className="flex items-center space-x-2">
-        {bulkActions.map((action, index) => (
+        {[...bulkActions, ...appendButtonsProps].map((action, index) => (
           <div key={index} className="relative group">
-            {action.categories ? (
+            {'categories' in action && action.categories ? (
               <div className="relative">
                 <button
                   className="flex items-center px-3 py-2 space-x-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-rose-300"
@@ -43,8 +52,8 @@ const BulkActions: React.FC<BulkActionsProps> = ({ selectedCount, bulkActions })
                   {action.icon}
                   <span>{t(action.label.toLowerCase())}</span>
                 </button>
-                
-                <div 
+
+                <div
                   id={`category-dropdown-${index}`}
                   className="hidden absolute left-0 top-full z-50 mt-1 w-48 bg-white rounded-lg border shadow-lg dark:bg-gray-800 dark:border-gray-700"
                 >
@@ -89,11 +98,19 @@ const BulkActions: React.FC<BulkActionsProps> = ({ selectedCount, bulkActions })
               </div>
             ) : (
               <button
-                onClick={action.onClick}
+                onClick={() => {
+                  if ('eventId' in action) {
+                    action.onClick([...selectedImages])
+                  } else {
+                    action.onClick()
+                  }
+                }}
                 className="flex items-center px-3 py-2 space-x-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-rose-300"
                 title={t(action.label.toLowerCase())}
               >
-                {action.icon}
+                {!('eventId' in action) ? action.icon : (
+                   <DynamicIcon name={(action.icon || 'camera')} />
+                )}
                 <span>{t(action.label.toLowerCase())}</span>
               </button>
             )}

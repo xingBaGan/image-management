@@ -18,6 +18,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
   addImages,
   existingImages,
   categories,
+  gridItemAppendButtonsProps,
   setImportState,
   importState,
 }) => {
@@ -232,6 +233,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
             setViewingMedia,
             onOpenInEditor: handleOpenInEditor,
             showInFolder: handleShowInFolder,
+            gridItemAppendButtonsProps: gridItemAppendButtonsProps,
           }} />
         ) : (
           <GridView {...{
@@ -249,6 +251,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
             setViewingMedia,
             onOpenInEditor: handleOpenInEditor,
             showInFolder: handleShowInFolder,
+            gridItemAppendButtonsProps: gridItemAppendButtonsProps,
           }} />
         )}
       </div>

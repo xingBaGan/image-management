@@ -1,6 +1,6 @@
 import React, { memo, useState } from 'react';
 import { Heart, MoreVertical, Check } from 'lucide-react';
-import { LocalImageData } from '../types';
+import { LocalImageData, AppendButtonsProps } from '../types';
 import { useLocale } from '../contexts/LanguageContext';
 
 interface ImageItemProps {
@@ -12,6 +12,7 @@ interface ImageItemProps {
   onOpenInEditor: (path: string) => void;
   showInFolder: (path: string) => void;
   viewMode: 'grid' | 'list';
+  gridItemAppendButtonsProps: AppendButtonsProps[];
 }
 
 const ImageItem: React.FC<ImageItemProps> = memo(({
@@ -22,11 +23,11 @@ const ImageItem: React.FC<ImageItemProps> = memo(({
   onFavorite,
   onOpenInEditor,
   showInFolder,
-  viewMode
+  viewMode,
+  gridItemAppendButtonsProps
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const { t } = useLocale();
-
   if (viewMode === 'list') {
     return (
       <div className="relative w-12 h-12">
@@ -130,6 +131,15 @@ const ImageItem: React.FC<ImageItemProps> = memo(({
               >
                 {t('openContainingFolder')}
               </div>
+              {(gridItemAppendButtonsProps || []).map((button) => (
+                <div
+                  key={button.eventId}
+                  onClick={() => button.onClick([image.id])}
+                  className="flex items-center px-4 py-2 text-xs text-center text-gray-700 hover:bg-gray-100 hover:rounded-lg dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  {button.label}
+                </div>
+              ))}
             </div>
           )}
         </div>

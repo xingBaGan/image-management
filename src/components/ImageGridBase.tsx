@@ -1,4 +1,4 @@
-import { Category, LocalImageData, ViewMode, ImportStatus } from '../types';
+import { Category, LocalImageData, ViewMode, ImportStatus, AppendButtonsProps } from '../types';
 
 export interface ImageGridBaseProps {
   images: LocalImageData[];
@@ -14,6 +14,8 @@ export interface ImageGridBaseProps {
   importState: ImportStatus;
   setViewingMedia?: (media: LocalImageData | null) => void;
   onOpenInEditor: (path: string) => void;
+  showInFolder?: (path: string) => void;
+  gridItemAppendButtonsProps: AppendButtonsProps[];
 }
 
 export interface MediaItemProps {
