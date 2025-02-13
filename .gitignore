@@ -31,3 +31,5 @@ models/
 
 # 添加 R2 相关忽略项
 r2-worker/
+
+RTC/

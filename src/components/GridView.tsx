@@ -10,7 +10,7 @@ type MediaItemProps = {
   media: LocalImageData; 
   props: any; 
   onOpenInEditor: (path: string) => void; 
-  showInFolder: (path: string) => void;
+  showInFolder?: (path: string) => void;
   gridItemAppendButtonsProps: AppendButtonsProps[];
  }
 // 使用 memo 优化 MediaItem 组件的重渲染

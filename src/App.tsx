@@ -18,7 +18,8 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useCategoryOperations } from './hooks/useCategoryOperations';
 import { useImageOperations } from './hooks/useImageOperations';
 import { getGridItemAppendButtonsProps } from './plugins';
-
+import { scan } from "react-scan"; 
+scan({ enabled: true, log: true, showToolbar: true })
 function App() {
   const { settings } = useSettings();
   const { t } = useLocale();
