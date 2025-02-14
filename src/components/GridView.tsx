@@ -24,9 +24,10 @@ const MediaItem = memo(({ media, props, onOpenInEditor, showInFolder, gridItemAp
     <div ref={ref}>
       {inView && (
         media.type === 'video' ? (
-          <VideoItem video={isVideoMedia(media) ? media : media as VideoData} {...props} />
+          <VideoItem video={isVideoMedia(media) ? media : media as VideoData} {...props} inView={inView}/>
         ) : (
           <ImageItem 
+            inView={inView}
             image={media} 
             onOpenInEditor={onOpenInEditor} 
             showInFolder={showInFolder} 
@@ -107,12 +108,12 @@ const GridView: React.FC<ImageGridBaseProps & {
             {renderMediaItem(image)}
           </div>
         ))}
-      <div 
+      {hasMore && <div 
         ref={loadMoreRef} 
         className="flex justify-center items-center w-full h-10"
       >
         '加载中...' 
-      </div>
+      </div>}
       </Masonry>
     </div>
   );
