@@ -256,7 +256,7 @@ function App() {
     return () => {
       window.electron.removeRemoteImagesDownloadedListener(()=>{});
     };
-  }, [t, setCategories, loadImages]);
+  }, []);
 
   const updateTagsByMediaId = (mediaId: string, newTags: string[]) => {
     updateTagsByMediaIdBase(mediaId, newTags, categories);
@@ -444,7 +444,20 @@ function App() {
 
       return sortDirection === 'asc' ? -comparison : comparison;
     });
-  }, [mediaList, sortBy, sortDirection, filter, selectedCategory, categories, searchTags, multiFilter, filterColors]);
+  }, [
+    mediaList, 
+    sortBy, 
+    sortDirection, 
+    filter, 
+    selectedCategory, 
+    categories, 
+    searchTags,
+    multiFilter.ratio,
+    multiFilter.rating,
+    multiFilter.formats,
+    multiFilter.precision,
+    filterColors
+  ]);
 
   // 使用快捷键 hook
   useKeyboardShortcuts({

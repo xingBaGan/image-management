@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import Masonry from 'react-masonry-css';
 import { AppendButtonsProps, LocalImageData, VideoData, isVideoMedia } from '../types';
 import { ImageGridBaseProps, handleContextMenu, breakpointColumns } from './ImageGridBase';
@@ -39,7 +39,12 @@ const MediaItem = memo(({ media, props, onOpenInEditor, showInFolder, gridItemAp
   );
 });
 
-const GridView: React.FC<ImageGridBaseProps> = ({
+const PAGE_SIZE = 30;
+const GridView: React.FC<ImageGridBaseProps & {
+  hasMore?: boolean;
+  onLoadMore?: () => void;
+  loading?: boolean;
+}> = ({
   images,
   onFavorite,
   viewMode,
@@ -50,6 +55,10 @@ const GridView: React.FC<ImageGridBaseProps> = ({
   showInFolder,
   gridItemAppendButtonsProps,
 }) => {
+  const [page, setPage] = useState(1);
+  const displayImages = useMemo(() => images.slice(0, page * PAGE_SIZE), [images, page]);
+
+  const hasMore = useMemo(() => images.length > displayImages.length, [images, displayImages]);
   const renderMediaItem = useCallback((media: LocalImageData) => {
     const props = {
       isSelected: selectedImages.has(media.id),
@@ -69,23 +78,43 @@ const GridView: React.FC<ImageGridBaseProps> = ({
     />;
   }, [selectedImages, onSelectImage, onFavorite, viewMode]);
 
+  // 修改 useInView 配置
+  const { ref: loadMoreRef, inView } = useInView({
+    threshold: 0,
+    rootMargin: '2000px', // 提前 200px 触发加载
+  });
+
+  useEffect(() => {
+    if (inView && hasMore) {
+      setPage(prev => prev + 1);
+    }
+  }, [inView, hasMore]);
+
   return (
-    <Masonry
-      breakpointCols={breakpointColumns}
-      className="flex -ml-6 [&>*]:will-change-[transform,opacity] [&>*]:transition-all [&>*]:duration-500 [&>*]:ease-[cubic-bezier(0.4,0,0.2,1)]"
-      columnClassName="pl-6 space-y-6 [&>*]:will-change-[transform,opacity] [&>*]:transition-all [&>*]:duration-500 [&>*]:ease-[cubic-bezier(0.4,0,0.2,1)]"
-    >
-      {images.map((image) => (
-        <div
-          key={image.id}
-          className="image-item"
-          data-image-id={image.id}
-          onContextMenu={handleContextMenu}
-        >
-          {renderMediaItem(image)}
-        </div>
-      ))}
-    </Masonry>
+    <div className="relative">
+      <Masonry
+        breakpointCols={breakpointColumns}
+        className="flex -ml-6 [&>*]:will-change-[transform,opacity] [&>*]:transition-all [&>*]:duration-500 [&>*]:ease-[cubic-bezier(0.4,0,0.2,1)]"
+        columnClassName="pl-6 space-y-6 [&>*]:will-change-[transform,opacity] [&>*]:transition-all [&>*]:duration-500 [&>*]:ease-[cubic-bezier(0.4,0,0.2,1)]"
+      >
+        {displayImages.map((image) => (
+          <div
+            key={image.id}
+            className="image-item"
+            data-image-id={image.id}
+            onContextMenu={handleContextMenu}
+          >
+            {renderMediaItem(image)}
+          </div>
+        ))}
+      <div 
+        ref={loadMoreRef} 
+        className="flex justify-center items-center w-full h-10"
+      >
+        '加载中...' 
+      </div>
+      </Masonry>
+    </div>
   );
 };
 
