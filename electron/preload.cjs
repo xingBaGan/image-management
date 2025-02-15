@@ -33,11 +33,12 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.removeListener('remote-images-downloaded', callback);
   },
   onQueueUpdate: (callback) => {
-    ipcRenderer.on('queue-update', (event, status) => callback(status));
+    ipcRenderer.on('queue-progress-update', (event, status) => callback(status));
   },
   removeQueueUpdateListener: (callback) => {
-    ipcRenderer.removeListener('queue-update', callback);
+    ipcRenderer.removeListener('queue-progress-update', callback);
   },
+  resetQueueProgress: (type) => ipcRenderer.invoke('reset-queue-progress', type),
   // 接收主进程消息的方法
   on: (channel, callback) => {
     if (channel === 'initialize-plugin') {  // 白名单校验

@@ -142,6 +142,9 @@ export interface ElectronAPI {
   getMainColor: (imagePath: string) => Promise<string[]>;
   onRemoteImagesDownloaded: (callback: (result: { success: boolean; error?: string }) => void) => void;
   removeRemoteImagesDownloadedListener: (callback: (result: { success: boolean; error?: string }) => void) => void;
+  onQueueUpdate: (callback: (status: { tagQueue: number, colorQueue: number }) => void) => void;
+  resetQueueProgress: (type: 'tag' | 'color') => Promise<boolean>;
+  removeQueueUpdateListener: (callback: (status: { tagQueue: number, colorQueue: number }) => void) => void;
 }
 
 

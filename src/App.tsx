@@ -19,6 +19,8 @@ import { useCategoryOperations } from './hooks/useCategoryOperations';
 import { useImageOperations } from './hooks/useImageOperations';
 import { getGridItemAppendButtonsProps } from './plugins';
 import { scan } from "react-scan"; 
+import ProgressBar from './components/ProgressBar';
+import { motion } from 'framer-motion';
 scan({ enabled: true, log: true, showToolbar: true })
 function App() {
   const { settings } = useSettings();
@@ -51,6 +53,13 @@ function App() {
     isOpen: false,
     message: '',
     type: 'info'
+  });
+  const [queueProgress, setQueueProgress] = useState<{
+    tag: { total: number; completed: number; percentage: number; running: number };
+    color: { total: number; completed: number; percentage: number; running: number };
+  }>({
+    tag: { total: 0, completed: 0, percentage: 0, running: 0 },
+    color: { total: 0, completed: 0, percentage: 0, running: 0 }
   });
 
   // 添加 refs 用于快捷键操作
@@ -252,6 +261,25 @@ function App() {
     initializeData();
 
     window.electron.onRemoteImagesDownloaded(()=>{});
+    window.electron.onQueueUpdate((status: any) => {
+      console.log('queue status', status);
+      if (status.type === 'tag' || status.type === 'color') {
+        setQueueProgress(prev => ({
+          ...prev,
+          [status.type]: status.progress
+        }));
+
+        if (status.progress.percentage === 100) {
+          setTimeout(() => {
+            setQueueProgress(prev => ({
+              ...prev,
+              [status.type]: { total: 0, completed: 0, percentage: 0, running: 0}
+            }));
+            window.electron.resetQueueProgress(status.type);
+          }, 1000);
+        }
+      }
+    });
 
     return () => {
       window.electron.removeRemoteImagesDownloadedListener(()=>{});
@@ -573,6 +601,28 @@ function App() {
             setMessageBox={setMessageBox}
             messageBox={messageBox}
           />
+          {queueProgress.tag.total > 0 && (
+            <ProgressBar 
+              type="tag"
+              progress={queueProgress.tag.percentage}
+              total={queueProgress.tag.total}
+              completed={queueProgress.tag.completed}
+            />
+          )}
+          {queueProgress.color.total > 0 && (
+            <motion.div
+              initial={{ y: 0 }}
+              animate={{ y: queueProgress.tag.total > 0 ? -80 : 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            >
+              <ProgressBar 
+                type="color"
+                progress={queueProgress.color.percentage}
+                total={queueProgress.color.total}
+                completed={queueProgress.color.completed}
+              />
+            </motion.div>
+          )}
         </div>
   );
 }

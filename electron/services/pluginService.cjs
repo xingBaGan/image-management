@@ -2,14 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const { app, BrowserWindow } = require('electron');
 const { getImagesByIds } = require('./FileService.cjs');
+const { notifyAllWindows } = require('../utils/index.cjs');
 
 
-function notifyAllWindows(name, data) {
-  const windows = BrowserWindow.getAllWindows();
-  windows.forEach(window => {
-    window.webContents.send(name, data);
-  });
-}
 const ADD_GRID_ITEM_BUTTON = 'add-grid-item-button';
 const ADD_TOOL_BAR_ITEM = 'add-tool-bar-item';
 // 创建 AtujiiClient 实例

@@ -322,8 +322,22 @@ ipcMain.handle('get-queue-status', async () => {
   };
 });
 
+// 添加重置队列进度的处理程序
+ipcMain.handle('reset-queue-progress', async (event, type) => {
+  if (type === 'tag') {
+    tagQueue.reset();
+  } else {
+    colorQueue.reset();
+  }
+  return true;
+});
+
+// 修改现有的批量处理函数，使其在开始前重置进度
 ipcMain.handle('process-directory', async (event, dirPath) => {
   try {
+    // 在开始处理前重置进度
+    tagQueue.reset();
+    colorQueue.reset();
     const results = await processDirectoryFiles(dirPath);
     return results;
   } catch (error) {

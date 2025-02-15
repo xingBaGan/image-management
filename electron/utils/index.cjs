@@ -1,3 +1,5 @@
+const { BrowserWindow } = require('electron');
+
 const generateHashId = (filePath, fileSize) => {
     const str = `${filePath}-${fileSize}`;
     let hash = 0;
@@ -9,6 +11,14 @@ const generateHashId = (filePath, fileSize) => {
     return Math.abs(hash).toString(16);
   };
 
+function notifyAllWindows(name, data) {
+  const windows = BrowserWindow.getAllWindows();
+  windows.forEach(window => {
+    window.webContents.send(name, data);
+  });
+}
+
 module.exports = {
     generateHashId,
+    notifyAllWindows
 }

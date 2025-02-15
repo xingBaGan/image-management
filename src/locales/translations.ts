@@ -172,6 +172,11 @@ export const translations = {
       ctrlS: 'Ctrl+S - Toggle sort popup',
       ctrlR: 'Ctrl+R - Toggle filter popup',
     },
+
+    // Progress
+    tagAnalysis: 'Tag Analysis',
+    colorAnalysis: 'Color Analysis',
+    processingProgress: '{{completed}}/{{total}}',
   },
   zh: {
     // 工具栏
@@ -345,5 +350,10 @@ export const translations = {
       ctrlS: 'Ctrl+S - 切换排序弹窗',
       ctrlR: 'Ctrl+R - 切换筛选弹窗',
     },
+
+    // Progress
+    tagAnalysis: '标签分析',
+    colorAnalysis: '颜色分析',
+    processingProgress: '{{completed}}/{{total}}',
   }
 }; 
