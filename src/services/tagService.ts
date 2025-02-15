@@ -53,6 +53,8 @@ export async function addTagsToImages(
       selectedImages.map(async (image) => {
         const imagePath = await getLocalImagePath(image.path);
         const newTags = await window.electron.tagImage(imagePath, modelName);
+        // 按照字母顺序排序
+        const sortedTags = newTags.map(tag => tag.trim()).sort((a, b) => a.localeCompare(b));
         if (!image?.colors?.length) {
           const colors = await getMainColor(imagePath);
           image.colors = colors;
@@ -62,7 +64,7 @@ export async function addTagsToImages(
         // 合并现有标签和新标签，去重
           return {
             ...image,
-            tags: [...new Set([...image.tags, ...newTags])]
+            tags: [...new Set([...image.tags, ...sortedTags])]
           };
         }
         return image;

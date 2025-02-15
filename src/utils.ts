@@ -109,6 +109,8 @@ export const processMedia = async (
     if (autoTaggingEnabled && isImage) {
       setImportState(ImportStatus.Tagging);
       tags = await window.electron.tagImage(file.path, defaultModel);
+      // 按照字母顺序排序
+      tags = tags.map(tag => tag.trim()).sort((a, b) => a.localeCompare(b));
     }
     let imageSize = { width: 0, height: 0 };
     try {

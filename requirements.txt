@@ -1,4 +1,4 @@
-onnxruntime>=1.15.0
+onnxruntime-gpu
 Pillow>=10.0.0
 numpy>=1.24.0
 requests>=2.31.0
