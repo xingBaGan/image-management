@@ -262,7 +262,6 @@ function App() {
 
     window.electron.onRemoteImagesDownloaded(()=>{});
     window.electron.onQueueUpdate((status: any) => {
-      console.log('queue status', status);
       if (status.type === 'tag' || status.type === 'color') {
         setQueueProgress(prev => ({
           ...prev,
