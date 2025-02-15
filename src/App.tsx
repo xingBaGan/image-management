@@ -21,8 +21,12 @@ import { getGridItemAppendButtonsProps } from './plugins';
 import { scan } from "react-scan"; 
 import ProgressBar from './components/ProgressBar';
 import { motion } from 'framer-motion';
-scan({ enabled: true, log: true, showToolbar: true })
+const isDev = import.meta.env.DEV;
+if (isDev) {
+  scan({ enabled: true, log: true, showToolbar: true });
+}
 function App() {
+  // 使用 settings hook 获取设置
   const { settings } = useSettings();
   const { t } = useLocale();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
