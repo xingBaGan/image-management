@@ -170,17 +170,21 @@ export const handleDrop = async (
 ) => {
   e.preventDefault();
   const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'));
- 
+  const dirPaths = Array.from(e.dataTransfer.files).filter(files => files.type === "");
+  let images: LocalImageData[] = [];
   if (files.length > 0) {
     const newImages = await processMedia(files as ImportFile[], existingImages, categories, setImportState);
-    addImages(newImages as LocalImageData[]);
-  } else {
-    const images: LocalImageData[] = [];
-    for (const file of e.dataTransfer.files) {
-      setImportState(ImportStatus.Importing);
-      const firstFile = file.path;
-      const newImages = await window.electron.processDirectoryFiles(firstFile);
-      images.push(...newImages);
+    images.push(...newImages);
+  }
+
+  if (dirPaths.length > 0) {
+    for (const file of dirPaths) {
+      if ('path' in file) {
+        setImportState(ImportStatus.Importing);
+        const firstFile = file.path as string;
+        const newImages = await window.electron.processDirectoryFiles(firstFile);
+        images.push(...newImages);
+      }
     }
     addImages(images);
     setImportState(ImportStatus.Imported);

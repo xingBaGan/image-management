@@ -106,56 +106,59 @@ const getImageSize = async (filePath) => {
 };
 
 const processDirectoryFiles = async (dirPath) => {
-	try {
-		const files = await fsPromises.readdir(dirPath);
+    try {
+        const files = await fsPromises.readdir(dirPath);
+        const processedFiles = [];
 
-		const processedFiles = [];
+        for (const file of files) {
+            try {
+                const filePath = path.join(dirPath, file);
+                const stats = await fsPromises.stat(filePath);
 
-		for (const file of files) {
-			try {
-				const filePath = path.join(dirPath, file);
-				const stats = await fsPromises.stat(filePath);
-				if (!stats.isFile()) continue;
+                if (stats.isDirectory()) {
+                    // 递归处理子文件夹
+                    const subDirFiles = await processDirectoryFiles(filePath);
+                    processedFiles.push(...subDirFiles);
+                } else if (stats.isFile()) {
+                    const ext = path.extname(filePath).toLowerCase();
+                    if (!supportedExtensions.includes(ext)) continue;
+                    const isVideo = ['.mp4', '.mov', '.avi', '.webm'].includes(ext);
+                    const localImageUrl = `local-image://${encodeURIComponent(filePath)}`;
+                    const thumbnail = isVideo ? await generateVideoThumbnail(filePath) : undefined;
+                    let imageSize = await getImageSize(filePath);
+                    imageSize = isVideo ? await getImageSize(thumbnail) : imageSize;
+                    const id = generateHashId(filePath, stats.size);
+                    const metadata = {
+                        id: id,
+                        path: localImageUrl,
+                        name: path.basename(filePath, ext), // 移除扩展名
+                        extension: ext.slice(1), // 移除点号
+                        size: stats.size,
+                        dateCreated: stats.birthtime.toISOString(),
+                        dateModified: stats.mtime.toISOString(),
+                        tags: [],
+                        favorite: false,
+                        categories: [],
+                        width: imageSize.width,
+                        height: imageSize.height,
+                        type: isVideo ? 'video' : 'image',
+                        thumbnail: thumbnail,
+                        duration: isVideo ? await getVideoDuration(filePath) : undefined,
+                    };
+                    processedFiles.push(metadata);
+                }
+            } catch (error) {
+                console.error(`处理文件 ${file} 时出错:`, error);
+                continue;
+            }
+        }
 
-				const ext = path.extname(filePath).toLowerCase();
-				if (!supportedExtensions.includes(ext)) continue;
-				const isVideo = ['.mp4', '.mov', '.avi', '.webm'].includes(ext);
-				const localImageUrl = `local-image://${encodeURIComponent(filePath)}`;
-				const thumbnail = isVideo ? await generateVideoThumbnail(filePath) : undefined;
-				let imageSize = await getImageSize(filePath);
-				imageSize = isVideo ? await getImageSize(thumbnail) : imageSize;
-				const id = generateHashId(filePath, stats.size);
-				const metadata = {
-					id: id,
-					path: localImageUrl,
-					name: path.basename(filePath, ext), // 移除扩展名
-					extension: ext.slice(1), // 移除点号
-					size: stats.size,
-					dateCreated: stats.birthtime.toISOString(),
-					dateModified: stats.mtime.toISOString(),
-					tags: [],
-					favorite: false,
-					categories: [],
-					width: imageSize.width,
-					height: imageSize.height,
-					type: isVideo ? 'video' : 'image',
-					thumbnail: thumbnail,
-					duration: isVideo ? await getVideoDuration(filePath) : undefined,
-				};
-				processedFiles.push(metadata);
-			} catch (error) {
-				console.error(`处理文件 ${file} 时出错:`, error);
-				continue;
-			}
-		}
-
-		return processedFiles;
-	} catch (error) {
-		console.error('处理目录失败:', error);
-		throw error;
-	}
+        return processedFiles;
+    } catch (error) {
+        console.error('处理目录失败:', error);
+        throw error;
+    }
 };
-
 
 module.exports = {
 	getVideoDuration,
