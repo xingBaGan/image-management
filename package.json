@@ -136,58 +136,11 @@
     },
     "asar": true,
     "mac": {
-      "category": "public.app-category.photography",
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        },
-        {
-          "target": "zip",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
-      ],
-      "icon": "build/icon.icns",
-      "darkModeSupport": true,
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist"
-    },
-    "dmg": {
-      "contents": [
-        {
-          "x": 130,
-          "y": 220
-        },
-        {
-          "x": 410,
-          "y": 220,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ],
-      "window": {
-        "width": 540,
-        "height": 380
-      }
+      "category": "public.app-category.developer-tools",
+      "target": ["dmg", "zip"]
     },
     "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
-        }
-      ]
+      "target": ["nsis", "zip"]
     },
     "nsis": {
       "oneClick": false,
@@ -198,40 +151,8 @@
       "shortcutName": "atujii"
     },
     "linux": {
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        },
-        {
-          "target": "deb",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        },
-        {
-          "target": "rpm",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
-      ],
-      "icon": "build/icons",
-      "category": "Graphics",
-      "maintainer": "jzj",
-      "vendor": "atujii",
-      "synopsis": "图片管理工具",
-      "description": "一个简洁优雅的本地图片管理工具",
-      "desktop": {
-        "Name": "atujii",
-        "Comment": "图片管理工具",
-        "Categories": "Graphics;Photography;Utility;"
-      }
+      "target": ["AppImage", "deb", "rpm"],
+      "category": "Development"
     },
     "publish": {
       "provider": "github",
