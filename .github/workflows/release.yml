@@ -38,7 +38,9 @@ jobs:
             xdg-utils \
             libatspi2.0-0 \
             libsecret-1-0 \
+            libasound2-dev \
             libasound2 \
+            libpulse-dev \
             build-essential \
             curl \
             wget \
@@ -50,7 +52,9 @@ jobs:
             libgl1 \
             libpango-1.0-0 \
             libcairo2 \
-            libatk1.0-0
+            libatk1.0-0 \
+            liboss4-salsa-asound2 \
+            libasound2-data
 
       - name: Install Dependencies
         run: npm install
