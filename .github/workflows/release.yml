@@ -54,7 +54,7 @@ jobs:
       - name: Build Electron App
         run: npm run electron:build
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v1
@@ -68,9 +68,4 @@ jobs:
             dist-electron/*.rpm
             dist-electron/*.zip
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update submodules
-        run: |
-          git submodule init
-          git submodule update 
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }} 
