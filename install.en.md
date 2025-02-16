@@ -25,7 +25,7 @@ If the automatic download fails, you can choose the following methods to downloa
    - Place the downloaded files in the models directory under resources
 
 2. Download from Alternative Source:
-   - Quark Network Disk Link: https://pan.quark.cn/s/fb8705d883c3
+   - Quark Network Disk Link: https://pan.quark.cn/s/c1a5c5876679
    - After downloading, extract the files to the `models` directory under the program's resources directory
 
 3. Download from Alternative Source:

@@ -25,7 +25,7 @@ requirement: python 3.10+
    - 将下载的文件放入 resources的models目录中
 
 2. 国内网盘下载：
-   - 夸克网盘链接：https://pan.quark.cn/s/fb8705d883c3
+   - 夸克网盘链接：https://pan.quark.cn/s/c1a5c5876679
    - 下载后将文件解压到程序resources目录下的 `models` 目录中
 
 注意：如果 resources的models目录不存在，需要手动创建。
