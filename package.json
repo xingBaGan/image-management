@@ -1,7 +1,7 @@
 {
   "name": "atujii",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "ai image management tool",
   "author": {
     "name": "jzj",
@@ -137,10 +137,16 @@
     "asar": true,
     "mac": {
       "category": "public.app-category.developer-tools",
-      "target": ["dmg", "zip"]
+      "target": [
+        "dmg",
+        "zip"
+      ]
     },
     "win": {
-      "target": ["nsis", "zip"]
+      "target": [
+        "nsis",
+        "zip"
+      ]
     },
     "nsis": {
       "oneClick": false,
@@ -151,7 +157,11 @@
       "shortcutName": "atujii"
     },
     "linux": {
-      "target": ["AppImage", "deb", "rpm"],
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
       "category": "Development"
     },
     "publish": {
