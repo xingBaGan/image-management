@@ -19,7 +19,6 @@ interface ToolbarProps {
   onViewModeChange: (mode: ViewMode) => void;
   onSortChange: (sort: SortType) => void;
   onSearch: (tags: string[]) => void;
-  onFilter: (filters: FilterOptions) => void;
   selectedCount: number;
   bulkActions: any[];
   onToggleSidebar: () => void;
@@ -33,6 +32,8 @@ interface ToolbarProps {
   sortButtonRef: React.RefObject<HTMLElement>;
   filterButtonRef: React.RefObject<HTMLElement>;
   selectedImages: Set<string>;
+  multiFilter: FilterOptions;
+  setMultiFilter: (filters: FilterOptions | ((prev: FilterOptions) => FilterOptions)) => void;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -42,7 +43,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onViewModeChange,
   onSortChange,
   onSearch,
-  onFilter,
   selectedCount,
   bulkActions,
   onToggleSidebar,
@@ -55,24 +55,18 @@ const Toolbar: React.FC<ToolbarProps> = ({
   sortButtonRef,
   filterButtonRef,
   selectedImages,
+  multiFilter,
+  setMultiFilter,
 }) => {
   const { t } = useLocale();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isShortcutsHelpOpen, setIsShortcutsHelpOpen] = useState(false);
-  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-    colors: filterColors,
-    ratio: [],
-    rating: null,
-    formats: [],
-    precision: 0.85
-  });
   const filterRef = useRef<HTMLDivElement>(null);
   const [appendButtonsProps, setAppendButtonsProps] = useState<AppendButtonsProps[]>([]);
   
   useEffect(() => {
     setAppendButtonsProps(getToolBarAppendButtonsProps());
   }, []);
-
   return (
     <>
       <div className="flex relative z-20 justify-between items-center px-6 h-16 bg-white bg-opacity-30 border-b backdrop-blur-sm dark:bg-gray-800 dark:bg-opacity-30 dark:border-gray-700">
@@ -136,7 +130,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                   setIsShortcutsHelpOpen={setIsShortcutsHelpOpen}
                   isFilterOpen={isFilterOpen}
                   setIsFilterOpen={setIsFilterOpen}
-                  filterOptions={filterOptions}
+                  filterOptions={multiFilter}
                   filterButtonRef={filterButtonRef}
                   filterRef={filterRef}
                 />
@@ -172,30 +166,27 @@ const Toolbar: React.FC<ToolbarProps> = ({
                       ]}
                       filterColors={filterColors}
                       setFilterColors={setFilterColors}
-                      filterOptions={filterOptions}
+                      filterOptions={multiFilter}
                       onFilterChange={(type, value) => {
-                        setFilterOptions(prev => {
-                          const newOptions = { ...prev };
-                          if (type === 'rating') {
-                            if (newOptions.rating === parseInt(value as string)) {
-                              newOptions.rating = null;
-                            } else {
-                              newOptions.rating = parseInt(value as string);
-                            }
-                          } else if (type === 'precision') {
-                            newOptions.precision = value as number;
+                        const newOptions = { ...multiFilter };
+                        if (type === 'rating') {
+                          if (newOptions.rating === parseInt(value as string)) {
+                            newOptions.rating = null;
                           } else {
-                            const arr = newOptions[type] as string[];
-                            const index = arr.indexOf(value as string);
-                            if (index === -1) {
-                              arr.push(value as string);
-                            } else {
-                              arr.splice(index, 1);
-                            }
+                            newOptions.rating = parseInt(value as string);
                           }
-                          onFilter(newOptions);
-                          return newOptions;
-                        });
+                        } else if (type === 'precision') {
+                          newOptions.precision = value as number;
+                        } else {
+                          const arr = newOptions[type] as string[];
+                          const index = arr.indexOf(value as string);
+                          if (index === -1) {
+                            arr.push(value as string);
+                          } else {
+                            arr.splice(index, 1);
+                          }
+                        }
+                        setMultiFilter(newOptions);
                       }}
                     />
                   </div>

@@ -445,7 +445,7 @@ function App() {
       }
 
       if (multiFilter.ratio.length > 0) {
-        return multiFilter.ratio.every(ratio => img.ratio === ratio);
+        return multiFilter.ratio.some(ratio => img.ratio === ratio);
       }
       if (typeof multiFilter.rating === 'number') {
         return img.rating === multiFilter.rating;
@@ -483,10 +483,7 @@ function App() {
     selectedCategory, 
     categories, 
     searchTags,
-    multiFilter.ratio,
-    multiFilter.rating,
-    multiFilter.formats,
-    multiFilter.precision,
+    multiFilter,
     filterColors
   ]);
 
@@ -545,13 +542,14 @@ function App() {
                 isSidebarOpen={isZenMode}
                 setIsSettingsOpen={setIsSettingsOpen}
                 isSettingsOpen={isSettingsOpen}
-                onFilter={setMultiFilter}
                 filterColors={filterColors}
                 setFilterColors={setFilterColors}
                 searchButtonRef={searchButtonRef}
                 sortButtonRef={sortButtonRef}
                 filterButtonRef={filterButtonRef}
                 selectedImages={selectedImages}
+                multiFilter={multiFilter}
+                setMultiFilter={setMultiFilter}
               />
               <div className="flex overflow-y-auto flex-1">
                 <div className={`flex-1 ${isZenMode ? 'mr-0' : 'mr-60'}`}>

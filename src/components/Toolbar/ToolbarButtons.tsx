@@ -41,10 +41,10 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
   }, [setIsFilterOpen, filterButtonRef]);
 
   const getFilterCount = () => {
-    return filterOptions.colors.length +
-      filterOptions.ratio.length +
-      filterOptions.formats.length +
-      (filterOptions.rating !== null ? 1 : 0);
+    return filterOptions?.colors.length +
+      filterOptions?.ratio.length +
+      filterOptions?.formats.length +
+      (filterOptions?.rating !== null ? 1 : 0);
   };
 
   return (

@@ -104,6 +104,19 @@ const getImageSize = async (filePath) => {
 		return { width: 0, height: 0 };
 	}
 };
+const getRatio = async (width, height) => {
+  const ratio = width / height;
+  // ['4:3', '16:9', '1:1', '3:4', '9:16']
+  const ratios = ['4:3', '16:9', '1:1', '3:4', '9:16'];
+  const closestRatio = ratios.reduce((prev, curr) => {
+    const [prevWidth, prevHeight] = prev.split(':').map(Number);
+    const [currWidth, currHeight] = curr.split(':').map(Number);
+    const prevRatio = prevWidth / prevHeight;
+    const currRatio = currWidth / currHeight;
+    return (Math.abs(ratio - prevRatio) < Math.abs(ratio - currRatio) ? prev : curr);
+  });
+  return closestRatio;
+};
 
 const processDirectoryFiles = async (dirPath) => {
     try {
@@ -128,6 +141,7 @@ const processDirectoryFiles = async (dirPath) => {
                     let imageSize = await getImageSize(filePath);
                     imageSize = isVideo ? await getImageSize(thumbnail) : imageSize;
                     const id = generateHashId(filePath, stats.size);
+										const ratio = await getRatio(imageSize.width, imageSize.height);
                     const metadata = {
                         id: id,
                         path: localImageUrl,
@@ -137,6 +151,7 @@ const processDirectoryFiles = async (dirPath) => {
                         dateCreated: stats.birthtime.toISOString(),
                         dateModified: stats.mtime.toISOString(),
                         tags: [],
+                        ratio: ratio,
                         favorite: false,
                         categories: [],
                         width: imageSize.width,
