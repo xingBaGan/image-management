@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>图迹 - 优雅的本地图片管理工具</title>
+    <title data-i18n="page_title">图迹 - 优雅的本地图片管理工具</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css">
-    <meta name="description" content="图迹是一款优雅的本地图片管理工具，提供AI智能标签、媒体分类整理、收藏等功能，让您的图片和视频资源管理更轻松。">
+    <meta name="description" data-i18n="page_description" content="图迹是一款优雅的本地图片管理工具，提供AI智能标签、媒体分类整理、收藏等功能，让您的图片和视频资源管理更轻松。">
     <meta name="keywords" content="图迹,图片管理,AI图片工具,本地图片整理,媒体管理软件,图片分类工具">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://xingbagan.github.io/atujii/" />
@@ -55,12 +55,28 @@
         <div class="px-4 mx-auto max-w-7xl">
             <div class="flex justify-between items-center py-4">
                 <div class="flex items-center">
-                    <span class="text-2xl font-bold text-blue-400">图迹</span>
+                    <span class="text-2xl font-bold text-blue-400" data-i18n="logo_text">图迹</span>
                 </div>
                 <div class="hidden items-center space-x-8 md:flex">
-                    <a href="#features" class="text-gray-300 transition duration-300 hover:text-blue-400">功能特点</a>
-                    <a href="#screenshots" class="text-gray-300 transition duration-300 hover:text-blue-400">界面展示</a>
-                    <a href="#download" class="text-gray-300 transition duration-300 hover:text-blue-400">下载使用</a>
+                    <a href="#features" class="text-gray-300 transition duration-300 hover:text-blue-400" data-i18n="nav_features">功能特点</a>
+                    <a href="#screenshots" class="text-gray-300 transition duration-300 hover:text-blue-400" data-i18n="nav_screenshots">界面展示</a>
+                    <a href="#download" class="text-gray-300 transition duration-300 hover:text-blue-400" data-i18n="nav_download">下载使用</a>
+                    <div class="relative group">
+                        <button class="flex items-center px-4 py-2 text-gray-300 transition duration-300 hover:text-blue-400">
+                            <i class="mr-2 fas fa-globe"></i>
+                            <span data-i18n="language_selector">语言 / Language</span>
+                        </button>
+                        <div class="hidden absolute right-0 pt-2 group-hover:block">
+                            <div class="bg-gray-900 rounded-lg border border-gray-700 shadow-xl">
+                                <a href="#" class="block px-4 py-2 text-gray-300 hover:text-blue-400 hover:bg-gray-800" data-lang="zh">
+                                    中文 (Chinese)
+                                </a>
+                                <a href="#" class="block px-4 py-2 text-gray-300 hover:text-blue-400 hover:bg-gray-800" data-lang="en">
+                                    English
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                     <a href="https://github.com/xingBaGan/atujii" class="px-4 py-2 text-blue-400 rounded-lg border border-blue-400 transition duration-300 hover:bg-blue-400 hover:text-gray-900 neon-border">
                         <i class="mr-2 fab fa-github"></i>GitHub
                     </a>
@@ -73,43 +89,39 @@
     <header class="pt-32 pb-24 gradient-bg">
         <div class="px-4 mx-auto max-w-7xl text-center sm:px-6 lg:px-8">
             <h1 class="mb-6 text-4xl font-bold text-blue-400 md:text-6xl">
-                图迹 - AI智能图片管理工具
+                <span data-i18n="main_title">图迹 - AI智能图片管理工具</span>
+                <span class="block mt-2 text-2xl md:text-3xl" data-i18n="main_subtitle">让图片管理更智能、更轻松</span>
             </h1>
-            <p class="mb-8 text-xl text-gray-300">
-                轻松管理和组织您的图片与视频资源
-            </p>
+            <p class="mb-8 text-xl text-gray-300" data-i18n="main_desc">轻松管理和组织您的图片与视频资源</p>
             <div class="flex justify-center space-x-4">
-                <a href="#download" class="px-8 py-3 font-semibold text-gray-900 bg-blue-400 rounded-lg transition duration-300 hover:bg-blue-500 neon-border">
-                    立即下载
-                </a>
-                <a href="#features" class="px-8 py-3 font-semibold text-blue-400 rounded-lg border-2 border-blue-400 transition duration-300 hover:bg-blue-400 hover:text-gray-900 neon-border">
-                    了解更多
-                </a>
+                <a href="#download" class="px-8 py-3 font-semibold text-gray-900 bg-blue-400 rounded-lg transition duration-300 hover:bg-blue-500 neon-border" data-i18n="download_now">立即下载</a>
+                <a href="#features" class="px-8 py-3 font-semibold text-blue-400 rounded-lg border-2 border-blue-400 transition duration-300 hover:bg-blue-400 hover:text-gray-900 neon-border" data-i18n="learn_more">了解更多</a>
             </div>
         </div>
     </header>
 
     <!-- 视频介绍 -->
-    <div class="py-10 bg-gray-900">
+    <section class="py-10 bg-gray-900">
+        <h2 class="mb-8 text-3xl font-bold text-center text-blue-400">产品功能演示</h2>
         <div class="mx-auto w-full max-w-4xl">
             <iframe 
              class="w-full rounded-lg shadow-2xl aspect-video"
              style="height: 500px;"
              src="//player.bilibili.com/player.html?isOutside=true&aid=114008430477756&bvid=BV1shAKeoEmi&cid=28409988717&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
         </div>
-    </div>
+    </section>
 
     <!-- 主要功能 -->
     <section id="features" class="py-20 bg-gray-900">
         <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <h2 class="mb-16 text-3xl font-bold text-center text-blue-400">主要功能特点</h2>
+            <h2 class="mb-16 text-3xl font-bold text-center text-blue-400">核心功能特点</h2>
             <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
                 <div class="p-6 rounded-xl feature-card">
                     <div class="mb-4 text-4xl text-blue-400">
                         <i class="fas fa-images"></i>
                     </div>
-                    <h3 class="mb-2 text-xl font-semibold text-gray-100">智能媒体管理</h3>
-                    <p class="text-gray-400">支持图片和视频的智能管理，包括分类、标签、收藏等功能</p>
+                    <h3 class="mb-2 text-xl font-semibold text-gray-100" data-i18n="feature1_title">智能媒体管理</h3>
+                    <p class="text-gray-400" data-i18n="feature1_desc">支持图片和视频的智能管理，包括分类、标签、收藏等功能</p>
                 </div>
                 <div class="p-6 rounded-xl feature-card">
                     <div class="mb-4 text-4xl text-blue-400">
@@ -132,17 +144,17 @@
     <!-- 界面展示 -->
     <section id="screenshots" class="py-20 bg-gray-800">
         <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <h2 class="mb-16 text-3xl font-bold text-center text-blue-400">产品界面展示</h2>
+            <h2 class="mb-16 text-3xl font-bold text-center text-blue-400">界面预览</h2>
             <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
                 <div class="overflow-hidden rounded-lg shadow-2xl neon-border">
                     <img src="https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v.3.0-1.png" 
                          alt="图迹软件图片管理界面展示 - 支持多种视图模式和智能分类" 
-                         class="w-full">
+                         class="w-full" data-i18n="screenshot1_alt">
                 </div>
                 <div class="overflow-hidden rounded-lg shadow-2xl neon-border">
                     <img src="https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v.0.3.0-3.png" 
                          alt="图迹软件视频管理界面展示 - 支持视频预览和智能标签" 
-                         class="w-full">
+                         class="w-full" data-i18n="screenshot2_alt">
                 </div>
             </div>
         </div>
@@ -151,20 +163,20 @@
     <!-- 下载部分 -->
     <section id="download" class="py-20 bg-gray-900">
         <div class="px-4 mx-auto max-w-7xl text-center sm:px-6 lg:px-8">
-            <h2 class="mb-8 text-3xl font-bold text-blue-400">立即下载</h2>
+            <h2 class="mb-8 text-3xl font-bold text-blue-400">下载安装</h2>
             <div class="flex justify-center space-x-8">
                 <a href="https://github.com/xingBaGan/atujii/releases/download/v0.3.1/atujii-Setup-0.3.1.exe" 
                    class="flex items-center px-6 py-3 space-x-2 text-blue-400 rounded-lg border border-blue-400 transition duration-300 hover:bg-blue-400 hover:text-gray-900 neon-border">
                     <i class="text-2xl fab fa-windows"></i>
-                    <span>Windows</span>
+                    <span data-i18n="download_windows">Windows</span>
                 </a>
                 <a href="https://github.com/xingBaGan/atujii/releases/download/v0.3.1/atujii-0.3.1-arm64.dmg" class="flex items-center px-6 py-3 space-x-2 text-blue-400 rounded-lg border border-blue-400 transition duration-300 hover:bg-blue-400 hover:text-gray-900 neon-border">
                     <i class="text-2xl fab fa-apple"></i>
-                    <span>macOS</span>
+                    <span data-i18n="download_macos">macOS</span>
                 </a>
                 <a href="https://github.com/xingBaGan/atujii/releases/download/v0.3.1/atujii-0.3.1.AppImage" class="flex items-center px-6 py-3 space-x-2 text-blue-400 rounded-lg border border-blue-400 transition duration-300 hover:bg-blue-400 hover:text-gray-900 neon-border">
                     <i class="text-2xl fab fa-linux"></i>
-                    <span>Linux</span>
+                    <span data-i18n="download_linux">Linux</span>
                 </a>
             </div>
         </div>
@@ -174,7 +186,7 @@
     <footer class="py-12 text-gray-400 bg-gray-900">
         <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
             <div class="text-center">
-                <p class="mb-4">图迹 - 让图片管理变得简单</p>
+                <p class="mb-4" data-i18n="footer_slogan">图迹 - 让图片管理变得简单</p>
                 <div class="flex justify-center space-x-6">
                     <a href="#" class="text-gray-500 transition duration-300 hover:text-blue-400">
                         <i class="text-2xl fab fa-github"></i>
@@ -183,9 +195,161 @@
                         <i class="text-2xl fab fa-twitter"></i>
                     </a>
                 </div>
-                <p class="mt-4">© 2024 图迹. MIT License.</p>
+                <p class="mt-4" data-i18n="footer_copyright">© 2024 图迹. MIT License.</p>
             </div>
         </div>
     </footer>
+
+    <!-- 在页面底部添加语言切换脚本 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const langButtons = document.querySelectorAll('[data-lang]');
+            const translations = {
+                zh: {
+                    // 导航
+                    nav_features: '功能特点',
+                    nav_screenshots: '界面展示',
+                    nav_download: '下载使用',
+                    
+                    // 主横幅
+                    main_title: '图迹 - AI智能图片管理工具',
+                    main_subtitle: '让图片管理更智能、更轻松',
+                    main_desc: '轻松管理和组织您的图片与视频资源',
+                    download_now: '立即下载',
+                    learn_more: '了解更多',
+                    
+                    // 视频部分
+                    video_title: '产品功能演示',
+                    
+                    // 功能特点
+                    features_title: '核心功能特点',
+                    feature1_title: '智能媒体管理',
+                    feature1_desc: '支持图片和视频的智能管理，包括分类、标签、收藏等功能',
+                    feature2_title: 'AI 智能标签',
+                    feature2_desc: '使用深度学习自动识别图片内容，添加智能标签',
+                    feature3_title: '优雅界面设计',
+                    feature3_desc: '支持明暗主题、响应式设计，操作简单直观',
+                    
+                    // 界面预览
+                    screenshots_title: '界面预览',
+                    screenshot1_alt: '图迹软件图片管理界面展示 - 支持多种视图模式和智能分类',
+                    screenshot2_alt: '图迹软件视频管理界面展示 - 支持视频预览和智能标签',
+                    
+                    // 下载部分
+                    download_title: '下载安装',
+                    
+                    // 页脚
+                    footer_slogan: '图迹 - 让图片管理变得简单',
+                    footer_copyright: '© 2024 图迹. MIT License.',
+                    
+                    // 页面元数据
+                    page_title: '图迹 - 优雅的本地图片管理工具',
+                    page_description: '图迹是一款优雅的本地图片管理工具，提供AI智能标签、媒体分类整理、收藏等功能，让您的图片和视频资源管理更轻松。',
+                    
+                    // 导航和通用
+                    logo_text: '图迹',
+                    language_selector: '语言 / Language',
+                    
+                    // 下载按钮
+                    download_windows: 'Windows 版本',
+                    download_macos: 'macOS 版本',
+                    download_linux: 'Linux 版本',
+                    
+                    // 社交媒体
+                    social_github: 'GitHub 项目主页',
+                    social_twitter: 'Twitter 官方账号'
+                },
+                en: {
+                    // Navigation
+                    nav_features: 'Features',
+                    nav_screenshots: 'Screenshots',
+                    nav_download: 'Download',
+                    
+                    // Hero Banner
+                    main_title: 'Tuji - AI Image Management Tool',
+                    main_subtitle: 'Make image management smarter and easier',
+                    main_desc: 'Effortlessly manage and organize your photos and videos',
+                    download_now: 'Download Now',
+                    learn_more: 'Learn More',
+                    
+                    // Video Section
+                    video_title: 'Product Demo',
+                    
+                    // Features
+                    features_title: 'Core Features',
+                    feature1_title: 'Smart Media Management',
+                    feature1_desc: 'Support intelligent management of images and videos, including classification, tagging, and favorites',
+                    feature2_title: 'AI Smart Tagging',
+                    feature2_desc: 'Automatically recognize image content using deep learning and add smart tags',
+                    feature3_title: 'Elegant Interface Design',
+                    feature3_desc: 'Support light/dark themes, responsive design, simple and intuitive operation',
+                    
+                    // Screenshots
+                    screenshots_title: 'Interface Preview',
+                    screenshot1_alt: 'Tuji software image management interface - supports multiple view modes and smart classification',
+                    screenshot2_alt: 'Tuji software video management interface - supports video preview and smart tagging',
+                    
+                    // Download
+                    download_title: 'Download & Install',
+                    
+                    // Footer
+                    footer_slogan: 'Tuji - Making Image Management Simple',
+                    footer_copyright: '© 2024 Tuji. MIT License.',
+                    
+                    // Page Metadata
+                    page_title: 'Tuji - Elegant Local Image Management Tool',
+                    page_description: 'Tuji is an elegant local image management tool that provides AI smart tagging, media organization, favorites and more features to make your image and video resource management easier.',
+                    
+                    // Navigation & Common
+                    logo_text: 'Tuji',
+                    language_selector: 'Language / 语言',
+                    
+                    // Download Buttons
+                    download_windows: 'Windows Version',
+                    download_macos: 'macOS Version',
+                    download_linux: 'Linux Version',
+                    
+                    // Social Media
+                    social_github: 'GitHub Project',
+                    social_twitter: 'Twitter Official'
+                }
+            };
+
+            langButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const lang = button.getAttribute('data-lang');
+                    setLanguage(lang);
+                });
+            });
+
+            function setLanguage(lang) {
+                const elements = document.querySelectorAll('[data-i18n]');
+                elements.forEach(element => {
+                    const key = element.getAttribute('data-i18n');
+                    if (translations[lang] && translations[lang][key]) {
+                        if (element.tagName === 'META') {
+                            element.setAttribute('content', translations[lang][key]);
+                        } else {
+                            element.textContent = translations[lang][key];
+                        }
+                    }
+                });
+                
+                // 更新页面标题
+                document.title = translations[lang].page_title;
+                
+                // 更新 HTML lang 属性
+                document.documentElement.lang = lang;
+                
+                // 保存语言偏好
+                localStorage.setItem('preferred-language', lang);
+            }
+
+            // 添加初始化语言设置
+            const savedLang = localStorage.getItem('preferred-language') || 'zh';
+            setLanguage(savedLang);
+        });
+    </script>
 </body>
 </html>
