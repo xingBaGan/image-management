@@ -7,9 +7,10 @@ interface ProgressBarProps {
   type: 'tag' | 'color';
   total: number;
   completed: number;
+  offset?: number;
 }
 
-const ProgressBar: React.FC<ProgressBarProps> = ({ progress, type, total, completed }) => {
+const ProgressBar: React.FC<ProgressBarProps> = ({ progress, type, total, completed, offset = 0 }) => {
   const [shouldShow, setShouldShow] = useState(false);
   const { t } = useLocale();
 
@@ -49,7 +50,10 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ progress, type, total, comple
             damping: 25,
             exit: { duration: 0.5 }
           }}
-          className="fixed right-4 bottom-4 z-50 p-3 w-64 rounded-lg shadow-lg backdrop-blur-sm bg-white/90 dark:bg-gray-800/90"
+          className="fixed right-4 z-50 p-3 w-64 rounded-lg shadow-lg backdrop-blur-sm bg-white/90 dark:bg-gray-800/90"
+          style={{
+            bottom: `${offset + 16}px`
+          }}
         >
           <motion.div 
             className="flex justify-between mb-1"

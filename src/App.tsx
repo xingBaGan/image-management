@@ -1,10 +1,9 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { TitleBar } from './components/TitleBar';
+import { MainContent } from './components/MainContent';
 import Sidebar from './components/Sidebar';
-import Toolbar from './components/Toolbar/index';
-import MediaGrid from './components/MediaGrid';
-import ImageInfoSidebar from './components/ImageInfoSidebar';
 import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ColorInfo, ImportFile, FilterType, SortType, SortDirection } from './types';
-import { Trash2, FolderPlus, Tags, Minus, CopyIcon, Square, X } from 'lucide-react';
+import { Trash2, FolderPlus, Tags } from 'lucide-react';
 
 import { addTagsToImages } from './services/tagService';
 import { processMedia, isSimilarColor } from './utils';
@@ -20,19 +19,10 @@ import { useImageOperations } from './hooks/useImageOperations';
 import { getGridItemAppendButtonsProps } from './plugins';
 import { scan } from "react-scan";
 import ProgressBar from './components/ProgressBar';
-import { motion } from 'framer-motion';
 const isDev = import.meta.env.DEV;
 if (isDev) {
   scan({ enabled: true, log: true, showToolbar: true });
 }
-
-const dragStyle = {
-  WebkitAppRegion: 'drag'
-} as React.CSSProperties;
-
-const noDragStyle = {
-  WebkitAppRegion: 'no-drag'
-} as React.CSSProperties;
 
 function App() {
   // 使用 settings hook 获取设置
@@ -269,7 +259,18 @@ function App() {
   };
 
   const handleAddImages = async (newImages: LocalImageData[]) => {
-    await handleAddImagesBase(newImages, categories);
+    try {
+      await handleAddImagesBase(newImages, categories);
+      // 可能需要手动触发重新渲染
+      setMediaList(prev => [...prev]); // 强制更新
+    } catch (error) {
+      console.error('Failed to add images:', error);
+      setMessageBox({
+        isOpen: true,
+        message: t('importFailed', { error: String(error) }),
+        type: 'error'
+      });
+    }
   };
 
   // 在组件加载时读取已保存的图片数据
@@ -425,6 +426,8 @@ function App() {
   }, []);
 
   const filteredAndSortedImages = useMemo(() => {
+    console.log('Recalculating filtered images, total:', mediaList.length); // 添加日志
+    
     // 首先根据 filter 和 selectedCategory 过滤图片
     let filtered = mediaList.filter(img => img.type !== 'video') as LocalImageData[];
 
@@ -530,45 +533,19 @@ function App() {
     return getGridItemAppendButtonsProps();
   }, []);
   return (
-    <div 
-      className="flex flex-col h-screen backdrop-blur-md dark:bg-gray-900"
+    <div className="flex flex-col h-screen backdrop-blur-md dark:bg-gray-900"
       style={{
         backgroundImage: `url('${settings.backgroundUrl}')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}>
-      {/* 自定义标题栏 */}
-      <div
-        className="flex justify-between items-center px-4 py-1 h-8 bg-white select-none bg-opacity-45 dark:bg-gray-300 dark:text-gray-700"
-        onDoubleClick={() => window.electron?.maximize()}
-        style={dragStyle}
-      >
-        <div className="text-gray-700 text-bold">atujii</div>
-        <div className="flex items-center space-x-2" style={noDragStyle}>
-          <button
-            onClick={() => window.electron?.minimize()}
-            className="p-1 rounded hover:bg-gray-500"
-          >
-            <Minus className="w-4 h-4 text-gray-700" />
-          </button>
-          <button
-            onClick={() => window.electron?.maximize()}
-            className="p-1 rounded hover:bg-gray-500"
-          >
-            {isMaximized ? (
-              <CopyIcon className="w-4 h-4 text-gray-700" />
-            ) : (
-              <Square className="w-4 h-4 text-gray-700" />
-            )}
-          </button>
-          <button
-            onClick={() => window.electron?.close()}
-            className="p-1 rounded hover:bg-red-500"
-          >
-            <X className="w-4 h-4 text-gray-700" />
-          </button>
-        </div>
-      </div>
+      <TitleBar
+        isMaximized={isMaximized}
+        onMinimize={() => window.electron?.minimize()}
+        onMaximize={() => window.electron?.maximize()}
+        onClose={() => window.electron?.close()}
+      />
+
       <div className="flex w-full h-full bg-white bg-opacity-25 backdrop-blur-sm">
         {!isZenMode && (
           <Sidebar
@@ -584,102 +561,86 @@ function App() {
             setShowDeleteConfirm={setShowDeleteConfirm}
           />
         )}
-        <div className="flex overflow-hidden relative flex-col flex-1">
-          <Toolbar
-            viewMode={viewMode}
-            sortBy={sortBy}
-            sortDirection={sortDirection}
-            onViewModeChange={setViewMode}
-            onSortChange={handleSort}
-            onSearch={handleSearch}
-            selectedCount={selectedImages.size}
-            bulkActions={selectedImages.size > 0 ? bulkActions : []}
-            onToggleSidebar={() => setIsZenMode(!isZenMode)}
-            onImport={handleImportImages}
-            isSidebarOpen={isZenMode}
-            setIsSettingsOpen={setIsSettingsOpen}
-            isSettingsOpen={isSettingsOpen}
-            filterColors={filterColors}
-            setFilterColors={setFilterColors}
-            searchButtonRef={searchButtonRef}
-            sortButtonRef={sortButtonRef}
-            filterButtonRef={filterButtonRef}
-            selectedImages={selectedImages}
-            multiFilter={multiFilter}
-            setMultiFilter={setMultiFilter}
-          />
-          <div className="flex overflow-y-auto flex-1">
-            <div className={`flex-1 ${isZenMode ? 'mr-0' : 'mr-60'}`}>
-              <MediaGrid
-                images={filteredAndSortedImages}
-                onFavorite={handleFavorite}
-                viewMode={viewMode}
-                selectedImages={selectedImages}
-                onSelectImage={handleImageSelect}
-                updateTagsByMediaId={updateTagsByMediaId}
-                addImages={handleAddImages}
-                existingImages={mediaList}
-                categories={categories}
-                setImportState={setImportState}
-                importState={importState}
-                onOpenInEditor={handleOpenInEditor}
-                gridItemAppendButtonsProps={gridItemAppendButtonsProps}
-              />
-            </div>
-            <div className="fixed right-0 bottom-0 top-16">
-              {!isZenMode && <ImageInfoSidebar
-                image={selectedImageForInfo}
-                onTagsUpdate={updateTagsByMediaId}
-                onRateChange={handleRateChange}
-                totalImages={filteredAndSortedImages.length}
-                totalVideos={filteredAndSortedImages.length}
-                type={selectedCategory === 'videos' ? 'video' : 'image'}
-                setFilterColors={setFilterColors}
-                setSelectedImages={setSelectedImages}
-              />}
-            </div>
-          </div>
-        </div>
+
+        <MainContent
+          viewMode={viewMode}
+          sortBy={sortBy}
+          sortDirection={sortDirection}
+          onViewModeChange={setViewMode}
+          onSortChange={handleSort}
+          onSearch={handleSearch}
+          selectedCount={selectedImages.size}
+          bulkActions={selectedImages.size > 0 ? bulkActions : []}
+          onToggleSidebar={() => setIsZenMode(!isZenMode)}
+          onImport={handleImportImages}
+          isSidebarOpen={isZenMode}
+          setIsSettingsOpen={setIsSettingsOpen}
+          isSettingsOpen={isSettingsOpen}
+          filterColors={filterColors}
+          setFilterColors={setFilterColors}
+          searchButtonRef={searchButtonRef}
+          sortButtonRef={sortButtonRef}
+          filterButtonRef={filterButtonRef}
+          selectedImages={selectedImages}
+          multiFilter={multiFilter}
+          setMultiFilter={setMultiFilter}
+          images={filteredAndSortedImages}
+          onFavorite={handleFavorite}
+          onSelectImage={handleImageSelect}
+          updateTagsByMediaId={updateTagsByMediaId}
+          addImages={handleAddImages}
+          existingImages={mediaList}
+          categories={categories}
+          setImportState={setImportState}
+          importState={importState}
+          onOpenInEditor={handleOpenInEditor}
+          gridItemAppendButtonsProps={gridItemAppendButtonsProps}
+          onRateChange={handleRateChange}
+          setSelectedImages={setSelectedImages}
+        />
       </div>
+
+      {/* Dialogs */}
       {showDeleteConfirm && (
         <DeleteConfirmDialog
           onCancel={() => setShowDeleteConfirm(null)}
           onConfirm={() => handleDeleteConfirm(showDeleteConfirm)}
         />
       )}
+
       <MessageBox
         isOpen={messageBox.isOpen}
         onClose={messageBoxClose}
         message={messageBox.message}
         type={messageBox.type}
       />
+
       <Settings
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         setMessageBox={setMessageBox}
         messageBox={messageBox}
       />
+
+      {/* Progress Bars */}
       {queueProgress.tag.total > 0 && (
         <ProgressBar
           type="tag"
           progress={queueProgress.tag.percentage}
           total={queueProgress.tag.total}
           completed={queueProgress.tag.completed}
+          offset={queueProgress.color.total > 0 ? 80 : 0}
         />
       )}
+
       {queueProgress.color.total > 0 && (
-        <motion.div
-          initial={{ y: 0 }}
-          animate={{ y: queueProgress.tag.total > 0 ? -80 : 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        >
-          <ProgressBar
-            type="color"
-            progress={queueProgress.color.percentage}
-            total={queueProgress.color.total}
-            completed={queueProgress.color.completed}
-          />
-        </motion.div>
+        <ProgressBar
+          type="color"
+          progress={queueProgress.color.percentage}
+          total={queueProgress.color.total}
+          completed={queueProgress.color.completed}
+          offset={0}
+        />
       )}
     </div>
   );

@@ -186,9 +186,10 @@ export const handleDrop = async (
         images.push(...newImages);
       }
     }
-    addImages(images);
-    setImportState(ImportStatus.Imported);
+
   }
+  addImages(images);
+  setImportState(ImportStatus.Imported);
 };
 
 // 添加压缩图片的辅助函数
