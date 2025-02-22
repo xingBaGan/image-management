@@ -425,9 +425,7 @@ function App() {
     window.electron.openInEditor(path);
   }, []);
 
-  const filteredAndSortedImages = useMemo(() => {
-    console.log('Recalculating filtered images, total:', mediaList.length); // 添加日志
-    
+  const filteredAndSortedImages = useMemo(() => {    
     // 首先根据 filter 和 selectedCategory 过滤图片
     let filtered = mediaList.filter(img => img.type !== 'video') as LocalImageData[];
 
