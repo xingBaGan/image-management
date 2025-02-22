@@ -2,11 +2,7 @@ import { AppendButtonsProps } from '../components/Toolbar/ToolbarButtons';
 
 const ADD_GRID_ITEM_BUTTON = 'add-grid-item-button';
 const ADD_TOOL_BAR_ITEM = 'add-tool-bar-item';
-// 监听插件初始化事件
-window.electron.on('initialize-plugin', (plugin: any) => {
-  console.log('收到插件初始化事件:', plugin);
-  window.plugins.setupPlugin(plugin);
-});
+
 
 type ButtonOptions = {
   options: AppendButtonsProps;
@@ -22,6 +18,12 @@ function StringifyArgs(args: any[]){
 // 初始化时获取所有插件
 async function initializePlugins() {
   try {
+        // 监听插件初始化事件
+    window.electron.on('initialize-plugin', (plugin: any) => {
+      console.log('收到插件初始化事件:', plugin);
+      window.plugins.setupPlugin(plugin);
+    });
+
     window.plugins.on(ADD_GRID_ITEM_BUTTON, (payload: ButtonOptions) => {
       payload.options.onClick = (...args: any[]) => {
         window.plugins.send(payload.eventId, ...StringifyArgs(args));

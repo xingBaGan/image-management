@@ -112,7 +112,6 @@ const GridView: React.FC<ImageGridBaseProps & {
         ref={loadMoreRef} 
         className="flex justify-center items-center w-full h-10"
       >
-        '加载中...' 
       </div>}
       </Masonry>
     </div>

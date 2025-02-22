@@ -4,7 +4,7 @@ import Toolbar from './components/Toolbar/index';
 import MediaGrid from './components/MediaGrid';
 import ImageInfoSidebar from './components/ImageInfoSidebar';
 import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ColorInfo, ImportFile, FilterType, SortType, SortDirection } from './types';
-import { Trash2, FolderPlus, Tags } from 'lucide-react';
+import { Trash2, FolderPlus, Tags, Minus, CopyIcon, Square, X } from 'lucide-react';
 
 import { addTagsToImages } from './services/tagService';
 import { processMedia, isSimilarColor } from './utils';
@@ -18,17 +18,27 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useCategoryOperations } from './hooks/useCategoryOperations';
 import { useImageOperations } from './hooks/useImageOperations';
 import { getGridItemAppendButtonsProps } from './plugins';
-import { scan } from "react-scan"; 
+import { scan } from "react-scan";
 import ProgressBar from './components/ProgressBar';
 import { motion } from 'framer-motion';
 const isDev = import.meta.env.DEV;
 if (isDev) {
   scan({ enabled: true, log: true, showToolbar: true });
 }
+
+const dragStyle = {
+  WebkitAppRegion: 'drag'
+} as React.CSSProperties;
+
+const noDragStyle = {
+  WebkitAppRegion: 'no-drag'
+} as React.CSSProperties;
+
 function App() {
   // 使用 settings hook 获取设置
   const { settings } = useSettings();
   const { t } = useLocale();
+  const [isMaximized, setIsMaximized] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<FilterType>(FilterType.Photos);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -65,6 +75,20 @@ function App() {
     tag: { total: 0, completed: 0, percentage: 0, running: 0 },
     color: { total: 0, completed: 0, percentage: 0, running: 0 }
   });
+
+  // 添加最大化状态监听
+  useEffect(() => {
+    const handleMaximize = () => setIsMaximized(true);
+    const handleUnmaximize = () => setIsMaximized(false);
+
+    window.electron?.onMaximize(handleMaximize);
+    window.electron?.onUnmaximize(handleUnmaximize);
+
+    return () => {
+      window.electron?.removeMaximize(handleMaximize);
+      window.electron?.removeUnmaximize(handleUnmaximize);
+    };
+  }, []);
 
   // 添加 refs 用于快捷键操作
   const searchButtonRef = useRef<HTMLElement>(null);
@@ -264,7 +288,7 @@ function App() {
 
     initializeData();
 
-    window.electron.onRemoteImagesDownloaded(()=>{});
+    window.electron.onRemoteImagesDownloaded(() => { });
     window.electron.onQueueUpdate((status: any) => {
       if (status.type === 'tag' || status.type === 'color') {
         setQueueProgress(prev => ({
@@ -276,7 +300,7 @@ function App() {
           setTimeout(() => {
             setQueueProgress(prev => ({
               ...prev,
-              [status.type]: { total: 0, completed: 0, percentage: 0, running: 0}
+              [status.type]: { total: 0, completed: 0, percentage: 0, running: 0 }
             }));
             window.electron.resetQueueProgress(status.type);
           }, 1000);
@@ -285,7 +309,7 @@ function App() {
     });
 
     return () => {
-      window.electron.removeRemoteImagesDownloadedListener(()=>{});
+      window.electron.removeRemoteImagesDownloadedListener(() => { });
     };
   }, []);
 
@@ -310,15 +334,15 @@ function App() {
       const target = e.target as HTMLElement;
 
       if (
-          target.tagName === 'INPUT' || 
-          target.tagName === 'TEXTAREA' ||
-          target.getAttribute('contenteditable') === 'true') {
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.getAttribute('contenteditable') === 'true') {
         return;
       }
 
       e.preventDefault();
       const clipboardText = e.clipboardData?.getData('text');
-      
+
       if (!clipboardText) return;
 
       // 检查是否为 URL
@@ -330,7 +354,7 @@ function App() {
         try {
           setImportState(ImportStatus.Importing);
           let newImages: LocalImageData[];
-          
+
           if (isUrl) {
             // 使用主进程下载图片
             const result = await window.electron.downloadUrlImage(clipboardText);
@@ -436,7 +460,7 @@ function App() {
     filtered = filtered.filter(img => {
       if (filterColors.length > 0) {
         // 使用颜色相似度比较
-        return filterColors.some(filterColor => 
+        return filterColors.some(filterColor =>
           (img.colors || []).some((c: string | ColorInfo) => {
             const imgColor = typeof c === 'string' ? c : c.color;
             return isSimilarColor(imgColor, filterColor, multiFilter.precision);
@@ -476,12 +500,12 @@ function App() {
       return sortDirection === 'asc' ? -comparison : comparison;
     });
   }, [
-    mediaList, 
-    sortBy, 
-    sortDirection, 
-    filter, 
-    selectedCategory, 
-    categories, 
+    mediaList,
+    sortBy,
+    sortDirection,
+    filter,
+    selectedCategory,
+    categories,
     searchTags,
     multiFilter,
     filterColors
@@ -506,125 +530,158 @@ function App() {
     return getGridItemAppendButtonsProps();
   }, []);
   return (
-        <div className="flex h-screen backdrop-blur-md dark:bg-gray-900 bg-white/20"
-          style={{
-            backgroundImage: `url('${settings.backgroundUrl}')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}>
-          <div className="flex w-full h-full bg-white bg-opacity-25 backdrop-blur-sm">
-            {!isZenMode && (
-              <Sidebar
-                selectedCategory={selectedCategory}
-                onSelectCategory={setSelectedCategory}
-                categories={categories}
-                filter={filter}
-                onFilterChange={setFilter}
-                onAddCategory={handleAddCategory}
-                onRenameCategory={handleRenameCategory}
-                onDeleteCategory={handleDeleteCategory}
-                onUpdateCategories={handleReorderCategories}
-                setShowDeleteConfirm={setShowDeleteConfirm}
-              />
+    <div 
+      className="flex flex-col h-screen backdrop-blur-md dark:bg-gray-900"
+      style={{
+        backgroundImage: `url('${settings.backgroundUrl}')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}>
+      {/* 自定义标题栏 */}
+      <div
+        className="flex justify-between items-center px-4 py-1 h-8 bg-white select-none bg-opacity-45 dark:bg-gray-300 dark:text-gray-700"
+        onDoubleClick={() => window.electron?.maximize()}
+        style={dragStyle}
+      >
+        <div className="text-gray-700 text-bold">atujii</div>
+        <div className="flex items-center space-x-2" style={noDragStyle}>
+          <button
+            onClick={() => window.electron?.minimize()}
+            className="p-1 rounded hover:bg-gray-500"
+          >
+            <Minus className="w-4 h-4 text-gray-700" />
+          </button>
+          <button
+            onClick={() => window.electron?.maximize()}
+            className="p-1 rounded hover:bg-gray-500"
+          >
+            {isMaximized ? (
+              <CopyIcon className="w-4 h-4 text-gray-700" />
+            ) : (
+              <Square className="w-4 h-4 text-gray-700" />
             )}
-            <div className="flex overflow-hidden relative flex-col flex-1">
-              <Toolbar
+          </button>
+          <button
+            onClick={() => window.electron?.close()}
+            className="p-1 rounded hover:bg-red-500"
+          >
+            <X className="w-4 h-4 text-gray-700" />
+          </button>
+        </div>
+      </div>
+      <div className="flex w-full h-full bg-white bg-opacity-25 backdrop-blur-sm">
+        {!isZenMode && (
+          <Sidebar
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+            categories={categories}
+            filter={filter}
+            onFilterChange={setFilter}
+            onAddCategory={handleAddCategory}
+            onRenameCategory={handleRenameCategory}
+            onDeleteCategory={handleDeleteCategory}
+            onUpdateCategories={handleReorderCategories}
+            setShowDeleteConfirm={setShowDeleteConfirm}
+          />
+        )}
+        <div className="flex overflow-hidden relative flex-col flex-1">
+          <Toolbar
+            viewMode={viewMode}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onViewModeChange={setViewMode}
+            onSortChange={handleSort}
+            onSearch={handleSearch}
+            selectedCount={selectedImages.size}
+            bulkActions={selectedImages.size > 0 ? bulkActions : []}
+            onToggleSidebar={() => setIsZenMode(!isZenMode)}
+            onImport={handleImportImages}
+            isSidebarOpen={isZenMode}
+            setIsSettingsOpen={setIsSettingsOpen}
+            isSettingsOpen={isSettingsOpen}
+            filterColors={filterColors}
+            setFilterColors={setFilterColors}
+            searchButtonRef={searchButtonRef}
+            sortButtonRef={sortButtonRef}
+            filterButtonRef={filterButtonRef}
+            selectedImages={selectedImages}
+            multiFilter={multiFilter}
+            setMultiFilter={setMultiFilter}
+          />
+          <div className="flex overflow-y-auto flex-1">
+            <div className={`flex-1 ${isZenMode ? 'mr-0' : 'mr-60'}`}>
+              <MediaGrid
+                images={filteredAndSortedImages}
+                onFavorite={handleFavorite}
                 viewMode={viewMode}
-                sortBy={sortBy}
-                sortDirection={sortDirection}
-                onViewModeChange={setViewMode}
-                onSortChange={handleSort}
-                onSearch={handleSearch}
-                selectedCount={selectedImages.size}
-                bulkActions={selectedImages.size > 0 ? bulkActions : []}
-                onToggleSidebar={() => setIsZenMode(!isZenMode)}
-                onImport={handleImportImages}
-                isSidebarOpen={isZenMode}
-                setIsSettingsOpen={setIsSettingsOpen}
-                isSettingsOpen={isSettingsOpen}
-                filterColors={filterColors}
-                setFilterColors={setFilterColors}
-                searchButtonRef={searchButtonRef}
-                sortButtonRef={sortButtonRef}
-                filterButtonRef={filterButtonRef}
                 selectedImages={selectedImages}
-                multiFilter={multiFilter}
-                setMultiFilter={setMultiFilter}
+                onSelectImage={handleImageSelect}
+                updateTagsByMediaId={updateTagsByMediaId}
+                addImages={handleAddImages}
+                existingImages={mediaList}
+                categories={categories}
+                setImportState={setImportState}
+                importState={importState}
+                onOpenInEditor={handleOpenInEditor}
+                gridItemAppendButtonsProps={gridItemAppendButtonsProps}
               />
-              <div className="flex overflow-y-auto flex-1">
-                <div className={`flex-1 ${isZenMode ? 'mr-0' : 'mr-60'}`}>
-                  <MediaGrid
-                    images={filteredAndSortedImages}
-                    onFavorite={handleFavorite}
-                    viewMode={viewMode}
-                    selectedImages={selectedImages}
-                    onSelectImage={handleImageSelect}
-                    updateTagsByMediaId={updateTagsByMediaId}
-                    addImages={handleAddImages}
-                    existingImages={mediaList}
-                    categories={categories}
-                    setImportState={setImportState}
-                    importState={importState}
-                    onOpenInEditor={handleOpenInEditor}
-                    gridItemAppendButtonsProps={gridItemAppendButtonsProps}
-                  />
-                </div>
-                <div className="fixed right-0 bottom-0 top-16">
-                  {!isZenMode && <ImageInfoSidebar
-                    image={selectedImageForInfo}
-                    onTagsUpdate={updateTagsByMediaId}
-                    onRateChange={handleRateChange}
-                    totalImages={filteredAndSortedImages.length}
-                    totalVideos={filteredAndSortedImages.length}
-                    type={selectedCategory === 'videos' ? 'video' : 'image'}
-                    setFilterColors={setFilterColors}
-                    setSelectedImages={setSelectedImages}
-                  />}
-                </div>
-              </div>
+            </div>
+            <div className="fixed right-0 bottom-0 top-16">
+              {!isZenMode && <ImageInfoSidebar
+                image={selectedImageForInfo}
+                onTagsUpdate={updateTagsByMediaId}
+                onRateChange={handleRateChange}
+                totalImages={filteredAndSortedImages.length}
+                totalVideos={filteredAndSortedImages.length}
+                type={selectedCategory === 'videos' ? 'video' : 'image'}
+                setFilterColors={setFilterColors}
+                setSelectedImages={setSelectedImages}
+              />}
             </div>
           </div>
-          {showDeleteConfirm && (
-            <DeleteConfirmDialog
-              onCancel={() => setShowDeleteConfirm(null)}
-              onConfirm={() => handleDeleteConfirm(showDeleteConfirm)}
-            />
-          )}
-          <MessageBox
-            isOpen={messageBox.isOpen}
-            onClose={messageBoxClose}
-            message={messageBox.message}
-            type={messageBox.type}
-          />
-          <Settings
-            isOpen={isSettingsOpen}
-            onClose={() => setIsSettingsOpen(false)}
-            setMessageBox={setMessageBox}
-            messageBox={messageBox}
-          />
-          {queueProgress.tag.total > 0 && (
-            <ProgressBar 
-              type="tag"
-              progress={queueProgress.tag.percentage}
-              total={queueProgress.tag.total}
-              completed={queueProgress.tag.completed}
-            />
-          )}
-          {queueProgress.color.total > 0 && (
-            <motion.div
-              initial={{ y: 0 }}
-              animate={{ y: queueProgress.tag.total > 0 ? -80 : 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            >
-              <ProgressBar 
-                type="color"
-                progress={queueProgress.color.percentage}
-                total={queueProgress.color.total}
-                completed={queueProgress.color.completed}
-              />
-            </motion.div>
-          )}
         </div>
+      </div>
+      {showDeleteConfirm && (
+        <DeleteConfirmDialog
+          onCancel={() => setShowDeleteConfirm(null)}
+          onConfirm={() => handleDeleteConfirm(showDeleteConfirm)}
+        />
+      )}
+      <MessageBox
+        isOpen={messageBox.isOpen}
+        onClose={messageBoxClose}
+        message={messageBox.message}
+        type={messageBox.type}
+      />
+      <Settings
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        setMessageBox={setMessageBox}
+        messageBox={messageBox}
+      />
+      {queueProgress.tag.total > 0 && (
+        <ProgressBar
+          type="tag"
+          progress={queueProgress.tag.percentage}
+          total={queueProgress.tag.total}
+          completed={queueProgress.tag.completed}
+        />
+      )}
+      {queueProgress.color.total > 0 && (
+        <motion.div
+          initial={{ y: 0 }}
+          animate={{ y: queueProgress.tag.total > 0 ? -80 : 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        >
+          <ProgressBar
+            type="color"
+            progress={queueProgress.color.percentage}
+            total={queueProgress.color.total}
+            completed={queueProgress.color.completed}
+          />
+        </motion.div>
+      )}
+    </div>
   );
 }
 

@@ -108,6 +108,13 @@ export enum ImportStatus {
 }
 
 export interface ElectronAPI {
+  minimize: () => void
+  maximize: () => void
+  close: () => void
+  onMaximize: (callback: () => void) => void
+  onUnmaximize: (callback: () => void) => void
+  removeMaximize: (callback: () => void) => void
+  removeUnmaximize: (callback: () => void) => void
   readDirectory: (path: string) => Promise<string[]>;
   readFileMetadata: (path: string) => Promise<{
     size: number;

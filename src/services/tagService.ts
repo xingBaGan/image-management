@@ -8,7 +8,7 @@ async function getLocalImagePath(imagePath: string): Promise<string> {
   return decodeURIComponent(imagePath.replace('local-image://', ''));
 }
 
-export async function generateImageTags(imagePath: string, base64?: string): Promise<string[]> {
+export async function generateImageTags(imagePath: string): Promise<string[]> {
   try {
     // 获取本地图片路径
     const localPath = await getLocalImagePath(imagePath);

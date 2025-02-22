@@ -10,6 +10,7 @@ const isDev = !app.isPackaged;
 // 获取设置文件路径
 const { getImageSize } = require('./services/ipcService.cjs');
 const { pluginManager } = require('./services/pluginService.cjs');
+const { logger } = require('./services/logService.cjs');
 
 const loadEnvConfig = () => {
   try {
@@ -84,6 +85,7 @@ async function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1520,
     height: 800,
+    titleBarStyle: 'hidden',
     webPreferences: {
       nodeIntegration: true,
       contextRemoteModule: true,
@@ -127,6 +129,29 @@ async function createWindow() {
     }
     return result;
   });
+
+  // 添加在createWindow函数之后
+  ipcMain.handle('window-minimize', () => {
+    logger.debug('Window minimized')
+    mainWindow?.minimize()
+  })
+
+  ipcMain.handle('window-maximize', () => {
+    if (mainWindow?.isMaximized()) {
+      logger.debug('Window unmaximized')
+      mainWindow.unmaximize()
+      mainWindow.webContents.send('window-unmaximized')
+    } else {
+      logger.debug('Window maximized')
+      mainWindow?.maximize()
+      mainWindow?.webContents.send('window-maximized')
+    }
+  })
+
+  ipcMain.handle('window-close', () => {
+    mainWindow?.close()
+  })
+
 }
 
 const downloadRemoteImage = async (imageUrl, fileName) => {

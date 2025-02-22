@@ -5,6 +5,13 @@ const parseArgs = (args) => {
 }
 
 contextBridge.exposeInMainWorld('electron', {
+  minimize: () => ipcRenderer.invoke('window-minimize'),
+  maximize: () => ipcRenderer.invoke('window-maximize'),
+  close: () => ipcRenderer.invoke('window-close'),
+  onMaximize: (callback) => ipcRenderer.on('window-maximized', callback),
+  onUnmaximize: (callback) => ipcRenderer.on('window-unmaximized', callback),
+  removeMaximize: (callback) => ipcRenderer.removeListener('window-maximized', callback),
+  removeUnmaximize: (callback) => ipcRenderer.removeListener('window-unmaximized', callback),
   readDirectory: (path) => ipcRenderer.invoke('read-directory', path),
   readFileMetadata: (path) => ipcRenderer.invoke('read-file-metadata', path),
   loadImagesFromJson: () => ipcRenderer.invoke('load-images-from-json'),
