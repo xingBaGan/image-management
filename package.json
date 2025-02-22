@@ -1,7 +1,7 @@
 {
   "name": "atujii",
   "private": true,
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "ai image management tool",
   "author": {
     "name": "jzj",
@@ -92,12 +92,16 @@
       {
         "from": "comfyui_client/dist",
         "to": "comfyui_client/dist",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       {
         "from": "comfyui_client/workflows",
         "to": "comfyui_client/workflows",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       {
         "from": "requirements.txt",
@@ -136,10 +140,14 @@
     },
     "mac": {
       "category": "public.app-category.developer-tools",
-      "target": ["dmg"]
+      "target": [
+        "dmg"
+      ]
     },
     "win": {
-      "target": ["nsis"]
+      "target": [
+        "nsis"
+      ]
     },
     "nsis": {
       "oneClick": false,
@@ -150,7 +158,9 @@
       "shortcutName": "atujii"
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "category": "Development"
     }
   }
