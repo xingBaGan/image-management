@@ -11,6 +11,13 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
+        include:
+          - os: macos-latest
+            output: '*.dmg'
+          - os: ubuntu-latest
+            output: '*.AppImage'
+          - os: windows-latest
+            output: '*.exe'
 
     steps:
       - name: Check out Git repository
@@ -49,23 +56,19 @@ jobs:
             openjdk-8-jre
 
       - name: Install Dependencies
-        run: npm install
+        run: |
+          npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Build Electron App
         run: npm run electron:build
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
-      - name: Publish to GitHub Release
+      - name: Upload Artifacts
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            dist-electron/*.exe
-            dist-electron/*.dmg
-            dist-electron/*.AppImage
-            dist-electron/*.snap
-            dist-electron/*.deb
-            dist-electron/*.rpm
-            dist-electron/*.zip
+          files: dist-electron/${{ matrix.output }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }} 

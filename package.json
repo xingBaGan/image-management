@@ -92,16 +92,12 @@
       {
         "from": "comfyui_client/dist",
         "to": "comfyui_client/dist",
-        "filter": [
-          "**/*"
-        ]
+        "filter": ["**/*"]
       },
       {
         "from": "comfyui_client/workflows",
         "to": "comfyui_client/workflows",
-        "filter": [
-          "**/*"
-        ]
+        "filter": ["**/*"]
       },
       {
         "from": "requirements.txt",
@@ -135,19 +131,15 @@
     "extraMetadata": {
       "main": "electron/main.cjs"
     },
-    "asar": true,
+    "asar": {
+      "smartUnpack": true
+    },
     "mac": {
       "category": "public.app-category.developer-tools",
-      "target": [
-        "dmg",
-        "zip"
-      ]
+      "target": ["dmg"]
     },
     "win": {
-      "target": [
-        "nsis",
-        "zip"
-      ]
+      "target": ["nsis"]
     },
     "nsis": {
       "oneClick": false,
@@ -158,18 +150,8 @@
       "shortcutName": "atujii"
     },
     "linux": {
-      "target": [
-        "AppImage",
-        "deb",
-        "rpm"
-      ],
+      "target": ["AppImage"],
       "category": "Development"
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "xingBaGan",
-      "repo": "atujii",
-      "releaseType": "release"
     }
   }
 }
