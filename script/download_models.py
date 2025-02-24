@@ -3,10 +3,34 @@ import sys
 import requests
 from typing import List, Optional
 from tqdm import tqdm
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+
+def get_country_code() -> str:
+    """
+    获取当前IP所在的国家代码
+    Returns:
+        str: 国家代码（例如：'CN'）
+    """
+    try:
+        response = requests.get('https://ipapi.co/country/', timeout=5)
+        return response.text.strip()
+    except:
+        # 如果请求失败，默认返回非中国
+        return 'UNKNOWN'
+
+def get_base_url(country_code: str) -> str:
+    """
+    根据国家代码返回合适的下载基础URL
+    """
+    if country_code == 'CN':
+        return "https://hf-mirror.com/honmo/wd14-collection/resolve/main"
+    else:
+        return "https://huggingface.co/honmo/wd14-collection/resolve/main"
 
 def download_model(model_name: str, models_dir: str = "models") -> bool:
     """
-    从HuggingFace下载模型文件
+    根据地区从HuggingFace或HF-Mirror下载模型文件
     
     Args:
         model_name: 模型名称（不包含扩展名）
@@ -25,9 +49,17 @@ def download_model(model_name: str, models_dir: str = "models") -> bool:
     
     print(f"使用模型目录: {models_dir}")
     
-    # 使用正确的raw文件下载链接
-    base_url = "https://huggingface.co/honmo/wd14-collection/resolve/main"
+    # 获取国家代码并选择相应的下载源
+    country_code = get_country_code()
+    base_url = get_base_url(country_code)
+    print(f"当前地区: {country_code}, 使用下载源: {base_url}")
+    
     files_to_download = [f"{model_name}.onnx", f"{model_name}.csv"]
+    
+    # 配置重试策略
+    session = requests.Session()
+    retries = Retry(total=5, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
+    session.mount('https://', HTTPAdapter(max_retries=retries))
     
     try:
         for filename in files_to_download:
@@ -42,7 +74,7 @@ def download_model(model_name: str, models_dir: str = "models") -> bool:
             url = f"{base_url}/{filename}?download=true"
             print(f"下载文件: {filename}")
             
-            response = requests.get(url, stream=True)
+            response = session.get(url, stream=True, timeout=30)
             if response.status_code == 404:
                 print(f"文件不存在: {filename}")
                 return False
