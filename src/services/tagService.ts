@@ -49,8 +49,10 @@ export async function addTagsToImages(
   try {
     setImportState(ImportStatus.Tagging);
     // 对每个选中的图片调用 tagger API
-    const updatedImages = await Promise.all(
-      selectedImages.map(async (image) => {
+    let finalImages: LocalImageData[] = allImages;
+    const tagsImages: LocalImageData[] = [];
+    await Promise.all(
+      selectedImages.map(async (image, index) => {
         const imagePath = await getLocalImagePath(image.path);
         const newTags = await window.electron.tagImage(imagePath, modelName);
         // 按照字母顺序排序
@@ -61,34 +63,28 @@ export async function addTagsToImages(
         }
 
         if (newTags.length > 0) {
-        // 合并现有标签和新标签，去重
-          return {
+          // 合并现有标签和新标签，去重
+          image = {
             ...image,
             tags: [...new Set([...image.tags, ...sortedTags])]
           };
         }
+        tagsImages.push(image);
+        // 每10次保存一次
+        if ((index + 1) % 10 === 0 || index === selectedImages.length - 1) {
+          finalImages = finalImages.map(img => {
+            const updatedImg = tagsImages.find(updated => updated?.id === img.id);
+            return updatedImg || img;
+          });
+        
+          await window.electron.saveImagesToJson(finalImages, categories);
+        }
+
         return image;
       })
     );
-    // 更新图片数据
-    const finalImages = allImages.map(img => {
-      const updatedImg = updatedImages.find(updated => updated?.id === img.id);
-      return updatedImg || img;
-    });
 
-    // 将 MediaInfo 转换为 LocalImageData
-    const localImageDataList: LocalImageData[] = finalImages.map(img => {
-      const { dateCreated, dateModified, ...rest } = img;
-      return {
-        ...rest,
-        dateCreated: dateCreated,
-        dateModified: dateModified
-      };
-    });
     setImportState(ImportStatus.Imported);
-    // 保存更新后的图片数据
-    await window.electron.saveImagesToJson(localImageDataList, categories);
-
     return {
       updatedImages: finalImages,
       success: true
