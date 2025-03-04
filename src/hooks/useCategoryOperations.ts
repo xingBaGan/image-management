@@ -2,7 +2,15 @@ import { useState } from 'react';
 import { Category, LocalImageData } from '../types';
 import { useLocale } from '../contexts/LanguageContext';
 
-export const useCategoryOperations = () => {
+export const useCategoryOperations = ({
+  images,
+  setImages,
+  setSelectedCategory
+}: {
+  images: LocalImageData[];
+  setImages: (images: LocalImageData[]) => void;
+  setSelectedCategory: (category: string) => void;
+}) => {
   const { t } = useLocale();
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -92,6 +100,27 @@ export const useCategoryOperations = () => {
       return null;
     }
   };
+  
+  const handleImportFolder = async () => {
+    try {
+      const folderPath = await window.electron.openFolderDialog();
+      if (folderPath) {
+        const { category, images: newImages } = await window.electron.readImagesFromFolder(folderPath);
+        
+        // 更新分类
+        const updatedCategories = [...categories, category];
+        setCategories(updatedCategories);
+
+        // 保存更改到文件
+        await window.electron.saveImagesToJson(images, updatedCategories);
+        
+        setImages([...images, ...newImages]);
+        setSelectedCategory(category.id);
+      }
+    } catch (error) {
+      console.error(t('importFolderFailed', { error: String(error) }));
+    }
+  };
 
   return {
     categories,
@@ -101,5 +130,6 @@ export const useCategoryOperations = () => {
     handleDeleteCategory,
     handleReorderCategories,
     handleAddToCategory,
+    handleImportFolder,
   };
 }; 

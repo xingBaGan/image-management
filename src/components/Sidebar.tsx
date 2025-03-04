@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Image, FolderPlus, Clock, Heart, Trash2, 
-  MoreVertical, Edit2, GripVertical, Video 
+  MoreVertical, Edit2, GripVertical, Video,
+  FolderInput
 } from 'lucide-react';
 import { Category, FilterType } from '../types';
 import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
@@ -9,7 +10,7 @@ import { StrictModeDroppable } from './StrictModeDroppable';
 import { useLocale } from '../contexts/LanguageContext';
 
 interface SidebarProps {
-  selectedCategory: FilterType;
+  selectedCategory: FilterType | string;
   onSelectCategory: (id: FilterType) => void;
   categories: Category[];
   filter: FilterType;
@@ -19,6 +20,7 @@ interface SidebarProps {
   onDeleteCategory: (id: string) => void;
   onUpdateCategories?: (categories: Category[]) => void;
   setShowDeleteConfirm: (id: string | null) => void;
+  onImportFolder?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -30,6 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onDeleteCategory,
   onUpdateCategories,
   setShowDeleteConfirm,
+  onImportFolder,
 }) => {
   const { t } = useLocale();
   const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -131,13 +134,22 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="mt-6">
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-sm font-medium text-gray-500 dark:text-rose-400">{t('categories')}</h3>
-            <button
-              onClick={() => setIsAddingCategory(true)}
-              className="p-1 text-gray-500 hover:text-gray-700 dark:text-white dark:hover:text-rose-400"
-              title={t('addCategory')}
-            >
-              <FolderPlus size={16} />
-            </button>
+            <div className="flex gap-1">
+              <button
+                onClick={() => onImportFolder?.()}
+                className="p-1 text-gray-500 hover:text-gray-700 dark:text-white dark:hover:text-rose-400"
+                title={t('importFolder')}
+              >
+                <FolderInput size={16} />
+              </button>
+              <button
+                onClick={() => setIsAddingCategory(true)}
+                className="p-1 text-gray-500 hover:text-gray-700 dark:text-white dark:hover:text-rose-400"
+                title={t('addCategory')}
+              >
+                <FolderPlus size={16} />
+              </button>
+            </div>
           </div>
 
           {isAddingCategory && (

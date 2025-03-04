@@ -346,6 +346,43 @@ ipcMain.handle('process-directory', async (event, dirPath) => {
   }
 });
 
+// 添加新的 IPC 处理函数
+ipcMain.handle('open-folder-dialog', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory']
+  });
+
+  if (result.canceled) {
+    return null;
+  }
+
+  return result.filePaths[0];
+});
+
+ipcMain.handle('read-images-from-folder', async (event, folderPath) => {
+  try {
+    // 使用现有的 processDirectoryFiles 函数处理文件夹
+    const files = await processDirectoryFiles(folderPath);
+    
+    // 创建新的分类对象
+    const categoryName = path.basename(folderPath);
+    const category = {
+      id: `category-${Date.now()}`,
+      name: categoryName,
+      images: files.map(file => file.id),
+      count: files.length
+    };
+
+    return {
+      category,
+      images: files
+    };
+  } catch (error) {
+    console.error('读取文件夹图片失败:', error);
+    throw error;
+  }
+});
+
 const pluginService = require('./pluginService.cjs');
 pluginService.initializeAndSetupIPC(ipcMain);
 

@@ -30,7 +30,7 @@ function App() {
   const { t } = useLocale();
   const [isMaximized, setIsMaximized] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<FilterType>(FilterType.Photos);
+  const [selectedCategory, setSelectedCategory] = useState<FilterType | string>(FilterType.Photos);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [viewingMedia, setViewingMedia] = useState<LocalImageData | null>(null);
   const [sortBy, setSortBy] = useState<SortType>(SortType.Date);
@@ -85,17 +85,6 @@ function App() {
   const sortButtonRef = useRef<HTMLElement>(null);
   const filterButtonRef = useRef<HTMLElement>(null);
 
-  // 使用 category hook
-  const {
-    categories,
-    setCategories,
-    handleAddCategory: handleAddCategoryBase,
-    handleRenameCategory,
-    handleDeleteCategory,
-    handleReorderCategories,
-    handleAddToCategory: handleAddToCategoryBase,
-  } = useCategoryOperations();
-
   // 使用 image operations hook
   const {
     images: mediaList,
@@ -110,6 +99,22 @@ function App() {
     handleRateChange: handleRateChangeBase,
     loadImages,
   } = useImageOperations();
+
+    // 使用 category hook
+    const {
+      categories,
+      setCategories,
+      handleAddCategory: handleAddCategoryBase,
+      handleRenameCategory,
+      handleDeleteCategory,
+      handleReorderCategories,
+      handleAddToCategory: handleAddToCategoryBase,
+      handleImportFolder,
+    } = useCategoryOperations({
+      setImages: setMediaList,
+      images: mediaList,
+      setSelectedCategory,
+    });
 
   // 包装函数以提供正确的参数
   const handleAddCategory = async (category: Category) => {
@@ -557,6 +562,7 @@ function App() {
             onDeleteCategory={handleDeleteCategory}
             onUpdateCategories={handleReorderCategories}
             setShowDeleteConfirm={setShowDeleteConfirm}
+            onImportFolder={handleImportFolder}
           />
         )}
 

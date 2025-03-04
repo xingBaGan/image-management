@@ -152,6 +152,11 @@ export interface ElectronAPI {
   onQueueUpdate: (callback: (status: { tagQueue: number, colorQueue: number }) => void) => void;
   resetQueueProgress: (type: 'tag' | 'color') => Promise<boolean>;
   removeQueueUpdateListener: (callback: (status: { tagQueue: number, colorQueue: number }) => void) => void;
+  openFolderDialog: () => Promise<string | null>;
+  readImagesFromFolder: (folderPath: string) => Promise<{
+    category: Category;
+    images: LocalImageData[];
+  }>;
 }
 
 

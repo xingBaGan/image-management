@@ -57,7 +57,9 @@ contextBridge.exposeInMainWorld('electron', {
     if (channel === 'initialize-plugin') {
       ipcRenderer.removeListener(channel, callback);
     }
-  }
+  },
+  openFolderDialog: () => ipcRenderer.invoke('open-folder-dialog'),
+  readImagesFromFolder: (folderPath) => ipcRenderer.invoke('read-images-from-folder', folderPath),
 });
 
 // 暴露给主进程的方法
