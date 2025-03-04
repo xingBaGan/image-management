@@ -105,75 +105,89 @@ const getImageSize = async (filePath) => {
 	}
 };
 const getRatio = async (width, height) => {
-  const ratio = width / height;
-  // ['4:3', '16:9', '1:1', '3:4', '9:16']
-  const ratios = ['4:3', '16:9', '1:1', '3:4', '9:16'];
-  const closestRatio = ratios.reduce((prev, curr) => {
-    const [prevWidth, prevHeight] = prev.split(':').map(Number);
-    const [currWidth, currHeight] = curr.split(':').map(Number);
-    const prevRatio = prevWidth / prevHeight;
-    const currRatio = currWidth / currHeight;
-    return (Math.abs(ratio - prevRatio) < Math.abs(ratio - currRatio) ? prev : curr);
-  });
-  return closestRatio;
+	const ratio = width / height;
+	// ['4:3', '16:9', '1:1', '3:4', '9:16']
+	const ratios = ['4:3', '16:9', '1:1', '3:4', '9:16'];
+	const closestRatio = ratios.reduce((prev, curr) => {
+		const [prevWidth, prevHeight] = prev.split(':').map(Number);
+		const [currWidth, currHeight] = curr.split(':').map(Number);
+		const prevRatio = prevWidth / prevHeight;
+		const currRatio = currWidth / currHeight;
+		return (Math.abs(ratio - prevRatio) < Math.abs(ratio - currRatio) ? prev : curr);
+	});
+	return closestRatio;
 };
 
 const processDirectoryFiles = async (dirPath) => {
-    try {
-        const files = await fsPromises.readdir(dirPath);
-        const processedFiles = [];
+	const processedFiles = [];
+	try {
+		const stats = await fsPromises.stat(dirPath);
+		if (stats.isDirectory()) {
+			const files = await fsPromises.readdir(dirPath);
+			for (const file of files) {
+				try {
+					const filePath = path.join(dirPath, file);
+					const _stats = await fsPromises.stat(filePath);
 
-        for (const file of files) {
-            try {
-                const filePath = path.join(dirPath, file);
-                const stats = await fsPromises.stat(filePath);
+					if (_stats.isDirectory()) {
+						// 递归处理子文件夹
+						const subDirFiles = await processDirectoryFiles(filePath);
+						processedFiles.push(...subDirFiles);
+					} else if (_stats.isFile()) {
+						const metadata = await getMetadataByFilePath(filePath, _stats);
+						if (metadata) {
+							processedFiles.push(metadata);
+						}
+					}
+				} catch (error) {
+					console.error(`处理文件 ${file} 时出错:`, error);
+					continue;
+				}
+			}
+		} else {
+			const metadata = await getMetadataByFilePath(dirPath, stats);
+			if (metadata) {
+				processedFiles.push(metadata);
+			}
+		}
 
-                if (stats.isDirectory()) {
-                    // 递归处理子文件夹
-                    const subDirFiles = await processDirectoryFiles(filePath);
-                    processedFiles.push(...subDirFiles);
-                } else if (stats.isFile()) {
-                    const ext = path.extname(filePath).toLowerCase();
-                    if (!supportedExtensions.includes(ext)) continue;
-                    const isVideo = ['.mp4', '.mov', '.avi', '.webm'].includes(ext);
-                    const localImageUrl = `local-image://${encodeURIComponent(filePath)}`;
-                    const thumbnail = isVideo ? await generateVideoThumbnail(filePath) : undefined;
-                    let imageSize = await getImageSize(filePath);
-                    imageSize = isVideo ? await getImageSize(thumbnail) : imageSize;
-                    const id = generateHashId(filePath, stats.size);
-										const ratio = await getRatio(imageSize.width, imageSize.height);
-                    const metadata = {
-                        id: id,
-                        path: localImageUrl,
-                        name: path.basename(filePath, ext), // 移除扩展名
-                        extension: ext.slice(1), // 移除点号
-                        size: stats.size,
-                        dateCreated: stats.birthtime.toISOString(),
-                        dateModified: stats.mtime.toISOString(),
-                        tags: [],
-                        ratio: ratio,
-                        favorite: false,
-                        categories: [],
-                        width: imageSize.width,
-                        height: imageSize.height,
-                        type: isVideo ? 'video' : 'image',
-                        thumbnail: thumbnail,
-                        duration: isVideo ? await getVideoDuration(filePath) : undefined,
-                    };
-                    processedFiles.push(metadata);
-                }
-            } catch (error) {
-                console.error(`处理文件 ${file} 时出错:`, error);
-                continue;
-            }
-        }
-
-        return processedFiles;
-    } catch (error) {
-        console.error('处理目录失败:', error);
-        throw error;
-    }
+		return processedFiles;
+	} catch (error) {
+		console.error('处理目录失败:', error);
+		throw error;
+	}
 };
+
+const getMetadataByFilePath = async (filePath, stats) => {
+	const ext = path.extname(filePath).toLowerCase();
+	if (!supportedExtensions.includes(ext)) return;
+	const isVideo = ['.mp4', '.mov', '.avi', '.webm'].includes(ext);
+	const localImageUrl = `local-image://${encodeURIComponent(filePath)}`;
+	const thumbnail = isVideo ? await generateVideoThumbnail(filePath) : undefined;
+	let imageSize = await getImageSize(filePath);
+	imageSize = isVideo ? await getImageSize(thumbnail) : imageSize;
+	const id = generateHashId(filePath, stats.size);
+	const ratio = await getRatio(imageSize.width, imageSize.height);
+	const metadata = {
+		id: id,
+		path: localImageUrl,
+		name: path.basename(filePath, ext), // 移除扩展名
+		extension: ext.slice(1), // 移除点号
+		size: stats.size,
+		dateCreated: stats.birthtime.toISOString(),
+		dateModified: stats.mtime.toISOString(),
+		tags: [],
+		ratio: ratio,
+		favorite: false,
+		categories: [],
+		width: imageSize.width,
+		height: imageSize.height,
+		type: isVideo ? 'video' : 'image',
+		thumbnail: thumbnail,
+		duration: isVideo ? await getVideoDuration(filePath) : undefined,
+	};
+	return metadata;
+}
 
 module.exports = {
 	getVideoDuration,

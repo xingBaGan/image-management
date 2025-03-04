@@ -111,10 +111,10 @@ export const useCategoryOperations = ({
         const updatedCategories = [...categories, category];
         setCategories(updatedCategories);
 
-        // 保存更改到文件
-        await window.electron.saveImagesToJson(images, updatedCategories);
-        
         setImages([...images, ...newImages]);
+        // 保存更改到文件
+        await window.electron.saveImagesToJson([...images, ...newImages], updatedCategories);
+        
         setSelectedCategory(category.id);
       }
     } catch (error) {

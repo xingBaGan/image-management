@@ -27,6 +27,8 @@ export interface Category {
   name: string;
   images: string[];
   count: number;
+  isImportFromFolder?: boolean;
+  folderPath?: string;
 }
 
 export type MediaType = 'image' | 'video';
@@ -157,6 +159,9 @@ export interface ElectronAPI {
     category: Category;
     images: LocalImageData[];
   }>;
+  updateFolderWatchers: (folders: string[]) => Promise<boolean>;
+  onFolderContentChanged: (callback: (data: { path: string, type: 'add' | 'remove' }) => void) => void;
+  removeFolderContentChangedListener: (callback: (data: { path: string, type: 'add' | 'remove' }) => void) => void;
 }
 
 

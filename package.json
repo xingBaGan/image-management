@@ -30,6 +30,7 @@
     "@types/react-virtualized": "^9.22.0",
     "@types/react-virtualized-auto-sizer": "^1.0.4",
     "@uiw/react-markdown-preview": "^5.1.3",
+    "chokidar": "^4.0.3",
     "comfyui-client": "file:comfyui_client",
     "fluent-ffmpeg": "^2.1.3",
     "framer-motion": "^12.4.3",

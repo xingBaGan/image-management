@@ -370,7 +370,9 @@ ipcMain.handle('read-images-from-folder', async (event, folderPath) => {
       id: `category-${Date.now()}`,
       name: categoryName,
       images: files.map(file => file.id),
-      count: files.length
+      count: files.length,
+      folderPath: folderPath,
+      isImportFromFolder: true
     };
 
     return {

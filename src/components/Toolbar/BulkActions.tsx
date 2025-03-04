@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { AppendButtonsProps, Category } from '../../types';
 import { useLocale } from '../../contexts/LanguageContext';
 import { DynamicIcon } from 'lucide-react/dynamic';

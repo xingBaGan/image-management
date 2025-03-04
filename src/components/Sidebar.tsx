@@ -4,7 +4,7 @@ import {
   MoreVertical, Edit2, GripVertical, Video,
   FolderInput
 } from 'lucide-react';
-import { Category, FilterType } from '../types';
+import { Category, FilterType, ImportStatus } from '../types';
 import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from './StrictModeDroppable';
 import { useLocale } from '../contexts/LanguageContext';
@@ -20,7 +20,8 @@ interface SidebarProps {
   onDeleteCategory: (id: string) => void;
   onUpdateCategories?: (categories: Category[]) => void;
   setShowDeleteConfirm: (id: string | null) => void;
-  onImportFolder?: () => void;
+  onImportFolder?: () => Promise<void>;
+  setImportState: (state: ImportStatus) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -30,6 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onAddCategory,
   onRenameCategory,
   onDeleteCategory,
+  setImportState,
   onUpdateCategories,
   setShowDeleteConfirm,
   onImportFolder,
@@ -70,6 +72,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         name: newCategoryName.trim(),
         images: [],
         count: 0,
+        isImportFromFolder: false
       });
       setNewCategoryName('');
       setIsAddingCategory(false);
@@ -136,7 +139,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             <h3 className="text-sm font-medium text-gray-500 dark:text-rose-400">{t('categories')}</h3>
             <div className="flex gap-1">
               <button
-                onClick={() => onImportFolder?.()}
+                onClick={async () => {
+                  setImportState(ImportStatus.Importing);
+                  await onImportFolder?.();
+                  setImportState(ImportStatus.Imported);
+                }}
                 className="p-1 text-gray-500 hover:text-gray-700 dark:text-white dark:hover:text-rose-400"
                 title={t('importFolder')}
               >

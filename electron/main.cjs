@@ -11,6 +11,7 @@ const isDev = !app.isPackaged;
 const { getImageSize } = require('./services/ipcService.cjs');
 const { pluginManager } = require('./services/pluginService.cjs');
 const { logger } = require('./services/logService.cjs');
+const watchService = require('./services/watchService.cjs');
 
 const loadEnvConfig = () => {
   try {
@@ -383,7 +384,8 @@ app.whenReady().then(async () => {
   }
 });
 
-app.on('window-all-closed', () => {
+app.on('window-all-closed', async () => {
+  await watchService.closeAll();
   if (process.platform !== 'darwin') {
     app.quit();
   }
@@ -391,3 +393,7 @@ app.on('window-all-closed', () => {
 
 
 require('./services/ipcService.cjs');
+ipcMain.handle('update-folder-watchers', async (event, folders) => {
+  await watchService.updateWatchers(folders);
+  return true;
+});

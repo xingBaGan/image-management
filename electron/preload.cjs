@@ -60,6 +60,13 @@ contextBridge.exposeInMainWorld('electron', {
   },
   openFolderDialog: () => ipcRenderer.invoke('open-folder-dialog'),
   readImagesFromFolder: (folderPath) => ipcRenderer.invoke('read-images-from-folder', folderPath),
+  updateFolderWatchers: (folders) => ipcRenderer.invoke('update-folder-watchers', folders),
+  onFolderContentChanged: (callback) => {
+    ipcRenderer.on('folder-content-changed', (event, data) => callback(data));
+  },
+  removeFolderContentChangedListener: (callback) => {
+    ipcRenderer.removeListener('folder-content-changed', callback);
+  }
 });
 
 // 暴露给主进程的方法

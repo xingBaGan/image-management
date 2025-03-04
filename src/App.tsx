@@ -100,21 +100,27 @@ function App() {
     loadImages,
   } = useImageOperations();
 
-    // 使用 category hook
-    const {
-      categories,
-      setCategories,
-      handleAddCategory: handleAddCategoryBase,
-      handleRenameCategory,
-      handleDeleteCategory,
-      handleReorderCategories,
-      handleAddToCategory: handleAddToCategoryBase,
-      handleImportFolder,
-    } = useCategoryOperations({
-      setImages: setMediaList,
-      images: mediaList,
-      setSelectedCategory,
-    });
+  // 使用 category hook
+  const {
+    categories,
+    setCategories,
+    handleAddCategory: handleAddCategoryBase,
+    handleRenameCategory,
+    handleDeleteCategory,
+    handleReorderCategories,
+    handleAddToCategory: handleAddToCategoryBase,
+    handleImportFolder,
+  } = useCategoryOperations({
+    setImages: setMediaList,
+    images: mediaList,
+    setSelectedCategory,
+  });
+
+  const shouldListenFolders = useMemo(() => {
+    return categories.filter(cate => cate?.folderPath).map(it => it.folderPath);
+  }, [categories])
+
+  console.log('shouldListenFolders', shouldListenFolders);
 
   // 包装函数以提供正确的参数
   const handleAddCategory = async (category: Category) => {
@@ -430,7 +436,7 @@ function App() {
     window.electron.openInEditor(path);
   }, []);
 
-  const filteredAndSortedImages = useMemo(() => {    
+  const filteredAndSortedImages = useMemo(() => {
     // 首先根据 filter 和 selectedCategory 过滤图片
     let filtered = mediaList.filter(img => img.type !== 'video') as LocalImageData[];
 
@@ -535,6 +541,36 @@ function App() {
   const gridItemAppendButtonsProps = useMemo(() => {
     return getGridItemAppendButtonsProps();
   }, []);
+
+  useEffect(() => {
+    if (shouldListenFolders.length > 0) {
+      // 更新监听的文件夹
+      window.electron?.updateFolderWatchers(shouldListenFolders.filter(it => it !== undefined) as string[]);
+
+      // 添加文件夹内容变化的监听
+      const handleFolderChange = async (data: { path: string, type: 'add' | 'remove' }) => {
+        if (data.type === 'add') {
+          // 添加图片
+          const newImages = await window.electron.processDirectoryFiles(data.path);
+          setMediaList(prev => [...prev, ...newImages]);
+        } else {
+          // 删除图片
+          setMediaList(prev => prev.filter(img => {
+            const convertPath = decodeURIComponent(img.path).replace(/local-image:\/\//g, '');
+            return convertPath !== data.path;
+          }));
+        }
+      };
+
+      window.electron?.onFolderContentChanged(handleFolderChange);
+
+      return () => {
+        // 清理监听器
+        window.electron?.removeFolderContentChangedListener(handleFolderChange);
+      };
+    }
+  }, [shouldListenFolders]);
+
   return (
     <div className="flex flex-col h-screen backdrop-blur-md dark:bg-gray-900"
       style={{
@@ -563,6 +599,7 @@ function App() {
             onUpdateCategories={handleReorderCategories}
             setShowDeleteConfirm={setShowDeleteConfirm}
             onImportFolder={handleImportFolder}
+            setImportState={setImportState}
           />
         )}
 
