@@ -120,7 +120,10 @@ function App() {
     return categories.filter(cate => cate?.folderPath).map(it => it.folderPath);
   }, [categories])
 
-  console.log('shouldListenFolders', shouldListenFolders);
+  useEffect(() => {
+    console.log('shouldListenFolders', shouldListenFolders);
+    // 遍历shouldListenFolders，如果分类的长度与
+  }, [shouldListenFolders]);
 
   // 包装函数以提供正确的参数
   const handleAddCategory = async (category: Category) => {
@@ -542,35 +545,33 @@ function App() {
     return getGridItemAppendButtonsProps();
   }, []);
 
+  const handleFolderChange = useCallback(async (data: { path: string, type: 'add' | 'remove' }) => {
+    if (data.type === 'add') {
+      let newImages = await window.electron.processDirectoryFiles(data.path);
+      setMediaList(prev => {
+        newImages = newImages.filter(img => !prev.some(it => it.id === img.id));
+        return [...prev, ...newImages];
+      });
+    } else {
+      setMediaList(prev => prev.filter(img => {
+        const convertPath = decodeURIComponent(img.path).replace(/local-image:\/\//g, '');
+        return convertPath !== data.path;
+      }));
+    }
+  }, []);
+
   useEffect(() => {
     if (shouldListenFolders.length > 0) {
-      // 更新监听的文件夹
+      // 使用 useCallback 或在 effect 外部定义处理函数
       window.electron?.updateFolderWatchers(shouldListenFolders.filter(it => it !== undefined) as string[]);
-
-      // 添加文件夹内容变化的监听
-      const handleFolderChange = async (data: { path: string, type: 'add' | 'remove' }) => {
-        if (data.type === 'add') {
-          // 添加图片
-          const newImages = await window.electron.processDirectoryFiles(data.path);
-          setMediaList(prev => [...prev, ...newImages]);
-        } else {
-          // 删除图片
-          setMediaList(prev => prev.filter(img => {
-            const convertPath = decodeURIComponent(img.path).replace(/local-image:\/\//g, '');
-            return convertPath !== data.path;
-          }));
-        }
-      };
-
       window.electron?.onFolderContentChanged(handleFolderChange);
-
+  
       return () => {
-        // 清理监听器
         window.electron?.removeFolderContentChangedListener(handleFolderChange);
       };
     }
-  }, [shouldListenFolders]);
-
+  }, [shouldListenFolders, handleFolderChange]);
+  
   return (
     <div className="flex flex-col h-screen backdrop-blur-md dark:bg-gray-900"
       style={{

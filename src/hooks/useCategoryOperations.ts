@@ -100,26 +100,27 @@ export const useCategoryOperations = ({
       return null;
     }
   };
-  
+
   const handleImportFolder = async () => {
     try {
       const folderPath = await window.electron.openFolderDialog();
       if (folderPath) {
-        const { category, images: newImages } = await window.electron.readImagesFromFolder(folderPath);
-        
-        // 更新分类
-        const updatedCategories = [...categories, category];
-        setCategories(updatedCategories);
-
-        setImages([...images, ...newImages]);
-        // 保存更改到文件
-        await window.electron.saveImagesToJson([...images, ...newImages], updatedCategories);
-        
-        setSelectedCategory(category.id);
+        await handleImportFolderFromPath(folderPath);
       }
     } catch (error) {
       console.error(t('importFolderFailed', { error: String(error) }));
     }
+  };
+
+  const handleImportFolderFromPath = async (folderPath: string) => {
+    const { category, images: newImages } = await window.electron.readImagesFromFolder(folderPath);
+    // 更新分类
+    const updatedCategories = [...categories, category];
+    setCategories(updatedCategories);
+    setImages([...images, ...newImages]);
+    // 保存更改到文件
+    await window.electron.saveImagesToJson([...images, ...newImages], updatedCategories);
+    setSelectedCategory(category.id);
   };
 
   return {

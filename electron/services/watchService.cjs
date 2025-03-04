@@ -38,13 +38,13 @@ class WatchService {
 
   // 创建单个文件夹的监听器
   createWatcher(folderPath) {
-    // const supportedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'mp4', 'mov', 'avi', 'webm'];
-    // const folderPathRegex = join(folderPath, '**', `*.{${supportedExtensions.join(',')}}`).replace(/\\/g, '/');
-    // console.log('创建监听器', folderPathRegex);
+    const supportedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
+    const folderPathRegex = join(folderPath, `*.{${supportedExtensions.join(',')}}`).replace(/\\/g, '/');
+    console.log('创建监听器', folderPathRegex);
     const watcher = chokidar.watch(folderPath, {
       persistent: true,
       ignoreInitial: true,
-      depth: 99,
+      depth: 1,
       ignorePermissionErrors: true,
       awaitWriteFinish: {
         stabilityThreshold: 2000,
