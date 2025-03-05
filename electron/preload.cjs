@@ -29,7 +29,7 @@ contextBridge.exposeInMainWorld('electron', {
   tagImage: (imagePath, modelName) => ipcRenderer.invoke('tag-image', imagePath, modelName),
   getMainColor: (imagePath) => ipcRenderer.invoke('get-main-color', imagePath),
   getQueueStatus: () => ipcRenderer.invoke('get-queue-status'),
-  processDirectoryFiles: (dirPath) => ipcRenderer.invoke('process-directory', dirPath),
+  processDirectoryFiles: (dirPath, isBindInFolder = false) => ipcRenderer.invoke('process-directory', dirPath, isBindInFolder),
   openInEditor: (filePath) => ipcRenderer.invoke('open-in-photoshop', filePath),
   downloadUrlImage: (url) => ipcRenderer.invoke('download-url-image', url),
   showInFolder: (filePath) => ipcRenderer.invoke('show-in-folder', filePath),

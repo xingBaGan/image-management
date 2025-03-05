@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { app } = require('electron');
+const { logger } = require('./logService.cjs');
 
 // 获取应用数据目录中的 JSON 文件路径
 const saveImageToLocal = async (imageData, fileName, ext) => {
@@ -90,10 +91,31 @@ function getImagesByIds(ids) {
 	return data.images.filter(img => ids.includes(img.id));
 }
 
+async function deletePhysicalFile(filePath) {
+	try {
+		// 解码文件路径并移除 local-image:// 前缀
+		const localPath = decodeURIComponent(filePath.replace('local-image://', ''));
+		
+		// 检查文件是否存在
+		if (fs.existsSync(localPath)) {
+			await fs.promises.unlink(localPath);
+			logger.info(`物理文件删除成功: ${localPath}`);
+			return true;
+		} else {
+			logger.warn(`文件不存在: ${localPath}`);
+			return false;
+		}
+	} catch (error) {
+		logger.error(`删除物理文件失败: ${filePath}`, error);
+		throw error;
+	}
+}
+
 module.exports = {
 	saveImageToLocal,
 	loadImagesData,
 	getJsonFilePath,
 	getImageById,
 	getImagesByIds,
+	deletePhysicalFile,
 }

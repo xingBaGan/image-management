@@ -53,7 +53,8 @@ const Row = memo(({ data, index, style }: {
                     ? 'var(--selected-bg-color, rgba(59, 130, 246, 0.1))' 
                     : undefined
             }}
-            className={`grid gap-4 items-center p-4 transition-colors cursor-pointer grid-cols-[auto_1fr_auto_auto_auto] hover:bg-gray-50 dark:hover:bg-gray-700 image-item`}
+            className={`grid gap-4 items-center p-4 transition-colors cursor-pointer grid-cols-[auto_1fr_auto_auto_auto] hover:bg-gray-50 dark:hover:bg-gray-700 image-item
+                ${image.isBindInFolder ? 'border-l-4 border-blue-400' : ''}`}
             data-image-id={image.id}
             onContextMenu={handleContextMenu}
             onClick={(e) => handleRowClick(e, image.id)}
@@ -64,7 +65,14 @@ const Row = memo(({ data, index, style }: {
             </div>
             <div className="flex items-center">
                 <FileText size={16} className="mr-2 text-gray-400" />
-                <span className="text-gray-700 dark:text-white">{image.name}</span>
+                <span className="text-gray-700 dark:text-white">
+                    {image.name}
+                    {image.isBindInFolder && (
+                        <span className="ml-2 text-xs text-blue-500 bg-blue-100 px-2 py-0.5 rounded">
+                            已绑定
+                        </span>
+                    )}
+                </span>
             </div>
             <div className="flex gap-4 justify-between items-center w-50">
                 <div className="text-gray-500 dark:text-white min-w-15">

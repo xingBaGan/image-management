@@ -113,7 +113,11 @@ export const useCategoryOperations = ({
   };
 
   const handleImportFolderFromPath = async (folderPath: string) => {
-    const { category, images: newImages } = await window.electron.readImagesFromFolder(folderPath);
+    let { category, images: newImages } = await window.electron.readImagesFromFolder(folderPath);
+    newImages = newImages.map(img => ({
+      ...img,
+      isBindInFolder: true
+    }));
     // 更新分类
     const updatedCategories = [...categories, category];
     setCategories(updatedCategories);

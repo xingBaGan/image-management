@@ -126,6 +126,7 @@ export const translations = {
     releaseToUpload: 'Release to upload',
     rateImage: 'Rate image',
     rateVideo: 'Rate video',
+    bindInFolder: 'Bind in Folder',
 
     // Image Item
     moreOptions: 'More Options',
@@ -305,6 +306,7 @@ export const translations = {
     releaseToUpload: '松开以上传',
     rateImage: '给图片评分',
     rateVideo: '给视频评分',
+    bindInFolder: '已绑定',
 
     // Image Item
     moreOptions: '更多选项',

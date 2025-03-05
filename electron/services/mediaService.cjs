@@ -118,7 +118,7 @@ const getRatio = async (width, height) => {
 	return closestRatio;
 };
 
-const processDirectoryFiles = async (dirPath) => {
+const processDirectoryFiles = async (dirPath, isBindInFolder = false) => {
 	const processedFiles = [];
 	try {
 		const stats = await fsPromises.stat(dirPath);
@@ -145,7 +145,7 @@ const processDirectoryFiles = async (dirPath) => {
 				}
 			}
 		} else {
-			const metadata = await getMetadataByFilePath(dirPath, stats);
+			const metadata = await getMetadataByFilePath(dirPath, stats, isBindInFolder);
 			if (metadata) {
 				processedFiles.push(metadata);
 			}
@@ -158,7 +158,7 @@ const processDirectoryFiles = async (dirPath) => {
 	}
 };
 
-const getMetadataByFilePath = async (filePath, stats) => {
+const getMetadataByFilePath = async (filePath, stats, isBindInFolder = false) => {
 	const ext = path.extname(filePath).toLowerCase();
 	if (!supportedExtensions.includes(ext)) return;
 	const isVideo = ['.mp4', '.mov', '.avi', '.webm'].includes(ext);
@@ -185,6 +185,7 @@ const getMetadataByFilePath = async (filePath, stats) => {
 		type: isVideo ? 'video' : 'image',
 		thumbnail: thumbnail,
 		duration: isVideo ? await getVideoDuration(filePath) : undefined,
+		isBindInFolder: isBindInFolder,
 	};
 	return metadata;
 }

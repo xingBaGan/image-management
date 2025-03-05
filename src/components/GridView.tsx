@@ -6,7 +6,7 @@ import ImageItem from './ImageItem';
 import VideoItem from './VideoItem';
 import { useInView } from 'react-intersection-observer';
 import { useThrottle } from '../hooks/useThrottle';
-
+import { useTranslation } from 'react-i18next';
 type MediaItemProps = {
   media: LocalImageData;
   props: any;
@@ -29,6 +29,7 @@ const MediaItem = memo(({
   currentViewIndex,
   setCurrentViewIndex,
 }: MediaItemProps) => {
+  const { t } = useTranslation();
   const { ref, inView: inCache } = useInView({
     threshold: 0,
     triggerOnce: true,
@@ -57,18 +58,25 @@ const MediaItem = memo(({
     <div ref={ref}>
       <div ref={triggerRef}></div>
       {(inCache && !shouldDestroy) && (
-        media.type === 'video' ? (
-          <VideoItem video={isVideoMedia(media) ? media : media as VideoData} {...props} inView={triggerAgainInView} />
-        ) : (
-          <ImageItem
-            inView={triggerAgainInView}
-            image={media}
-            onOpenInEditor={onOpenInEditor}
-            showInFolder={showInFolder}
-            gridItemAppendButtonsProps={gridItemAppendButtonsProps}
-            {...props}
-          />
-        )
+        <div className={`relative ${media.isBindInFolder ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}`}>
+          {media.isBindInFolder && (
+            <div className="absolute -top-1 -right-1 z-10 px-1 text-xs text-white bg-blue-400 rounded-lg">
+              {t('bindInFolder')}
+            </div>
+          )}
+          {media.type === 'video' ? (
+            <VideoItem video={isVideoMedia(media) ? media : media as VideoData} {...props} inView={triggerAgainInView} />
+          ) : (
+            <ImageItem
+              inView={triggerAgainInView}
+              image={media}
+              onOpenInEditor={onOpenInEditor}
+              showInFolder={showInFolder}
+              gridItemAppendButtonsProps={gridItemAppendButtonsProps}
+              {...props}
+            />
+          )}
+        </div>
       )}
     </div>
   );

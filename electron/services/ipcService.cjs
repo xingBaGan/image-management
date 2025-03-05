@@ -4,10 +4,11 @@ const fs = require('fs');
 const fsPromises = require('fs').promises;
 const { generateHashId } = require('../utils/index.cjs');
 const { getComfyURL } = require('./settingService.cjs');
-const { saveImageToLocal, loadImagesData, getJsonFilePath } = require('./FileService.cjs');
+const { saveImageToLocal, loadImagesData, getJsonFilePath, deletePhysicalFile } = require('./FileService.cjs');
 const { getVideoDuration, generateVideoThumbnail, getImageSize, processDirectoryFiles } = require('./mediaService.cjs');
 const { tagImage, getMainColor } = require(path.join(__dirname, '../../', 'script', 'script.cjs'))
 const { tagQueue, colorQueue } = require('./queueService.cjs');
+const { logger } = require('./logService.cjs');
 const isRemoteComfyUI = function () {
   const ComfyUI_URL = getComfyURL();
   return !(ComfyUI_URL.includes('localhost') || ComfyUI_URL.includes('127.0.0.1'));
@@ -197,6 +198,27 @@ ipcMain.handle('save-images-to-json', async (event, images, categories) => {
     const userDataPath = app.getPath('userData');
     const jsonPath = path.join(userDataPath, 'images.json');
 
+    // 获取当前的图片数据
+    const currentData = await loadImagesData();
+    const currentImages = new Set(currentData.images.map(img => img.id));
+    const newImages = new Set(images.map(img => img.id));
+
+    // 找出被删除的图片
+    const deletedImages = currentData.images.filter(img => 
+      !newImages.has(img.id) && img.isBindInFolder
+    );
+
+    // 删除绑定文件夹中被删除的图片的物理文件
+    for (const img of deletedImages) {
+      try {
+        await deletePhysicalFile(img.path);
+        logger.info(`删除绑定文件夹图片: ${img.path}`);
+      } catch (error) {
+        logger.error(`删除绑定文件夹图片失败: ${img.path}`, error);
+      }
+    }
+
+    // 保存更新后的数据
     await fs.promises.writeFile(
       jsonPath,
       JSON.stringify({ images, categories }, null, 2),
@@ -205,7 +227,7 @@ ipcMain.handle('save-images-to-json', async (event, images, categories) => {
 
     return true;
   } catch (error) {
-    console.error('Error saving images:', error);
+    logger.error('保存图片数据失败:', error);
     throw error;
   }
 });
@@ -333,12 +355,12 @@ ipcMain.handle('reset-queue-progress', async (event, type) => {
 });
 
 // 修改现有的批量处理函数，使其在开始前重置进度
-ipcMain.handle('process-directory', async (event, dirPath) => {
+ipcMain.handle('process-directory', async (event, dirPath, isBindInFolder = false) => {
   try {
     // 在开始处理前重置进度
     tagQueue.reset();
     colorQueue.reset();
-    const results = await processDirectoryFiles(dirPath);
+    const results = await processDirectoryFiles(dirPath, isBindInFolder);
     return results;
   } catch (error) {
     console.error('处理目录时出错:', error);
@@ -361,7 +383,7 @@ ipcMain.handle('open-folder-dialog', async () => {
 
 ipcMain.handle('read-images-from-folder', async (event, folderPath) => {
   try {
-    // 使用现有的 processDirectoryFiles 函数处理文件夹
+    // 使用现有的  函数处理文件夹
     const files = await processDirectoryFiles(folderPath);
     
     // 创建新的分类对象

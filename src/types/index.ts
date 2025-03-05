@@ -61,6 +61,7 @@ export interface BaseMediaData extends MediaInfo {
   tags: string[];
   categories?: string[];
   colors: (string | ColorInfo)[];
+  isBindInFolder?: boolean;
 }
 
 // 图片特定类型
@@ -137,7 +138,7 @@ export interface ElectronAPI {
   isRemoteComfyUI: () => Promise<boolean>;
   readFile: (filePath: string) => Promise<Buffer>;
   tagImage: (imagePath: string, modelName: string) => Promise<string[]>;
-  processDirectoryFiles: (dirPath: string) => Promise<LocalImageData[]>;
+  processDirectoryFiles: (dirPath: string,isBindInFolder?: boolean) => Promise<LocalImageData[]>;
   openInEditor: (filePath: string) => Promise<{ success: boolean; error?: string }>;
   downloadUrlImage: (url: string) => Promise<{
     success: boolean;

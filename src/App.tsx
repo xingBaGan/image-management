@@ -547,7 +547,7 @@ function App() {
 
   const handleFolderChange = useCallback(async (data: { path: string, type: 'add' | 'remove' }) => {
     if (data.type === 'add') {
-      let newImages = await window.electron.processDirectoryFiles(data.path);
+      let newImages = await window.electron.processDirectoryFiles(data.path, true);
       setMediaList(prev => {
         newImages = newImages.filter(img => !prev.some(it => it.id === img.id));
         return [...prev, ...newImages];
