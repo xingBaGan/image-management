@@ -4,7 +4,7 @@ import {
   MoreVertical, Edit2, GripVertical, Video,
   FolderInput, Folder
 } from 'lucide-react';
-import { Category, FilterType, ImportStatus } from '../types';
+import { Category, FilterType, ImportStatus, LocalImageData } from '../types';
 import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from './StrictModeDroppable';
 import { useLocale } from '../contexts/LanguageContext';
@@ -17,7 +17,6 @@ interface SidebarProps {
   onFilterChange: (filter: FilterType) => void;
   onAddCategory: (category: Category) => void;
   onRenameCategory: (id: string, newName: string) => void;
-  onDeleteCategory: (id: string) => void;
   onUpdateCategories?: (categories: Category[]) => void;
   setShowDeleteConfirm: (id: string | null) => void;
   onImportFolder?: () => Promise<void>;
@@ -30,7 +29,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   categories,
   onAddCategory,
   onRenameCategory,
-  onDeleteCategory,
   setImportState,
   onUpdateCategories,
   setShowDeleteConfirm,

@@ -1,12 +1,17 @@
 import React from 'react';
 import { useLocale } from '../contexts/LanguageContext';
-
+import { Category } from '../types';
 interface DeleteConfirmDialogProps {
   onCancel: () => void;
   onConfirm: () => void;
+  currentSelectedCategory: Category | null;
 }
 
-const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({ onCancel, onConfirm }) => {
+const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({ 
+  onCancel,
+   onConfirm,
+   currentSelectedCategory,
+   }) => {
   const { t } = useLocale();
 
   return (
@@ -17,6 +22,7 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({ onCancel, onC
         </h3>
         <p className="mb-6 text-gray-600dark:text-rose-300">
           {t('deleteConfirmMessage')}
+          {currentSelectedCategory?.isImportFromFolder ? t('deleteBindInFolder') :''}
         </p>
         <div className="flex gap-3 justify-end">
           <button

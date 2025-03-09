@@ -342,8 +342,8 @@ function App() {
     }
   };
 
-  const handleDeleteConfirm = (categoryId: string) => {
-    handleDeleteCategory(categoryId);
+  const handleDeleteConfirm = (categoryId: string, images: LocalImageData[]) => {
+    handleDeleteCategory(categoryId, images);
     setShowDeleteConfirm(null);
   };
 
@@ -608,7 +608,6 @@ function App() {
             onFilterChange={setFilter}
             onAddCategory={handleAddCategory}
             onRenameCategory={handleRenameCategory}
-            onDeleteCategory={handleDeleteCategory}
             onUpdateCategories={handleReorderCategories}
             setShowDeleteConfirm={setShowDeleteConfirm}
             onImportFolder={handleImportFolder}
@@ -659,7 +658,8 @@ function App() {
       {showDeleteConfirm && (
         <DeleteConfirmDialog
           onCancel={() => setShowDeleteConfirm(null)}
-          onConfirm={() => handleDeleteConfirm(showDeleteConfirm)}
+          onConfirm={() => handleDeleteConfirm(showDeleteConfirm, mediaList)}
+          currentSelectedCategory={categories?.find(it => it.id === showDeleteConfirm) || null}
         />
       )}
 

@@ -46,12 +46,22 @@ export const useCategoryOperations = ({
     }
   };
 
-  const handleDeleteCategory = async (categoryId: string) => {
+  const handleDeleteCategory = async (categoryId: string, images: LocalImageData[]) => {
     try {
+      const deletedCategory = categories.find(category => category.id === categoryId);
+      // 将该目录下的图片解除绑定
+      if (deletedCategory?.isImportFromFolder) {
+        deletedCategory?.images?.forEach(imageId => {
+          const image = images.find(img => img.id === imageId);
+          if (image) {
+            image.isBindInFolder = false;
+          }
+        });
+      }
       const updatedCategories = categories.filter(category => category.id !== categoryId);
       setCategories(updatedCategories);
 
-      await window.electron.saveCategories(updatedCategories);
+      await window.electron.saveImagesToJson(images, updatedCategories);
     } catch (error) {
       console.error(t('deleteCategoryFailed', { error: String(error) }));
     }
@@ -121,7 +131,7 @@ export const useCategoryOperations = ({
     // 更新分类
     const updatedCategories = [...categories, category];
     setCategories(updatedCategories);
-    setImages([...images, ...newImages]);
+    setImages([...(images.filter(img => !newImages.some(newImg => newImg.id === img.id))), ...newImages]);
     // 保存更改到文件
     await window.electron.saveImagesToJson([...images, ...newImages], updatedCategories);
     setSelectedCategory(category.id);
