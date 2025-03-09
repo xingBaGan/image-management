@@ -164,6 +164,9 @@ export const processMedia = async (
   return updatedImages;
 };
 
+function getReadableFilePath(filePath: string) {
+  return decodeURIComponent(filePath.replace('local-image://', '')).replace(/\\/g, '/').replace(/\//g, '\\');
+}
 
 export const addImagesToCategory = async (newImages: LocalImageData[], categories: Category[], currentSelectedCategory?: Category) => {
   if (currentSelectedCategory) {
@@ -171,9 +174,15 @@ export const addImagesToCategory = async (newImages: LocalImageData[], categorie
     // 拷贝绑定文件夹中的图片到当前分类中
     for (const img of newImages) {
       if (category) {
-        category.images?.push(img.id);
-        category.count = category.images.length;
-        img.categories?.push(category.id);
+        if (img.path.includes('local-image://') && category.folderPath) {
+          newImages = newImages.filter(img => img.id !== img.id);
+          const filePath = getReadableFilePath(img.path);
+          await window.electron.copyFileToCategoryFolder(filePath, category);
+        } else {
+          category.images?.push(img.id);
+          category.count = category.images.length;
+          img.categories?.push(category.id);
+        }
       }
     }
   }
@@ -193,8 +202,8 @@ export const handleDrop = async (
   const dirPaths = Array.from(e.dataTransfer.files).filter(files => files.type === "");
   let images: LocalImageData[] = [];
   if (files.length > 0) {
-    const newImages = await processMedia(files as ImportFile[], existingImages, categories, setImportState, currentSelectedCategory, false);
-    await addImagesToCategory(newImages, categories, currentSelectedCategory);
+    let newImages = await processMedia(files as ImportFile[], existingImages, categories, setImportState, currentSelectedCategory, false);
+    newImages = await addImagesToCategory(newImages, categories, currentSelectedCategory);
     images.push(...newImages);
   }
 
@@ -203,8 +212,8 @@ export const handleDrop = async (
       if ('path' in file) {
         setImportState(ImportStatus.Importing);
         const firstFile = file.path as string;
-        const [newImages, category] = await window.electron.processDirectoryFiles(firstFile, currentSelectedCategory);
-        await addImagesToCategory(newImages, categories, category);
+        let [newImages, category] = await window.electron.processDirectoryFiles(firstFile, currentSelectedCategory);
+        newImages = await addImagesToCategory(newImages, categories, category);
         images.push(...newImages);
       }
     }

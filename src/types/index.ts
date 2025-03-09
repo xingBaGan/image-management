@@ -161,8 +161,10 @@ export interface ElectronAPI {
     images: LocalImageData[];
   }>;
   updateFolderWatchers: (folders: string[]) => Promise<boolean>;
-  onFolderContentChanged: (callback: (data: { path: string, type: 'add' | 'remove' }) => void) => void;
-  removeFolderContentChangedListener: (callback: (data: { path: string, type: 'add' | 'remove' }) => void) => void;
+  onFolderContentChanged: (callback: (data: {  type: 'add' | 'remove', newImages: LocalImageData[], category: Category }) => void) => void;
+  removeFolderContentChangedListener: (callback: (data: {  type: 'add' | 'remove', newImages: LocalImageData[], category: Category }) => void) => void;
+  copyFileToCategoryFolder: (filePath: string, currentCategory: Category) => Promise<boolean>;
+  deleteFile: (filePath: string) => Promise<boolean>;
 }
 
 

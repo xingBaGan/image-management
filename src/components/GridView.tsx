@@ -7,6 +7,7 @@ import VideoItem from './VideoItem';
 import { useInView } from 'react-intersection-observer';
 import { useThrottle } from '../hooks/useThrottle';
 import { useTranslation } from 'react-i18next';
+import { CopySlash } from 'lucide-react';
 type MediaItemProps = {
   media: LocalImageData;
   props: any;
@@ -60,8 +61,9 @@ const MediaItem = memo(({
       {(inCache && !shouldDestroy) && (
         <div className={`relative ${media.isBindInFolder ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}`}>
           {media.isBindInFolder && (
-            <div className="absolute -top-1 -right-1 z-10 px-1 text-xs text-white bg-blue-400 rounded-lg">
-              {t('bindInFolder')}
+            <div className="absolute -top-1 -right-1 z-10 px-1 text-gray-300">
+              {/* {t('bindInFolder')} */}
+              <CopySlash size={20}/>
             </div>
           )}
           {media.type === 'video' ? (

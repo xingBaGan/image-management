@@ -124,11 +124,6 @@ function App() {
     return categories.filter(cate => cate?.folderPath).map(it => it.folderPath);
   }, [categories])
 
-  useEffect(() => {
-    console.log('shouldListenFolders', shouldListenFolders);
-    // 遍历shouldListenFolders，如果分类的长度与
-  }, [shouldListenFolders]);
-
   // 包装函数以提供正确的参数
   const handleAddCategory = async (category: Category) => {
     await handleAddCategoryBase(category, mediaList);
@@ -420,14 +415,14 @@ function App() {
           slice: () => new Blob(),
           type: img.type || 'image/jpeg'
         })) as unknown as ImportFile[]
-        const updatedImages = await processMedia(
+        let updatedImages = await processMedia(
           newImagesWithMetadata,
           mediaList,
           categories,
           setImportState,
           currentSelectedCategory
         );
-        await addImagesToCategory(updatedImages, categories, currentSelectedCategory);
+        updatedImages= await addImagesToCategory(updatedImages, categories, currentSelectedCategory);
         setMediaList([...mediaList, ...updatedImages]);
         setMessageBox({
           isOpen: true,
@@ -564,27 +559,19 @@ function App() {
   // 将 handleFolderChange 移到 useEffect 内部
   useEffect(() => {
     if (shouldListenFolders.length > 0) {
-      const handleFolderChange = async (data: { path: string, type: 'add' | 'remove' }) => {
-        console.log('handleFolderChange, data-----');
+      const handleFolderChange = async (data: { type: 'add' | 'remove', newImages: LocalImageData[], category: Category }) => {
         if (data.type === 'add') {
-          let [newImages, category] = await window.electron.processDirectoryFiles(data.path, null);
-          console.log('handleFolderChange, newImages', newImages, category);
-          setMediaList(prev => {
-            newImages = newImages.filter(img => !prev.some(it => it.id === img.id));
-            return [...prev, ...newImages];
-          });
-          setCategories(prev => {
-            return [...prev.filter(cat => cat.id !== category.id), {
-              ...category,
-              images: category.images.concat(newImages.map(img => img.id)),
-              count: category.images.length + newImages.length
-            }];
-          });
+          setMediaList(prev => [...prev.filter(it => !data.newImages.some(newImg => newImg.id === it.id)), ...data.newImages]);
+          setCategories(prev => [...prev.filter(it => it.id !== data.category.id), {
+            ...data.category,
+            count: data.category.images.length,
+          }]);
         } else {
-          setMediaList(prev => prev.filter(img => {
-            const convertPath = decodeURIComponent(img.path).replace(/local-image:\/\//g, '');
-            return convertPath !== data.path;
-          }));
+          setMediaList(prev => prev.filter(it => !data.newImages.some(newImg => newImg.id === it.id)));
+          setCategories(prev => [...prev.filter(it => it.id !== data.category.id), {
+            ...data.category,
+            count: data.category.images.length,
+          }]);
         }
       };
 

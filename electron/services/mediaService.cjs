@@ -8,7 +8,7 @@ const path = require('path');
 const fs = require('fs');
 const fsPromises = require('fs').promises;
 const { generateHashId } = require('../utils/index.cjs');
-const watchService = require('./watchService.cjs');
+
 // 设置 ffmpeg 和 ffprobe 路径
 ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);
@@ -120,6 +120,7 @@ const getRatio = async (width, height) => {
 };
 
 const processDirectoryFiles = async (dirPathOrPaths, currentCategory = {}) => {
+	if (!dirPathOrPaths) return [[],[]];
 	const processedFiles = [];
 	if (!Array.isArray(dirPathOrPaths)) {
 		dirPathOrPaths = [dirPathOrPaths];
@@ -180,6 +181,7 @@ const getMetadataByFilePath = async (filePath, stats, currentCategory = {}) => {
 	const ratio = await getRatio(imageSize.width, imageSize.height);
 	let isImportFromFolder = false;
 	if (currentCategory === null ) {
+		const watchService = require('./watchService.cjs');
 		const category = watchService.getWatchCategory(filePath);
 		if (category) {
 			isImportFromFolder = true;

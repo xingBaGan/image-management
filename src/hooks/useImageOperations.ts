@@ -34,7 +34,7 @@ export const useImageOperations = () => {
       const newImages = await window.electron.showOpenDialog();
       if (newImages.length > 0) {
         setImportState(ImportStatus.Importing);
-        const updatedImages = await processMedia(
+        let updatedImages = await processMedia(
           newImages.map(file => ({
             ...file,
             dateCreated: file?.dateCreated || new Date().toISOString(),
@@ -50,7 +50,7 @@ export const useImageOperations = () => {
           setImportState,
           currentSelectedCategory
         );
-        await addImagesToCategory(updatedImages, categories, currentSelectedCategory);
+        updatedImages = await addImagesToCategory(updatedImages, categories, currentSelectedCategory);
         setImages([...images, ...updatedImages]);
         setImportState(ImportStatus.Imported);
       }
@@ -91,6 +91,7 @@ export const useImageOperations = () => {
 
   const executeDelete = async (selectedImages: Set<string>, categories: Category[]) => {
     const updatedImages = images.filter(img => !selectedImages.has(img.id));
+    const deletedImages = images.filter(img => selectedImages.has(img.id));
     const newCategories = categories.map(category => {
       const newImages = category.images?.filter(id => !selectedImages.has(id)) || [];
       return {
@@ -99,6 +100,12 @@ export const useImageOperations = () => {
         count: newImages.length
       };
     });
+
+    for (const img of deletedImages) {
+      if (img.path.includes('local-image://') && img.isBindInFolder) {
+        await window.electron.deleteFile(img.path);
+      }
+    }
 
     await window.electron.saveImagesToJson(
       updatedImages,

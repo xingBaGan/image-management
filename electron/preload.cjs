@@ -65,7 +65,9 @@ contextBridge.exposeInMainWorld('electron', {
   },
   removeFolderContentChangedListener: (callback) => {
     ipcRenderer.removeListener('folder-content-changed', callback);
-  }
+  },
+  copyFileToCategoryFolder: (filePath, currentCategory) => ipcRenderer.invoke('copy-file-to-category-folder', filePath, currentCategory),
+  deleteFile: (filePath) => ipcRenderer.invoke('delete-file', filePath)
 });
 
 // 暴露给主进程的方法

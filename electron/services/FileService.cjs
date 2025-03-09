@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { app } = require('electron');
 const { logger } = require('./logService.cjs');
+const fsPromises = require('fs').promises;
 
 // 获取应用数据目录中的 JSON 文件路径
 const saveImageToLocal = async (imageData, fileName, ext) => {
@@ -33,6 +34,28 @@ const saveImageToLocal = async (imageData, fileName, ext) => {
 	}
 };
 
+const saveImagesAndCategories = async (images, categories) => {
+	const userDataPath = app.getPath('userData');
+	const jsonPath = path.join(userDataPath, 'images.json');
+	const tempPath = path.join(userDataPath, 'images.json.temp');
+	// 先写入临时文件
+	const jsonData = JSON.stringify({ images, categories }, null, 2);
+	await fsPromises.writeFile(tempPath, jsonData, 'utf-8');
+
+	// 验证临时文件的完整性
+	try {
+		const tempContent = await fsPromises.readFile(tempPath, 'utf-8');
+		JSON.parse(tempContent); // 验证 JSON 格式是否正确
+	} catch (error) {
+		throw new Error('临时文件写入验证失败');
+	}
+
+	// 如果验证成功，替换原文件
+	await fsPromises.rename(tempPath, jsonPath);
+
+	return true;
+}
+
 const getJsonFilePath = () => {
 	return path.join(app.getPath('userData'), 'images.json');
 };
@@ -40,7 +63,6 @@ const getJsonFilePath = () => {
 function loadImagesData() {
 	try {
 		const imagesJsonPath = getJsonFilePath();
-		console.log('imagesJsonPath', imagesJsonPath);
 
 		if (!fs.existsSync(imagesJsonPath)) {
 			const initialData = { images: [], categories: [] };
@@ -107,4 +129,5 @@ module.exports = {
 	getImageById,
 	getImagesByIds,
 	deletePhysicalFile,
+	saveImagesAndCategories,
 }

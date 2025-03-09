@@ -18,7 +18,12 @@ function notifyAllWindows(name, data) {
   });
 }
 
+function getReadableFilePath(filePath) {
+  return decodeURIComponent(filePath.replace('local-image://', '')).replace(/\\/g, '/').replace(/\//g, '\\');
+}
+
 module.exports = {
     generateHashId,
-    notifyAllWindows
+    notifyAllWindows,
+    getReadableFilePath
 }

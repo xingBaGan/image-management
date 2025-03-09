@@ -138,7 +138,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-sm font-medium text-gray-500 dark:text-rose-400">{t('categories')}</h3>
             <div className="flex gap-1">
-              {/* <button
+              <button
                 onClick={async () => {
                   setImportState(ImportStatus.Importing);
                   await onImportFolder?.();
@@ -148,7 +148,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 title={t('importFolder')}
               >
                 <FolderInput size={16} />
-              </button> */}
+              </button>
               <button
                 onClick={() => setIsAddingCategory(true)}
                 className="p-1 text-gray-500 hover:text-gray-700 dark:text-white dark:hover:text-rose-400"
