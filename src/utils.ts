@@ -203,8 +203,8 @@ export const handleDrop = async (
       if ('path' in file) {
         setImportState(ImportStatus.Importing);
         const firstFile = file.path as string;
-        const newImages = await window.electron.processDirectoryFiles(firstFile, currentSelectedCategory);
-        await addImagesToCategory(newImages, categories, currentSelectedCategory);
+        const [newImages, category] = await window.electron.processDirectoryFiles(firstFile, currentSelectedCategory);
+        await addImagesToCategory(newImages, categories, category);
         images.push(...newImages);
       }
     }

@@ -355,7 +355,6 @@ function App() {
   useEffect(() => {
     const handlePaste = async (e: ClipboardEvent) => {
       const target = e.target as HTMLElement;
-
       if (
         target.tagName === 'INPUT' ||
         target.tagName === 'TEXTAREA' ||
@@ -374,6 +373,7 @@ function App() {
       const isFilePath = /^([a-zA-Z]:\\|\\\\|\/)[^\n"]+\.(jpg|jpeg|png|gif|mp4|mov|avi|webm)$/i.test(clipboardText);
 
       let newImages: LocalImageData[] = [];
+      let _category: Category | null = null;
       try {
         setImportState(ImportStatus.Importing);
 
@@ -400,7 +400,7 @@ function App() {
           }];
         } else if (isFilePath) {
           // 处理本地文件路径
-          newImages = await window.electron.processDirectoryFiles(clipboardText, currentSelectedCategory);
+          [newImages, _category] = await window.electron.processDirectoryFiles(clipboardText, currentSelectedCategory);
         } else if (e.clipboardData?.types.includes('Files') && e.clipboardData?.files.length > 0) {
           let filePaths = [];
           for (const file of e.clipboardData?.files) {
@@ -408,7 +408,7 @@ function App() {
               filePaths.push(file.path);
             }
           }
-          newImages = await window.electron.processDirectoryFiles(filePaths, currentSelectedCategory);
+          [newImages, _category] = await window.electron.processDirectoryFiles(filePaths, currentSelectedCategory);
         }
         const newImagesWithMetadata = newImages.map(img => ({
           ...img,
@@ -561,24 +561,33 @@ function App() {
     return getGridItemAppendButtonsProps();
   }, []);
 
-  const handleFolderChange = useCallback(async (data: { path: string, type: 'add' | 'remove' }) => {
-    if (data.type === 'add') {
-      let newImages = await window.electron.processDirectoryFiles(data.path, currentSelectedCategory);
-      setMediaList(prev => {
-        newImages = newImages.filter(img => !prev.some(it => it.id === img.id));
-        return [...prev, ...newImages];
-      });
-    } else {
-      setMediaList(prev => prev.filter(img => {
-        const convertPath = decodeURIComponent(img.path).replace(/local-image:\/\//g, '');
-        return convertPath !== data.path;
-      }));
-    }
-  }, []);
-
+  // 将 handleFolderChange 移到 useEffect 内部
   useEffect(() => {
     if (shouldListenFolders.length > 0) {
-      // 使用 useCallback 或在 effect 外部定义处理函数
+      const handleFolderChange = async (data: { path: string, type: 'add' | 'remove' }) => {
+        console.log('handleFolderChange, data-----');
+        if (data.type === 'add') {
+          let [newImages, category] = await window.electron.processDirectoryFiles(data.path, null);
+          console.log('handleFolderChange, newImages', newImages, category);
+          setMediaList(prev => {
+            newImages = newImages.filter(img => !prev.some(it => it.id === img.id));
+            return [...prev, ...newImages];
+          });
+          setCategories(prev => {
+            return [...prev.filter(cat => cat.id !== category.id), {
+              ...category,
+              images: category.images.concat(newImages.map(img => img.id)),
+              count: category.images.length + newImages.length
+            }];
+          });
+        } else {
+          setMediaList(prev => prev.filter(img => {
+            const convertPath = decodeURIComponent(img.path).replace(/local-image:\/\//g, '');
+            return convertPath !== data.path;
+          }));
+        }
+      };
+
       window.electron?.updateFolderWatchers(shouldListenFolders.filter(it => it !== undefined) as string[]);
       window.electron?.onFolderContentChanged(handleFolderChange);
 
@@ -586,7 +595,7 @@ function App() {
         window.electron?.removeFolderContentChangedListener(handleFolderChange);
       };
     }
-  }, [shouldListenFolders, handleFolderChange]);
+  }, [shouldListenFolders]); // 只依赖 shouldListenFolders
 
   return (
     <div className="flex flex-col h-screen backdrop-blur-md dark:bg-gray-900"

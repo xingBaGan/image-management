@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 const fsPromises = require('fs').promises;
 const { generateHashId } = require('../utils/index.cjs');
+const watchService = require('./watchService.cjs');
 // 设置 ffmpeg 和 ffprobe 路径
 ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);
@@ -136,10 +137,12 @@ const processDirectoryFiles = async (dirPathOrPaths, currentCategory = {}) => {
 
 						if (_stats.isDirectory()) {
 							// 递归处理子文件夹
-							const subDirFiles = await processDirectoryFiles(filePath, currentCategory);
+							const [subDirFiles, subDirCategory] = await processDirectoryFiles(filePath, currentCategory);
 							processedFiles.push(...subDirFiles);
+							currentCategory = subDirCategory;
 						} else if (_stats.isFile()) {
-							const metadata = await getMetadataByFilePath(filePath, _stats);
+							const [metadata, category] = await getMetadataByFilePath(filePath, _stats, currentCategory);
+							currentCategory = category;
 							if (metadata) {
 								processedFiles.push(metadata);
 							}
@@ -150,14 +153,15 @@ const processDirectoryFiles = async (dirPathOrPaths, currentCategory = {}) => {
 					}
 				}
 			} else {
-				const metadata = await getMetadataByFilePath(dirPath, stats, currentCategory);
+				const [metadata, category] = await getMetadataByFilePath(dirPath, stats, currentCategory);
+				currentCategory = category;
 				if (metadata) {
 					processedFiles.push(metadata);
 				}
 			}
 		}
 
-		return processedFiles;
+		return [processedFiles, currentCategory];
 	} catch (error) {
 		console.error('处理目录失败:', error);
 		throw error;
@@ -174,6 +178,16 @@ const getMetadataByFilePath = async (filePath, stats, currentCategory = {}) => {
 	imageSize = isVideo ? await getImageSize(thumbnail) : imageSize;
 	const id = generateHashId(filePath, stats.size);
 	const ratio = await getRatio(imageSize.width, imageSize.height);
+	let isImportFromFolder = false;
+	if (currentCategory === null ) {
+		const category = watchService.getWatchCategory(filePath);
+		if (category) {
+			isImportFromFolder = true;
+			currentCategory = category;
+		}
+	} else {
+		isImportFromFolder = currentCategory.isImportFromFolder ? true : false;
+	}
 	const metadata = {
 		id: id,
 		path: localImageUrl,
@@ -191,9 +205,9 @@ const getMetadataByFilePath = async (filePath, stats, currentCategory = {}) => {
 		type: isVideo ? 'video' : 'image',
 		thumbnail: thumbnail,
 		duration: isVideo ? await getVideoDuration(filePath) : undefined,
-		isBindInFolder: currentCategory.isBindInFolder ? currentCategory : false,
+		isBindInFolder: isImportFromFolder,
 	};
-	return metadata;
+	return [metadata, currentCategory];
 }
 
 module.exports = {

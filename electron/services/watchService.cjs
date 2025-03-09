@@ -1,10 +1,9 @@
 const chokidar = require('chokidar');
-const { processDirectoryFiles } = require('./mediaService.cjs');
 const { loadImagesData } = require('./FileService.cjs');
 const { notifyAllWindows } = require('../utils/index.cjs');
 const { logger } = require('./logService.cjs');
 const { join } = require('path');
-
+const path = require('path');
 class WatchService {
   constructor() {
     this.watchers = new Map();
@@ -93,6 +92,25 @@ class WatchService {
       await watcher.close();
     }
     this.watchers.clear();
+  }
+
+  // 获取所有监听的文件夹
+  getWatcherPaths() {
+    return Array.from(this.watchers.keys()).map(_path => path.normalize(_path).replace(/\\/g, '/'));
+  }
+
+  // 'K:/dataset/folder_test'
+  inWatcherPath(path) {
+    const _path = path.replace(/\\/g, '/');
+    const watcherPaths = this.getWatcherPaths();
+    return watcherPaths.find(watcherPath => _path.startsWith(watcherPath));
+  }
+
+  getWatchCategory(path) {
+    const inWatcherPath = this.inWatcherPath(path);
+    const { categories } = loadImagesData();
+		const category = categories.find(_category => _category?.folderPath?.replace(/\\/g, '/') === inWatcherPath);
+    return category;
   }
 }
 

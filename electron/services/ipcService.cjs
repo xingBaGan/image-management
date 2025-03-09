@@ -393,7 +393,7 @@ ipcMain.handle('open-folder-dialog', async () => {
 ipcMain.handle('read-images-from-folder', async (event, folderPath) => {
   try {
     // 使用现有的  函数处理文件夹
-    const files = await processDirectoryFiles(folderPath);
+    const [files, _category] = await processDirectoryFiles(folderPath);
 
     // 创建新的分类对象
     const categoryName = path.basename(folderPath);
