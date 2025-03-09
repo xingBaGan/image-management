@@ -21,6 +21,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
   gridItemAppendButtonsProps,
   setImportState,
   importState,
+  currentSelectedCategory,
 }) => {
   const [viewingMedia, setViewingMedia] = useState<LocalImageData | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -213,7 +214,10 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
         style={{ position: 'relative', overflow: isImporting || isDragging ? 'hidden' : 'auto' }}
         onDragEnter={() => setIsDragging(true)}
         onDragOver={(e) => e.preventDefault()}
-        onDrop={async (e) => { await handleDropUtil(e, addImages, existingImages, categories, setImportState); setIsDragging(false); }}
+        onDrop={async (e) => { 
+          await handleDropUtil(e, addImages, existingImages, categories, setImportState, currentSelectedCategory); 
+          setIsDragging(false); 
+        }}
         onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false); }}>
         {isSelecting && <div style={getSelectionStyle()} />}
         <DragOverlay isDragging={isDragging} importState={importState} />

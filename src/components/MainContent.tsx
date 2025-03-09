@@ -61,6 +61,7 @@ interface MainContentProps {
   
   // 添加 setSelectedImages
   setSelectedImages: (images: Set<string>) => void;
+  currentSelectedCategory?: Category;
 }
 
 export const MainContent: React.FC<MainContentProps> = ({
@@ -97,7 +98,8 @@ export const MainContent: React.FC<MainContentProps> = ({
   onOpenInEditor,
   gridItemAppendButtonsProps,
   onRateChange,
-  setSelectedImages
+  setSelectedImages,
+  currentSelectedCategory
 }) => {
   // 获取当前选中的图片
   const selectedImage = React.useMemo(() => 
@@ -145,6 +147,7 @@ export const MainContent: React.FC<MainContentProps> = ({
             importState={importState}
             onOpenInEditor={onOpenInEditor}
             gridItemAppendButtonsProps={gridItemAppendButtonsProps}
+            currentSelectedCategory={currentSelectedCategory}
           />
         </div>
         <div className="fixed right-0 bottom-0 top-16">

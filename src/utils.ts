@@ -86,6 +86,8 @@ export const processMedia = async (
   existingImages: LocalImageData[], 
   categories: Category[],
   setImportState: (importState: ImportStatus) => void,
+  currentSelectedCategory?: Category,
+  shouldSaveToLocal: boolean = true,
 ): Promise<LocalImageData[]> => {
   const existingIds = new Set((existingImages || []).map(img => img.id));
   const filteredNewImages = files.filter(file => {
@@ -156,10 +158,27 @@ export const processMedia = async (
 
   const localImageDataList: LocalImageData[] = [...(existingImages || []), ...updatedImages];
   setImportState(ImportStatus.Imported);
-  await window.electron.saveImagesToJson(localImageDataList, categories);
+  if (shouldSaveToLocal) {
+    await window.electron.saveImagesToJson(localImageDataList, categories, currentSelectedCategory);
+  }
   return updatedImages;
 };
 
+
+export const addImagesToCategory = async (newImages: LocalImageData[], categories: Category[], currentSelectedCategory?: Category) => {
+  if (currentSelectedCategory) {
+    const category = categories.find(cat => cat.id === currentSelectedCategory.id);
+    // 拷贝绑定文件夹中的图片到当前分类中
+    for (const img of newImages) {
+      if (category) {
+        category.images?.push(img.id);
+        category.count = category.images.length;
+        img.categories?.push(category.id);
+      }
+    }
+  }
+  return newImages;
+}
 
 export const handleDrop = async (
   e: React.DragEvent,
@@ -167,13 +186,15 @@ export const handleDrop = async (
   existingImages: LocalImageData[],
   categories: Category[],
   setImportState: (importState: ImportStatus) => void,
+  currentSelectedCategory?: Category
 ) => {
   e.preventDefault();
   const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'));
   const dirPaths = Array.from(e.dataTransfer.files).filter(files => files.type === "");
   let images: LocalImageData[] = [];
   if (files.length > 0) {
-    const newImages = await processMedia(files as ImportFile[], existingImages, categories, setImportState);
+    const newImages = await processMedia(files as ImportFile[], existingImages, categories, setImportState, currentSelectedCategory, false);
+    await addImagesToCategory(newImages, categories, currentSelectedCategory);
     images.push(...newImages);
   }
 
@@ -182,7 +203,8 @@ export const handleDrop = async (
       if ('path' in file) {
         setImportState(ImportStatus.Importing);
         const firstFile = file.path as string;
-        const newImages = await window.electron.processDirectoryFiles(firstFile);
+        const newImages = await window.electron.processDirectoryFiles(firstFile, currentSelectedCategory);
+        await addImagesToCategory(newImages, categories, currentSelectedCategory);
         images.push(...newImages);
       }
     }

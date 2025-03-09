@@ -40,44 +40,33 @@ const getJsonFilePath = () => {
 function loadImagesData() {
 	try {
 		const imagesJsonPath = getJsonFilePath();
-		let data = JSON.parse(fs.readFileSync(imagesJsonPath, 'utf8'));
+		console.log('imagesJsonPath', imagesJsonPath);
 
-
-		if (!data.categories) {
-			data.categories = [];
+		if (!fs.existsSync(imagesJsonPath)) {
+			const initialData = { images: [], categories: [] };
+			fs.writeFileSync(imagesJsonPath, JSON.stringify(initialData, null, 2));
+			return initialData;
 		}
 
-		// 更新图片数据结构
-		let hasUpdates = false;
-		data.images = data.images.map(img => {
-			const updatedImg = { ...img };
+		const text = fs.readFileSync(imagesJsonPath, 'utf8');
 
-			// 确保所有必需字段存在
-			if (!updatedImg.id) updatedImg.id = Date.now().toString();
-			if (!updatedImg.name) updatedImg.name = path.basename(updatedImg.path);
-			if (!updatedImg.dateCreated) updatedImg.dateCreated = new Date().toISOString();
-			if (!updatedImg.dateModified) updatedImg.dateModified = new Date().toISOString();
-			if (!updatedImg.size) updatedImg.size = 0;
-			if (!updatedImg.tags) updatedImg.tags = [];
-			if (typeof updatedImg.favorite !== 'boolean') updatedImg.favorite = false;
-			if (!updatedImg.categories) updatedImg.categories = [];
-			if (!updatedImg.type) {
-				// 根据文件扩展名判断类型
-				const ext = path.extname(updatedImg.path).toLowerCase();
-				updatedImg.type = ['.mp4', '.mov', '.avi', '.webm'].includes(ext) ? 'video' : 'image';
-			}
-
-			return updatedImg;
-		});
-
-		if (hasUpdates) {
-			fs.writeFileSync(imagesJsonPath, JSON.stringify(data, null, 2));
+		if (!text || text.trim() === '') {
+			const initialData = { images: [], categories: [] };
+			fs.writeFileSync(imagesJsonPath, JSON.stringify(initialData, null, 2));
+			return initialData;
 		}
 
-		return data;
+		try {
+			return JSON.parse(text);
+		} catch (parseError) {
+			logger.error('JSON 解析失败，恢复到初始状态', parseError);
+			const initialData = { images: [], categories: [] };
+			fs.writeFileSync(imagesJsonPath, JSON.stringify(initialData, null, 2));
+			return initialData;
+		}
 	} catch (error) {
-		console.error('Error loading images data:', error);
-		return { images: [], categories: [] };
+		logger.error('读取图片数据失败:', error);
+		throw error;
 	}
 }
 

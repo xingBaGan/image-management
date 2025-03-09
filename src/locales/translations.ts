@@ -178,6 +178,10 @@ export const translations = {
     tagAnalysis: 'Tag Analysis',
     colorAnalysis: 'Color Analysis',
     processingProgress: '{{completed}}/{{total}}',
+
+    // Delete Images Confirm Dialog
+    deleteImagesConfirmTitle: 'Delete Images',
+    deleteImagesConfirmMessage: 'Are you sure you want to delete {{count}} images?',
   },
   zh: {
     // 工具栏
@@ -357,5 +361,9 @@ export const translations = {
     tagAnalysis: '标签分析',
     colorAnalysis: '颜色分析',
     processingProgress: '{{completed}}/{{total}}',
+
+    // Delete Images Confirm Dialog
+    deleteImagesConfirmTitle: '删除图片',
+    deleteImagesConfirmMessage: '确定要删除这{{count}}张图片吗？',
   }
 }; 

@@ -193,10 +193,11 @@ ipcMain.handle('show-open-dialog', async () => {
   return fileMetadata;
 });
 
-ipcMain.handle('save-images-to-json', async (event, images, categories) => {
+ipcMain.handle('save-images-to-json', async (event, images, categories, currentSelectedCategory) => {
   try {
     const userDataPath = app.getPath('userData');
     const jsonPath = path.join(userDataPath, 'images.json');
+    const tempPath = path.join(userDataPath, 'images.json.temp');
 
     // 获取当前的图片数据
     const currentData = await loadImagesData();
@@ -204,7 +205,7 @@ ipcMain.handle('save-images-to-json', async (event, images, categories) => {
     const newImages = new Set(images.map(img => img.id));
 
     // 找出被删除的图片
-    const deletedImages = currentData.images.filter(img => 
+    const deletedImages = currentData.images.filter(img =>
       !newImages.has(img.id) && img.isBindInFolder
     );
 
@@ -218,12 +219,20 @@ ipcMain.handle('save-images-to-json', async (event, images, categories) => {
       }
     }
 
-    // 保存更新后的数据
-    await fs.promises.writeFile(
-      jsonPath,
-      JSON.stringify({ images, categories }, null, 2),
-      'utf-8'
-    );
+    // 先写入临时文件
+    const jsonData = JSON.stringify({ images, categories }, null, 2);
+    await fsPromises.writeFile(tempPath, jsonData, 'utf-8');
+
+    // 验证临时文件的完整性
+    try {
+      const tempContent = await fsPromises.readFile(tempPath, 'utf-8');
+      JSON.parse(tempContent); // 验证 JSON 格式是否正确
+    } catch (error) {
+      throw new Error('临时文件写入验证失败');
+    }
+
+    // 如果验证成功，替换原文件
+    await fsPromises.rename(tempPath, jsonPath);
 
     return true;
   } catch (error) {
@@ -355,12 +364,12 @@ ipcMain.handle('reset-queue-progress', async (event, type) => {
 });
 
 // 修改现有的批量处理函数，使其在开始前重置进度
-ipcMain.handle('process-directory', async (event, dirPath, isBindInFolder = false) => {
+ipcMain.handle('process-directory', async (event, dirPath, currentCategory = {}) => {
   try {
     // 在开始处理前重置进度
     tagQueue.reset();
     colorQueue.reset();
-    const results = await processDirectoryFiles(dirPath, isBindInFolder);
+    const results = await processDirectoryFiles(dirPath, currentCategory);
     return results;
   } catch (error) {
     console.error('处理目录时出错:', error);
@@ -385,7 +394,7 @@ ipcMain.handle('read-images-from-folder', async (event, folderPath) => {
   try {
     // 使用现有的  函数处理文件夹
     const files = await processDirectoryFiles(folderPath);
-    
+
     // 创建新的分类对象
     const categoryName = path.basename(folderPath);
     const category = {

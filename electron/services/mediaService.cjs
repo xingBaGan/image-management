@@ -118,36 +118,42 @@ const getRatio = async (width, height) => {
 	return closestRatio;
 };
 
-const processDirectoryFiles = async (dirPath, isBindInFolder = false) => {
+const processDirectoryFiles = async (dirPathOrPaths, currentCategory = {}) => {
 	const processedFiles = [];
-	try {
-		const stats = await fsPromises.stat(dirPath);
-		if (stats.isDirectory()) {
-			const files = await fsPromises.readdir(dirPath);
-			for (const file of files) {
-				try {
-					const filePath = path.join(dirPath, file);
-					const _stats = await fsPromises.stat(filePath);
+	if (!Array.isArray(dirPathOrPaths)) {
+		dirPathOrPaths = [dirPathOrPaths];
+	}
 
-					if (_stats.isDirectory()) {
-						// 递归处理子文件夹
-						const subDirFiles = await processDirectoryFiles(filePath);
-						processedFiles.push(...subDirFiles);
-					} else if (_stats.isFile()) {
-						const metadata = await getMetadataByFilePath(filePath, _stats);
-						if (metadata) {
-							processedFiles.push(metadata);
+	try {
+		for (const dirPath of dirPathOrPaths) {
+			const stats = await fsPromises.stat(dirPath);
+			if (stats.isDirectory()) {
+				const files = await fsPromises.readdir(dirPath);
+				for (const file of files) {
+					try {
+						const filePath = path.join(dirPath, file);
+						const _stats = await fsPromises.stat(filePath);
+
+						if (_stats.isDirectory()) {
+							// 递归处理子文件夹
+							const subDirFiles = await processDirectoryFiles(filePath, currentCategory);
+							processedFiles.push(...subDirFiles);
+						} else if (_stats.isFile()) {
+							const metadata = await getMetadataByFilePath(filePath, _stats);
+							if (metadata) {
+								processedFiles.push(metadata);
+							}
 						}
+					} catch (error) {
+						console.error(`处理文件 ${file} 时出错:`, error);
+						continue;
 					}
-				} catch (error) {
-					console.error(`处理文件 ${file} 时出错:`, error);
-					continue;
 				}
-			}
-		} else {
-			const metadata = await getMetadataByFilePath(dirPath, stats, isBindInFolder);
-			if (metadata) {
-				processedFiles.push(metadata);
+			} else {
+				const metadata = await getMetadataByFilePath(dirPath, stats, currentCategory);
+				if (metadata) {
+					processedFiles.push(metadata);
+				}
 			}
 		}
 
@@ -158,7 +164,7 @@ const processDirectoryFiles = async (dirPath, isBindInFolder = false) => {
 	}
 };
 
-const getMetadataByFilePath = async (filePath, stats, isBindInFolder = false) => {
+const getMetadataByFilePath = async (filePath, stats, currentCategory = {}) => {
 	const ext = path.extname(filePath).toLowerCase();
 	if (!supportedExtensions.includes(ext)) return;
 	const isVideo = ['.mp4', '.mov', '.avi', '.webm'].includes(ext);
@@ -185,7 +191,7 @@ const getMetadataByFilePath = async (filePath, stats, isBindInFolder = false) =>
 		type: isVideo ? 'video' : 'image',
 		thumbnail: thumbnail,
 		duration: isVideo ? await getVideoDuration(filePath) : undefined,
-		isBindInFolder: isBindInFolder,
+		isBindInFolder: currentCategory.isBindInFolder ? currentCategory : false,
 	};
 	return metadata;
 }

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Image, FolderPlus, Clock, Heart, Trash2, 
   MoreVertical, Edit2, GripVertical, Video,
-  FolderInput
+  FolderInput, Folder
 } from 'lucide-react';
 import { Category, FilterType, ImportStatus } from '../types';
 import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
@@ -244,11 +244,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                                     e.stopPropagation();
                                     onSelectCategory(category.id as FilterType);
                                   }}
-                                  className="flex-1 text-left text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-white"
+                                  className={`flex-1 text-left text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-white ${category.isImportFromFolder ? 'text-blue-500 dark:text-blue-400' : ''}`}
                                 >
                                   {category.name}
                                 </button>
-                                <span className="mr-2 text-xs text-black dark:text-white">
+                                <span className={`mr-2 text-xs ${category.isImportFromFolder ? 'text-blue-500 dark:text-blue-400' : ''}`}>
                                   {category.count || 0}
                                 </span>
                               </>

@@ -6,7 +6,7 @@ import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ColorI
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
 
 import { addTagsToImages } from './services/tagService';
-import { processMedia, isSimilarColor } from './utils';
+import { processMedia, isSimilarColor, addImagesToCategory } from './utils';
 import Settings from './components/Settings';
 import DeleteConfirmDialog from './components/DeleteConfirmDialog';
 import MessageBox from './components/MessageBox';
@@ -19,6 +19,7 @@ import { useImageOperations } from './hooks/useImageOperations';
 import { getGridItemAppendButtonsProps } from './plugins';
 import { scan } from "react-scan";
 import ProgressBar from './components/ProgressBar';
+import DeleteImagesConfirmDialog from './components/DeleteImagesConfirmDialog';
 const isDev = import.meta.env.DEV;
 if (isDev) {
   scan({ enabled: true, log: true, showToolbar: true });
@@ -98,6 +99,9 @@ function App() {
     updateTagsByMediaId: updateTagsByMediaIdBase,
     handleRateChange: handleRateChangeBase,
     loadImages,
+    showBindInFolderConfirm,
+    setShowBindInFolderConfirm,
+    executeDelete,
   } = useImageOperations();
 
   // 使用 category hook
@@ -268,13 +272,17 @@ function App() {
     setMessageBox(prev => ({ ...prev, isOpen: false }));
   };
 
+  const currentSelectedCategory = useMemo(() => {
+    return categories.find(cat => cat.id === selectedCategory);
+  }, [categories, selectedCategory]);
+
   const handleImportImages = async () => {
-    await handleImportImagesBase(categories);
+    await handleImportImagesBase(categories, currentSelectedCategory);
   };
 
   const handleAddImages = async (newImages: LocalImageData[]) => {
     try {
-      await handleAddImagesBase(newImages, categories);
+      await handleAddImagesBase(newImages, categories, currentSelectedCategory);
       // 可能需要手动触发重新渲染
       setMediaList(prev => [...prev]); // 强制更新
     } catch (error) {
@@ -356,84 +364,92 @@ function App() {
       }
 
       e.preventDefault();
-      const clipboardText = e.clipboardData?.getData('text');
+      const clipboardText = e.clipboardData?.getData('text') || '';
 
-      if (!clipboardText) return;
+      // if (!clipboardText) return;
 
       // 检查是否为 URL
       const isUrl = /^(http|https):\/\/[^ "]+$/.test(clipboardText);
       // 检查是否为本地文件路径
       const isFilePath = /^([a-zA-Z]:\\|\\\\|\/)[^\n"]+\.(jpg|jpeg|png|gif|mp4|mov|avi|webm)$/i.test(clipboardText);
 
-      if (isUrl || isFilePath) {
-        try {
-          setImportState(ImportStatus.Importing);
-          let newImages: LocalImageData[];
+      let newImages: LocalImageData[] = [];
+      try {
+        setImportState(ImportStatus.Importing);
 
-          if (isUrl) {
-            // 使用主进程下载图片
-            const result = await window.electron.downloadUrlImage(clipboardText);
-            if (!result.success) {
-              throw new Error(result.error);
-            }
-            const ext = result.type?.split('/').pop() || 'jpg';
-            newImages = [{
-              id: Date.now().toString(),
-              path: result.localPath || '',
-              name: result.fileName || '',
-              extension: ext,
-              size: result.size || 0,
-              dateCreated: new Date().toISOString(),
-              dateModified: new Date().toISOString(),
-              tags: [],
-              favorite: false,
-              categories: [],
-              type: 'image',
-              colors: []
-            }];
-          } else {
-            // 处理本地文件路径
-            newImages = await window.electron.processDirectoryFiles(clipboardText);
+        if (isUrl) {
+          // 使用主进程下载图片
+          const result = await window.electron.downloadUrlImage(clipboardText);
+          if (!result.success) {
+            throw new Error(result.error);
           }
-
-          const updatedImages = await processMedia(
-            newImages.map(img => ({
-              ...img,
-              lastModified: new Date(img.dateModified).getTime(),
-              webkitRelativePath: '',
-              arrayBuffer: async () => new ArrayBuffer(0),
-              text: async () => '',
-              stream: () => new ReadableStream(),
-              slice: () => new Blob(),
-              type: img.type || 'image/jpeg'
-            })) as unknown as ImportFile[],
-            mediaList,
-            categories,
-            setImportState
-          );
-          setMediaList([...mediaList, ...updatedImages]);
-          setMessageBox({
-            isOpen: true,
-            message: t('importSuccess'),
-            type: 'success'
-          });
-        } catch (error: any) {
-          console.error(t('pasteImageFailed', { error: String(error) }));
-          setMessageBox({
-            isOpen: true,
-            message: t('importFailed', { error: error.message || t('error') }),
-            type: 'error'
-          });
-          console.error(t('pasteImageFailed', { error: String(error) }));
-        } finally {
-          setImportState(ImportStatus.Imported);
+          const ext = result.type?.split('/').pop() || 'jpg';
+          newImages = [{
+            id: Date.now().toString(),
+            path: result.localPath || '',
+            name: result.fileName || '',
+            extension: ext,
+            size: result.size || 0,
+            dateCreated: new Date().toISOString(),
+            dateModified: new Date().toISOString(),
+            tags: [],
+            favorite: false,
+            categories: [],
+            type: 'image',
+            colors: []
+          }];
+        } else if (isFilePath) {
+          // 处理本地文件路径
+          newImages = await window.electron.processDirectoryFiles(clipboardText, currentSelectedCategory);
+        } else if (e.clipboardData?.types.includes('Files') && e.clipboardData?.files.length > 0) {
+          let filePaths = [];
+          for (const file of e.clipboardData?.files) {
+            if (file.type.startsWith('image/')) {
+              filePaths.push(file.path);
+            }
+          }
+          newImages = await window.electron.processDirectoryFiles(filePaths, currentSelectedCategory);
         }
+        const newImagesWithMetadata = newImages.map(img => ({
+          ...img,
+          lastModified: new Date(img.dateModified).getTime(),
+          webkitRelativePath: '',
+          arrayBuffer: async () => new ArrayBuffer(0),
+          text: async () => '',
+          stream: () => new ReadableStream(),
+          slice: () => new Blob(),
+          type: img.type || 'image/jpeg'
+        })) as unknown as ImportFile[]
+        const updatedImages = await processMedia(
+          newImagesWithMetadata,
+          mediaList,
+          categories,
+          setImportState,
+          currentSelectedCategory
+        );
+        await addImagesToCategory(updatedImages, categories, currentSelectedCategory);
+        setMediaList([...mediaList, ...updatedImages]);
+        setMessageBox({
+          isOpen: true,
+          message: t('importSuccess'),
+          type: 'success'
+        });
+      } catch (error: any) {
+        console.error(t('pasteImageFailed', { error: String(error) }));
+        setMessageBox({
+          isOpen: true,
+          message: t('importFailed', { error: error.message || t('error') }),
+          type: 'error'
+        });
+        console.error(t('pasteImageFailed', { error: String(error) }));
+      } finally {
+        setImportState(ImportStatus.Imported);
       }
     };
 
     document.addEventListener('paste', handlePaste);
     return () => document.removeEventListener('paste', handlePaste);
-  }, [mediaList, categories, t]);
+  }, [mediaList, categories, t, currentSelectedCategory]);
 
   const handleOpenInEditor = useCallback((path: string) => {
     window.electron.openInEditor(path);
@@ -547,7 +563,7 @@ function App() {
 
   const handleFolderChange = useCallback(async (data: { path: string, type: 'add' | 'remove' }) => {
     if (data.type === 'add') {
-      let newImages = await window.electron.processDirectoryFiles(data.path, true);
+      let newImages = await window.electron.processDirectoryFiles(data.path, currentSelectedCategory);
       setMediaList(prev => {
         newImages = newImages.filter(img => !prev.some(it => it.id === img.id));
         return [...prev, ...newImages];
@@ -565,13 +581,13 @@ function App() {
       // 使用 useCallback 或在 effect 外部定义处理函数
       window.electron?.updateFolderWatchers(shouldListenFolders.filter(it => it !== undefined) as string[]);
       window.electron?.onFolderContentChanged(handleFolderChange);
-  
+
       return () => {
         window.electron?.removeFolderContentChangedListener(handleFolderChange);
       };
     }
   }, [shouldListenFolders, handleFolderChange]);
-  
+
   return (
     <div className="flex flex-col h-screen backdrop-blur-md dark:bg-gray-900"
       style={{
@@ -639,6 +655,7 @@ function App() {
           gridItemAppendButtonsProps={gridItemAppendButtonsProps}
           onRateChange={handleRateChange}
           setSelectedImages={setSelectedImages}
+          currentSelectedCategory={currentSelectedCategory}
         />
       </div>
 
@@ -647,6 +664,24 @@ function App() {
         <DeleteConfirmDialog
           onCancel={() => setShowDeleteConfirm(null)}
           onConfirm={() => handleDeleteConfirm(showDeleteConfirm)}
+        />
+      )}
+
+      {showBindInFolderConfirm && (
+        <DeleteImagesConfirmDialog
+          onCancel={() => setShowBindInFolderConfirm(null)}
+          selectedImages={Array.from(showBindInFolderConfirm.selectedImages)}
+          onConfirm={async () => {
+            const newCategories = await executeDelete(
+              showBindInFolderConfirm.selectedImages,
+              showBindInFolderConfirm.categories
+            );
+            if (newCategories) {
+              setCategories(newCategories);
+              setSelectedImages(new Set());
+            }
+            setShowBindInFolderConfirm(null);
+          }}
         />
       )}
 

@@ -16,8 +16,7 @@ contextBridge.exposeInMainWorld('electron', {
   readFileMetadata: (path) => ipcRenderer.invoke('read-file-metadata', path),
   loadImagesFromJson: () => ipcRenderer.invoke('load-images-from-json'),
   showOpenDialog: () => ipcRenderer.invoke('show-open-dialog'),
-  saveImagesToJson: (images, categories) => 
-    ipcRenderer.invoke('save-images-to-json', images, categories),
+  saveImagesToJson: (images, categories, currentSelectedCategory) => ipcRenderer.invoke('save-images-to-json', images, categories, currentSelectedCategory),
   openImageJson: () => ipcRenderer.invoke('open-image-json'),
   saveCategories: (categories) => ipcRenderer.invoke('save-categories', categories),
   saveImageToLocal: (imageBuffer, fileName, ext) => 
@@ -29,7 +28,7 @@ contextBridge.exposeInMainWorld('electron', {
   tagImage: (imagePath, modelName) => ipcRenderer.invoke('tag-image', imagePath, modelName),
   getMainColor: (imagePath) => ipcRenderer.invoke('get-main-color', imagePath),
   getQueueStatus: () => ipcRenderer.invoke('get-queue-status'),
-  processDirectoryFiles: (dirPath, isBindInFolder = false) => ipcRenderer.invoke('process-directory', dirPath, isBindInFolder),
+  processDirectoryFiles: (dirPath, currentCategory = {}) => ipcRenderer.invoke('process-directory', dirPath, currentCategory),
   openInEditor: (filePath) => ipcRenderer.invoke('open-in-photoshop', filePath),
   downloadUrlImage: (url) => ipcRenderer.invoke('download-url-image', url),
   showInFolder: (filePath) => ipcRenderer.invoke('show-in-folder', filePath),

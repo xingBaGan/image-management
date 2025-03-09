@@ -61,7 +61,7 @@ export interface BaseMediaData extends MediaInfo {
   tags: string[];
   categories?: string[];
   colors: (string | ColorInfo)[];
-  isBindInFolder?: boolean;
+  isBindInFolder?: boolean | Category;
 }
 
 // 图片特定类型
@@ -125,8 +125,8 @@ export interface ElectronAPI {
     dateModified: Date;
   }>;
   showOpenDialog: () => Promise<any[]>;
-  saveImagesToJson: (images: LocalImageData[], categories: Category[]) => Promise<void>;
-  loadImagesFromJson: (path: string) => Promise<{ images: LocalImageData[]; categories: Category[] }>;
+  saveImagesToJson: (images: LocalImageData[], categories: Category[], currentSelectedCategory?: Category) => Promise<void>;
+  loadImagesFromJson: () => Promise<{ images: LocalImageData[]; categories: Category[] }>;
   openImageJson: () => Promise<{ 
     success: boolean;
     error?: string;
@@ -138,7 +138,7 @@ export interface ElectronAPI {
   isRemoteComfyUI: () => Promise<boolean>;
   readFile: (filePath: string) => Promise<Buffer>;
   tagImage: (imagePath: string, modelName: string) => Promise<string[]>;
-  processDirectoryFiles: (dirPath: string,isBindInFolder?: boolean) => Promise<LocalImageData[]>;
+  processDirectoryFiles: (dirPath: string| string[],currentCategory?: boolean| Category) => Promise<LocalImageData[]>;
   openInEditor: (filePath: string) => Promise<{ success: boolean; error?: string }>;
   downloadUrlImage: (url: string) => Promise<{
     success: boolean;

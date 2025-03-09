@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { LocalImageData, Category, ImportFile, ImportStatus } from '../types';
-import { processMedia } from '../utils';
+import { processMedia, addImagesToCategory } from '../utils';
 import { useLocale } from '../contexts/LanguageContext';
 
 export const useImageOperations = () => {
   const { t } = useLocale();
   const [images, setImages] = useState<LocalImageData[]>([]);
   const [importState, setImportState] = useState<ImportStatus>(ImportStatus.Imported);
+  const [showBindInFolderConfirm, setShowBindInFolderConfirm] = useState<{
+    selectedImages: Set<string>;
+    categories: Category[];
+  } | null>(null);
 
   const handleFavorite = async (id: string, categories: Category[]) => {
     try {
@@ -25,7 +29,7 @@ export const useImageOperations = () => {
     }
   };
 
-  const handleImportImages = async (categories: Category[]) => {
+  const handleImportImages = async (categories: Category[], currentSelectedCategory?: Category) => {
     try {
       const newImages = await window.electron.showOpenDialog();
       if (newImages.length > 0) {
@@ -43,8 +47,10 @@ export const useImageOperations = () => {
           })) as unknown as ImportFile[],
           images,
           categories,
-          setImportState
+          setImportState,
+          currentSelectedCategory
         );
+        await addImagesToCategory(updatedImages, categories, currentSelectedCategory);
         setImages([...images, ...updatedImages]);
         setImportState(ImportStatus.Imported);
       }
@@ -53,39 +59,54 @@ export const useImageOperations = () => {
     }
   };
 
-  const handleAddImages = async (newImages: LocalImageData[], categories: Category[]) => {
+  const handleAddImages = async (newImages: LocalImageData[], categories: Category[], currentSelectedCategory?: Category) => {
     const newImagesData = newImages.filter(img => !images.some(existingImg => existingImg.id === img.id));
     await window.electron.saveImagesToJson(
       [...images, ...newImagesData],
-      categories
+      categories,
+      currentSelectedCategory
     );
     setImages([...images, ...newImagesData]);
   };
 
   const handleBulkDelete = async (selectedImages: Set<string>, categories: Category[]) => {
     try {
-      const updatedImages = images.filter(img => !selectedImages.has(img.id));
+      // 检查是否包含绑定文件夹的图片
+      const selectedImagesList = images.filter(img => selectedImages.has(img.id));
+      const bindInFolderImages = selectedImagesList.filter(img => img.isBindInFolder);
 
-      const newCategories = categories.map(category => {
-        const newImages = category.images?.filter(id => !selectedImages.has(id)) || [];
-        return {
-          ...category,
-          images: newImages,
-          count: newImages.length
-        };
-      });
+      if (bindInFolderImages.length > 0) {
+        // 如果有绑定文件夹的图片，显示确认对话框
+        setShowBindInFolderConfirm({ selectedImages, categories });
+        return null;
+      }
 
-      await window.electron.saveImagesToJson(
-        updatedImages,
-        newCategories
-      );
-
-      setImages(updatedImages);
-      return newCategories;
+      // 如果没有绑定文件夹的图片，直接执行删除
+      return await executeDelete(selectedImages, categories);
     } catch (error) {
       console.error(t('deleteFailed', { error: String(error) }));
       return null;
     }
+  };
+
+  const executeDelete = async (selectedImages: Set<string>, categories: Category[]) => {
+    const updatedImages = images.filter(img => !selectedImages.has(img.id));
+    const newCategories = categories.map(category => {
+      const newImages = category.images?.filter(id => !selectedImages.has(id)) || [];
+      return {
+        ...category,
+        images: newImages,
+        count: newImages.length
+      };
+    });
+
+    await window.electron.saveImagesToJson(
+      updatedImages,
+      newCategories
+    );
+
+    setImages(updatedImages);
+    return newCategories;
   };
 
   const updateTagsByMediaId = (mediaId: string, newTags: string[], categories: Category[]) => {
@@ -107,7 +128,7 @@ export const useImageOperations = () => {
 
   const loadImages = async () => {
     try {
-      const result = await window.electron.loadImagesFromJson('images.json');
+      const result = await window.electron.loadImagesFromJson();
       setImages(result.images);
       return result;
     } catch (error) {
@@ -128,5 +149,8 @@ export const useImageOperations = () => {
     updateTagsByMediaId,
     handleRateChange,
     loadImages,
+    showBindInFolderConfirm,
+    setShowBindInFolderConfirm,
+    executeDelete,
   };
 }; 
