@@ -4,6 +4,10 @@ const { app } = require('electron');
 const { logger } = require('./logService.cjs');
 const fsPromises = require('fs').promises;
 
+const getJsonFilePath = () => {
+	return path.join(app.getPath('userData'), 'images.json');
+};
+
 // 获取应用数据目录中的 JSON 文件路径
 const saveImageToLocal = async (imageData, fileName, ext) => {
 	try {
@@ -35,9 +39,9 @@ const saveImageToLocal = async (imageData, fileName, ext) => {
 };
 
 const saveImagesAndCategories = async (images, categories) => {
-	const userDataPath = app.getPath('userData');
-	const jsonPath = path.join(userDataPath, 'images.json');
-	const tempPath = path.join(userDataPath, 'images.json.temp');
+
+	const jsonPath = getJsonFilePath();
+	const tempPath = path.join(app.getPath('userData'), 'images.json.temp');
 	// 先写入临时文件
 	const jsonData = JSON.stringify({ images, categories }, null, 2);
 	await fsPromises.writeFile(tempPath, jsonData, 'utf-8');
@@ -55,10 +59,6 @@ const saveImagesAndCategories = async (images, categories) => {
 
 	return true;
 }
-
-const getJsonFilePath = () => {
-	return path.join(app.getPath('userData'), 'images.json');
-};
 
 function loadImagesData() {
 	try {

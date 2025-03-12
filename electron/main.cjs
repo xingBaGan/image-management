@@ -7,6 +7,7 @@ const { spawn } = require('child_process');
 const { saveImageToLocal } = require('./services/FileService.cjs');
 const { loadSettings, saveSettings, getComfyURL } = require('./services/settingService.cjs');
 const isDev = !app.isPackaged;
+const { getJsonFilePath } = require('./services/FileService.cjs');
 // 获取设置文件路径
 const { getImageSize } = require('./services/ipcService.cjs');
 const { pluginManager } = require('./services/pluginService.cjs');
@@ -306,27 +307,27 @@ const initializeUserData = async () => {
     ]
   };
   try {
-    const userDataPath = path.join(app.getPath('userData'), 'images.json');
-    console.log('用户数据目录路径:', userDataPath);
+    const jsonPath = getJsonFilePath();
+    console.log('用户数据目录路径:', jsonPath);
 
     // 检查文件是否存在
     try {
-      await fsPromises.access(userDataPath);
+      await fsPromises.access(jsonPath);
       // 即使文件存在，也启动后台下载检查
-      downloadRemoteImagesInBackground(userDataPath);
+      downloadRemoteImagesInBackground(jsonPath);
       return;
     } catch {
       console.log('images.json 文件不存在，开始初始化');
 
       // 先保存初始数据
       await fsPromises.writeFile(
-        userDataPath,
+        jsonPath,
         JSON.stringify(mockImagesContent, null, 2),
         'utf-8'
       );
 
       // 启动后台下载
-      downloadRemoteImagesInBackground(userDataPath);
+      downloadRemoteImagesInBackground(jsonPath);
 
       console.log('用户数据初始化完成，图片将在后台继续下载');
     }

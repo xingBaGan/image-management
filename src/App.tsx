@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { TitleBar } from './components/TitleBar';
 import { MainContent } from './components/MainContent';
 import Sidebar from './components/Sidebar';
-import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ColorInfo, ImportFile, FilterType, SortType, SortDirection } from './types';
+import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ColorInfo, ImportFile, FilterType, SortType, SortDirection, FolderContentChangeType } from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
 
 import { addTagsToImages } from './services/tagService';
@@ -559,8 +559,8 @@ function App() {
   // 将 handleFolderChange 移到 useEffect 内部
   useEffect(() => {
     if (shouldListenFolders.length > 0) {
-      const handleFolderChange = async (data: { type: 'add' | 'remove', newImages: LocalImageData[], category: Category }) => {
-        if (data.type === 'add') {
+      const handleFolderChange = async (data: { type: FolderContentChangeType, newImages: LocalImageData[], category: Category }) => {
+        if (data.type === FolderContentChangeType.Add) {
           setMediaList(prev => [...prev.filter(it => !data.newImages.some(newImg => newImg.id === it.id)), ...data.newImages]);
           setCategories(prev => [...prev.filter(it => it.id !== data.category.id), {
             ...data.category,
