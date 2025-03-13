@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Category, LocalImageData } from '../types';
 import { useLocale } from '../contexts/LanguageContext';
+import * as categoryService from '../services/categoryService';
 
 export const useCategoryOperations = ({
   images,
@@ -16,16 +17,8 @@ export const useCategoryOperations = ({
 
   const handleAddCategory = async (newCategory: Category, images: LocalImageData[]) => {
     try {
-      const categoryWithImages = {
-        ...newCategory,
-        images: [],
-        count: 0
-      };
-
-      const updatedCategories = [...categories, categoryWithImages];
+      const updatedCategories = await categoryService.addCategory(newCategory, images, categories);
       setCategories(updatedCategories);
-
-      await window.electron.saveImagesToJson(images, updatedCategories);
     } catch (error) {
       console.error(t('addCategoryFailed', { error: String(error) }));
     }
@@ -33,14 +26,8 @@ export const useCategoryOperations = ({
 
   const handleRenameCategory = async (categoryId: string, newName: string) => {
     try {
-      const updatedCategories = categories.map(category =>
-        category.id === categoryId
-          ? { ...category, name: newName }
-          : category
-      );
+      const updatedCategories = await categoryService.renameCategory(categoryId, newName, categories);
       setCategories(updatedCategories);
-
-      await window.electron.saveCategories(updatedCategories);
     } catch (error) {
       console.error(t('renameCategoryFailed', { error: String(error) }));
     }
@@ -48,20 +35,8 @@ export const useCategoryOperations = ({
 
   const handleDeleteCategory = async (categoryId: string, images: LocalImageData[]) => {
     try {
-      const deletedCategory = categories.find(category => category.id === categoryId);
-      // 将该目录下的图片解除绑定
-      if (deletedCategory?.isImportFromFolder) {
-        deletedCategory?.images?.forEach(imageId => {
-          const image = images.find(img => img.id === imageId);
-          if (image) {
-            image.isBindInFolder = false;
-          }
-        });
-      }
-      const updatedCategories = categories.filter(category => category.id !== categoryId);
+      const updatedCategories = await categoryService.deleteCategory(categoryId, images, categories);
       setCategories(updatedCategories);
-
-      await window.electron.saveImagesToJson(images, updatedCategories);
     } catch (error) {
       console.error(t('deleteCategoryFailed', { error: String(error) }));
     }
@@ -74,35 +49,12 @@ export const useCategoryOperations = ({
 
   const handleAddToCategory = async (selectedImages: Set<string>, selectedCategories: string[], images: LocalImageData[]) => {
     try {
-      // 更新图片的分类信息
-      const updatedImages = images.map(img => {
-        if (selectedImages.has(img.id)) {
-          return {
-            ...img,
-            categories: Array.from(new Set([...(img.categories || []), ...selectedCategories]))
-          };
-        }
-        return img;
-      });
-
-      // 更新分类中的图片信息
-      const updatedCategories = categories.map(category => {
-        if (selectedCategories.includes(category.id)) {
-          const existingImages = category.images || [];
-          const newImages = Array.from(selectedImages);
-          const allImages = Array.from(new Set([...existingImages, ...newImages]));
-
-          return {
-            ...category,
-            images: allImages,
-            count: allImages.length
-          };
-        }
-        return category;
-      });
-
-      await window.electron.saveImagesToJson(updatedImages, updatedCategories);
-
+      const { updatedImages, updatedCategories } = await categoryService.addToCategory(
+        selectedImages,
+        selectedCategories,
+        images,
+        categories
+      );
       setCategories(updatedCategories);
       return updatedImages;
     } catch (error) {
@@ -123,18 +75,14 @@ export const useCategoryOperations = ({
   };
 
   const handleImportFolderFromPath = async (folderPath: string) => {
-    let { category, images: newImages } = await window.electron.readImagesFromFolder(folderPath);
-    newImages = newImages.map(img => ({
-      ...img,
-      isBindInFolder: true
-    }));
-    // 更新分类
-    const updatedCategories = [...categories, category];
+    const { newImages, updatedCategories, categoryId } = await categoryService.importFolderFromPath(
+      folderPath,
+      images,
+      categories
+    );
     setCategories(updatedCategories);
-    setImages([...(images.filter(img => !newImages.some(newImg => newImg.id === img.id))), ...newImages]);
-    // 保存更改到文件
-    await window.electron.saveImagesToJson([...images, ...newImages], updatedCategories);
-    setSelectedCategory(category.id);
+    setImages(newImages);
+    setSelectedCategory(categoryId);
   };
 
   return {
