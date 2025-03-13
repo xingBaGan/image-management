@@ -2,11 +2,11 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { TitleBar } from './components/TitleBar';
 import { MainContent } from './components/MainContent';
 import Sidebar from './components/Sidebar';
-import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ColorInfo, ImportFile, FilterType, SortType, SortDirection, FolderContentChangeType } from './types';
+import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ImportFile, FilterType, SortType, SortDirection, FolderContentChangeType } from './types';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
 
 import { addTagsToImages } from './services/tagService';
-import { processMedia, isSimilarColor, addImagesToCategory } from './utils';
+import { processMedia, addImagesToCategory } from './utils';
 import Settings from './components/Settings';
 import DeleteConfirmDialog from './components/DeleteConfirmDialog';
 import MessageBox from './components/MessageBox';
@@ -20,6 +20,7 @@ import { getGridItemAppendButtonsProps } from './plugins';
 import { scan } from "react-scan";
 import ProgressBar from './components/ProgressBar';
 import DeleteImagesConfirmDialog from './components/DeleteImagesConfirmDialog';
+import { filterAndSortImages } from './services/imageOperations';
 const isDev = import.meta.env.DEV;
 if (isDev) {
   scan({ enabled: true, log: true, showToolbar: true });
@@ -335,8 +336,8 @@ function App() {
     updateTagsByMediaIdBase(mediaId, newTags, categories);
   };
 
-  const handleRateChange = (mediaId: string, rate: number) => {
-    const updatedImage = handleRateChangeBase(mediaId, rate, categories);
+  const handleRateChange = async (mediaId: string, rate: number) => {
+    const updatedImage = await handleRateChangeBase(mediaId, rate, categories);
     if (updatedImage) {
       setSelectedImageForInfo(updatedImage);
     }
@@ -451,79 +452,15 @@ function App() {
   }, []);
 
   const filteredAndSortedImages = useMemo(() => {
-    // 首先根据 filter 和 selectedCategory 过滤图片
-    let filtered = mediaList.filter(img => img.type !== 'video') as LocalImageData[];
-
-    // 添加标签过滤逻辑
-    if (searchTags.length > 0) {
-      filtered = filtered.filter(img =>
-        searchTags.every(tag =>
-          img.tags?.some((imgTag: string) =>
-            imgTag.toLowerCase().includes(tag.toLowerCase())
-          )
-        )
-      );
-    }
-
-    if (selectedCategory === FilterType.Videos) {
-      filtered = mediaList.filter(img => img.type === 'video') as LocalImageData[];
-    } else if (filter === FilterType.Favorites) {
-      filtered = filtered.filter(img => img.favorite);
-    } else if (filter === FilterType.Recent) {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      filtered = mediaList.filter(img => new Date(img.dateModified) >= sevenDaysAgo);
-    } else if (selectedCategory !== FilterType.Photos) {
-      const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
-      if (selectedCategoryData) {
-        filtered = mediaList.filter(img =>
-          img.categories?.includes(selectedCategory) ||
-          selectedCategoryData.images?.includes(img.id)
-        );
-      }
-    }
-
-    filtered = filtered.filter(img => {
-      if (filterColors.length > 0) {
-        // 使用颜色相似度比较
-        return filterColors.some(filterColor =>
-          (img.colors || []).some((c: string | ColorInfo) => {
-            const imgColor = typeof c === 'string' ? c : c.color;
-            return isSimilarColor(imgColor, filterColor, multiFilter.precision);
-          })
-        );
-      }
-
-      if (multiFilter.ratio.length > 0) {
-        return multiFilter.ratio.some(ratio => img.ratio === ratio);
-      }
-      if (typeof multiFilter.rating === 'number') {
-        return img.rating === multiFilter.rating;
-      }
-      if (multiFilter.formats.length > 0) {
-        const ext = img?.extension?.toLowerCase();
-        return multiFilter.formats.some(format => ext?.endsWith(format.toLowerCase()));
-      }
-      return true;
-    });
-
-    // 然后对过滤后的结果进行排序
-    return [...filtered].sort((a, b) => {
-      let comparison = 0;
-
-      switch (sortBy) {
-        case SortType.Name:
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case SortType.Date:
-          comparison = new Date(b.dateModified).getTime() - new Date(a.dateModified).getTime();
-          break;
-        case SortType.Size:
-          comparison = b.size - a.size;
-          break;
-      }
-
-      return sortDirection === 'asc' ? -comparison : comparison;
+    return filterAndSortImages(mediaList, {
+      filter,
+      selectedCategory,
+      categories,
+      searchTags,
+      filterColors,
+      multiFilter,
+      sortBy,
+      sortDirection
     });
   }, [
     mediaList,
