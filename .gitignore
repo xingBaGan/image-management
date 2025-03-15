@@ -33,3 +33,5 @@ models/
 r2-worker/
 
 RTC/
+electron/**/*.cjs
+*.mdc

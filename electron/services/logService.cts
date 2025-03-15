@@ -1,12 +1,16 @@
-const { app } = require('electron');
-const { join } = require('path');
-const { appendFile, mkdir } = require('fs/promises');
-const { existsSync } = require('fs');
+import { app } from 'electron';
+import { join } from 'path';
+import { appendFile, mkdir } from 'fs/promises';
+import { existsSync } from 'fs';
+
+interface LogMeta {
+  [key: string]: any;
+}
 
 class LogService {
-  logDir;
-  logFile;
-  isDev;
+  private logDir: string;
+  private logFile: string;
+  private isDev: boolean;
 
   constructor() {
     this.isDev = !app.isPackaged;
@@ -15,19 +19,19 @@ class LogService {
     this.initLogDirectory();
   }
 
-   async initLogDirectory() {
+  private async initLogDirectory(): Promise<void> {
     if (!existsSync(this.logDir)) {
       await mkdir(this.logDir, { recursive: true });
     }
   }
 
-  formatMessage(level, message, meta) {
+  private formatMessage(level: string, message: string, meta?: LogMeta): string {
     const timestamp = new Date().toISOString();
     const metaStr = meta ? ` | ${JSON.stringify(meta)}` : '';
     return `[${timestamp}] ${level}: ${message}${metaStr}\n`;
   }
 
-  async log(level, message, meta) {
+  private async log(level: string, message: string, meta?: LogMeta): Promise<void> {
     const logMessage = this.formatMessage(level, message, meta);
     
     // Always log to file
@@ -48,26 +52,23 @@ class LogService {
     }
   }
 
-  async info(message, meta) {
+  async info(message: string, meta?: LogMeta): Promise<void> {
     await this.log('INFO', message, meta);
   }
 
-  async error(message, meta) {
+  async error(message: string, meta?: LogMeta): Promise<void> {
     await this.log('ERROR', message, meta);
   }
 
-  async warn(message, meta) {
+  async warn(message: string, meta?: LogMeta): Promise<void> {
     await this.log('WARN', message, meta);
   }
 
-  async debug(message, meta) {
+  async debug(message: string, meta?: LogMeta): Promise<void> {
     if (this.isDev) {
       await this.log('DEBUG', message, meta);
     }
   }
 }
 
-const logger = new LogService();
-module.exports = {
-  logger,
-} 
+export const logger = new LogService(); 

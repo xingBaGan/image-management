@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES2020",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "strict": true,
@@ -8,7 +9,6 @@
     "rootDir": "..",
     "allowJs": true,
     "skipLibCheck": true,
-    "module": "ESNext"
   },
   "include": ["./**/*"]
 } 

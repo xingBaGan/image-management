@@ -1,20 +1,24 @@
-const { app, BrowserWindow, ipcMain, protocol, session } = require('electron');
-const path = require('path');
-const fs = require('fs');
-const fsPromises = require('fs/promises');
-const { Menu } = require('electron');
-const { spawn } = require('child_process');
-const { saveImageToLocal } = require('./services/FileService.cjs');
-const { loadSettings, saveSettings, getComfyURL } = require('./services/settingService.cjs');
-const isDev = !app.isPackaged;
-const { getJsonFilePath } = require('./services/FileService.cjs');
-// 获取设置文件路径
-const { getImageSize } = require('./services/ipcService.cjs');
-const { pluginManager } = require('./services/pluginService.cjs');
-const { logger } = require('./services/logService.cjs');
-const watchService = require('./services/watchService.cjs');
+import { app, BrowserWindow, ipcMain, protocol, session } from 'electron';
+import * as path from 'path';
+import * as fs from 'fs';
+import { promises as fsPromises } from 'fs';
+import { Menu } from 'electron';
+import { spawn, ChildProcess } from 'child_process';
+import { saveImageToLocal } from './services/FileService.cjs';
+import { loadSettings, saveSettings, getComfyURL } from './services/settingService.cjs';
+import { getJsonFilePath } from './services/FileService.cjs';
+import { getImageSize } from './services/mediaService.cjs';
+import pluginManager from './services/pluginService.cjs';
+import { logger } from './services/logService.cjs';
+import watchService from './services/watchService.cjs';
 
-const loadEnvConfig = () => {
+const isDev = !app.isPackaged;
+
+interface EnvConfig {
+  [key: string]: string;
+}
+
+const loadEnvConfig = (): EnvConfig => {
   try {
     const envPath = isDev
       ? path.join(__dirname, '..', '.env')
@@ -22,7 +26,7 @@ const loadEnvConfig = () => {
 
     if (fs.existsSync(envPath)) {
       const envConfig = fs.readFileSync(envPath, 'utf8');
-      const config = {};
+      const config: EnvConfig = {};
       envConfig.split('\n').forEach(line => {
         // 忽略注释和空行
         if (line.startsWith('#') || !line.trim()) return;
@@ -51,8 +55,10 @@ Object.assign(process.env, envConfig);
 // 加载设置中的 ComfyUI_URL
 let ComfyUI_URL = process.env.ComfyUI_URL;
 
+let serverProcess: ChildProcess | null = null;
+
 // 启动 ComfyUI 服务器
-async function _startComfyUIServer(comfyUI_url) {
+async function _startComfyUIServer(comfyUI_url: string): Promise<ChildProcess> {
   const serverPath = isDev
     ? path.join(__dirname, '..', 'comfyui_client', 'dist', 'server.js')
     : path.join(process.resourcesPath, 'comfyui_client', 'dist', 'server.js');
@@ -68,11 +74,11 @@ async function _startComfyUIServer(comfyUI_url) {
     }
   });
 
-  serverProcess.stdout.on('data', (data) => {
+  serverProcess.stdout?.on('data', (data) => {
     console.log(`ComfyUI 服务器输出: ${data}`);
   });
 
-  serverProcess.stderr.on('data', (data) => {
+  serverProcess.stderr?.on('data', (data) => {
     console.error(`ComfyUI 服务器错误: ${data}`);
   });
 
@@ -87,12 +93,12 @@ async function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1520,
     height: 800,
+    icon: path.join(__dirname, 'build/icons/icon.png'),
     titleBarStyle: 'hidden',
     webPreferences: {
       nodeIntegration: true,
-      contextRemoteModule: true,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.cjs'),
+      preload: path.join(__dirname, 'preload.cts'),
     }
   });
 
@@ -107,8 +113,9 @@ async function createWindow() {
 
   // 完全移除菜单栏
   Menu.setApplicationMenu(null);
+  
   // 注册 IPC 处理器
-  ipcMain.handle('save-image-to-local', async (event, imageBuffer, fileName, ext) => {
+  ipcMain.handle('save-image-to-local', async (event, imageBuffer: Buffer, fileName: string, ext: string) => {
     return await saveImageToLocal(imageBuffer, fileName, ext);
   });
 
@@ -117,7 +124,7 @@ async function createWindow() {
     return await loadSettings();
   });
 
-  ipcMain.handle('save-settings', async (event, settings) => {
+  ipcMain.handle('save-settings', async (event, settings: any) => {
     const result = await saveSettings(settings);
 
     if (serverProcess) {
@@ -132,7 +139,7 @@ async function createWindow() {
     return result;
   });
 
-  // 添加在createWindow函数之后
+  // 添加窗口控制处理器
   ipcMain.handle('window-minimize', () => {
     logger.debug('Window minimized')
     mainWindow?.minimize()
@@ -153,10 +160,9 @@ async function createWindow() {
   ipcMain.handle('window-close', () => {
     mainWindow?.close()
   })
-
 }
 
-const downloadRemoteImage = async (imageUrl, fileName) => {
+const downloadRemoteImage = async (imageUrl: string, fileName: string): Promise<string | null> => {
   try {
     const response = await fetch(imageUrl);
     const blob = await response.blob();
@@ -184,13 +190,13 @@ const downloadRemoteImage = async (imageUrl, fileName) => {
 };
 
 // 添加后台下载远程图片的函数
-const downloadRemoteImagesInBackground = async (jsonPath) => {
+const downloadRemoteImagesInBackground = async (jsonPath: string): Promise<void> => {
   try {
     const data = JSON.parse(await fsPromises.readFile(jsonPath, 'utf-8'));
     let hasUpdates = false;
 
     await Promise.all(
-      data.images.map(async (img) => {
+      data.images.map(async (img: any) => {
         // 跳过视频和已经本地化的图片
         if (img.type === 'video' || (img.path && !img.path.startsWith('http'))) {
           return img;
@@ -203,7 +209,7 @@ const downloadRemoteImagesInBackground = async (jsonPath) => {
           const currentData = JSON.parse(await fsPromises.readFile(jsonPath, 'utf-8'));
           // 获取图片的宽高
           const dimensions = await getImageSize(localPath); 
-          const updatedImagesList = currentData.images.map(currentImg =>
+          const updatedImagesList = currentData.images.map((currentImg: any) =>
             currentImg.id === img.id ? { ...currentImg, path: localPath, width: dimensions.width, height: dimensions.height } : currentImg
           );
           // 保存更新后的数据
@@ -229,12 +235,12 @@ const downloadRemoteImagesInBackground = async (jsonPath) => {
     console.error('后台下载图片时出错:', error);
     // 通知所有窗口下载失败
     BrowserWindow.getAllWindows().forEach(window => {
-      window.webContents.send('remote-images-downloaded', { success: false, error: error.message });
+      window.webContents.send('remote-images-downloaded', { success: false, error: (error as Error).message });
     });
   }
 };
 
-const initializeUserData = async () => {
+const initializeUserData = async (): Promise<void> => {
   const mockImagesContent = {
     "images": [
       {
@@ -336,12 +342,14 @@ const initializeUserData = async () => {
   }
 };
 
-let serverProcess = null;
-async function startComfyUIServer() {
+async function startComfyUIServer(): Promise<void> {
   // 初始化设置
-  ComfyUI_URL = await getComfyURL();
+  const url = await getComfyURL();
+  if (!url) {
+    throw new Error('ComfyUI URL is not configured');
+  }
   // 启动 ComfyUI 服务器
-  serverProcess = await _startComfyUIServer(ComfyUI_URL);
+  serverProcess = await _startComfyUIServer(url);
   // 当应用退出时关闭服务器
   app.on('before-quit', () => {
     if (serverProcess) {
@@ -392,9 +400,8 @@ app.on('window-all-closed', async () => {
   }
 });
 
-
 require('./services/ipcService.cjs');
-ipcMain.handle('update-folder-watchers', async (event, folders) => {
+ipcMain.handle('update-folder-watchers', async (event, folders: string[]) => {
   await watchService.updateWatchers(folders);
   return true;
-});
+}); 

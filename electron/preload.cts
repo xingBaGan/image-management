@@ -1,6 +1,6 @@
-const { contextBridge, ipcRenderer } = require('electron');
+import { contextBridge, ipcRenderer } from 'electron';
 
-const parseArgs = (args) => {
+const parseArgs = (args: any[]): any[] => {
   return [...args].map(arg => JSON.parse(arg));
 }
 
@@ -10,79 +10,79 @@ contextBridge.exposeInMainWorld('electron', {
   minimize: () => ipcRenderer.invoke('window-minimize'),
   maximize: () => ipcRenderer.invoke('window-maximize'),
   close: () => ipcRenderer.invoke('window-close'),
-  onMaximize: (callback) => ipcRenderer.on('window-maximized', callback),
-  onUnmaximize: (callback) => ipcRenderer.on('window-unmaximized', callback),
-  removeMaximize: (callback) => ipcRenderer.removeListener('window-maximized', callback),
-  removeUnmaximize: (callback) => ipcRenderer.removeListener('window-unmaximized', callback),
+  onMaximize: (callback: () => void) => ipcRenderer.on('window-maximized', callback),
+  onUnmaximize: (callback: () => void) => ipcRenderer.on('window-unmaximized', callback),
+  removeMaximize: (callback: () => void) => ipcRenderer.removeListener('window-maximized', callback),
+  removeUnmaximize: (callback: () => void) => ipcRenderer.removeListener('window-unmaximized', callback),
 
   // =============== 文件操作相关 ===============
-  readDirectory: (path) => ipcRenderer.invoke('read-directory', path),
-  readFileMetadata: (path) => ipcRenderer.invoke('read-file-metadata', path),
-  readFile: (filePath) => ipcRenderer.invoke('read-file', filePath),
-  deleteFile: (filePath) => ipcRenderer.invoke('delete-file', filePath),
-  showInFolder: (filePath) => ipcRenderer.invoke('show-in-folder', filePath),
-  openInEditor: (filePath) => ipcRenderer.invoke('open-in-photoshop', filePath),
+  readDirectory: (path: string) => ipcRenderer.invoke('read-directory', path),
+  readFileMetadata: (path: string) => ipcRenderer.invoke('read-file-metadata', path),
+  readFile: (filePath: string) => ipcRenderer.invoke('read-file', filePath),
+  deleteFile: (filePath: string) => ipcRenderer.invoke('delete-file', filePath),
+  showInFolder: (filePath: string) => ipcRenderer.invoke('show-in-folder', filePath),
+  openInEditor: (filePath: string) => ipcRenderer.invoke('open-in-photoshop', filePath),
 
   // =============== 图片数据管理相关 ===============
   loadImagesFromJson: () => ipcRenderer.invoke('load-images-from-json'),
-  saveImagesToJson: (images, categories, currentSelectedCategory) => 
+  saveImagesToJson: (images: any[], categories: any[], currentSelectedCategory: string) => 
     ipcRenderer.invoke('save-images-to-json', images, categories, currentSelectedCategory),
   openImageJson: () => ipcRenderer.invoke('open-image-json'),
-  saveImageToLocal: (imageBuffer, fileName, ext) => 
+  saveImageToLocal: (imageBuffer: Buffer, fileName: string, ext: string) => 
     ipcRenderer.invoke('save-image-to-local', imageBuffer, fileName, ext),
-  tagImage: (imagePath, modelName) => ipcRenderer.invoke('tag-image', imagePath, modelName),
-  getMainColor: (imagePath) => ipcRenderer.invoke('get-main-color', imagePath),
-  downloadUrlImage: (url) => ipcRenderer.invoke('download-url-image', url),
+  tagImage: (imagePath: string, modelName: string) => ipcRenderer.invoke('tag-image', imagePath, modelName),
+  getMainColor: (imagePath: string) => ipcRenderer.invoke('get-main-color', imagePath),
+  downloadUrlImage: (url: string) => ipcRenderer.invoke('download-url-image', url),
 
   // =============== 分类管理相关 ===============
-  saveCategories: (categories) => ipcRenderer.invoke('save-categories', categories),
-  processDirectoryFiles: (dirPath, currentCategory = {}) => 
+  saveCategories: (categories: any[]) => ipcRenderer.invoke('save-categories', categories),
+  processDirectoryFiles: (dirPath: string, currentCategory: any = {}) => 
     ipcRenderer.invoke('process-directory', dirPath, currentCategory),
-  copyFileToCategoryFolder: (filePath, currentCategory) => 
+  copyFileToCategoryFolder: (filePath: string, currentCategory: any) => 
     ipcRenderer.invoke('copy-file-to-category-folder', filePath, currentCategory),
 
   // =============== 设置相关 ===============
   loadSettings: () => ipcRenderer.invoke('load-settings'),
-  saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
+  saveSettings: (settings: any) => ipcRenderer.invoke('save-settings', settings),
   isRemoteComfyUI: () => ipcRenderer.invoke('is-remote-comfyui'),
 
   // =============== 队列状态相关 ===============
   getQueueStatus: () => ipcRenderer.invoke('get-queue-status'),
-  resetQueueProgress: (type) => ipcRenderer.invoke('reset-queue-progress', type),
-  onQueueUpdate: (callback) => {
+  resetQueueProgress: (type: string) => ipcRenderer.invoke('reset-queue-progress', type),
+  onQueueUpdate: (callback: (status: any) => void) => {
     ipcRenderer.on('queue-progress-update', (event, status) => callback(status));
   },
-  removeQueueUpdateListener: (callback) => {
+  removeQueueUpdateListener: (callback: (status: any) => void) => {
     ipcRenderer.removeListener('queue-progress-update', callback);
   },
 
   // =============== 文件夹监听相关 ===============
   openFolderDialog: () => ipcRenderer.invoke('open-folder-dialog'),
   showOpenDialog: () => ipcRenderer.invoke('show-open-dialog'),
-  readImagesFromFolder: (folderPath) => ipcRenderer.invoke('read-images-from-folder', folderPath),
-  updateFolderWatchers: (folders) => ipcRenderer.invoke('update-folder-watchers', folders),
-  onFolderContentChanged: (callback) => {
+  readImagesFromFolder: (folderPath: string) => ipcRenderer.invoke('read-images-from-folder', folderPath),
+  updateFolderWatchers: (folders: string[]) => ipcRenderer.invoke('update-folder-watchers', folders),
+  onFolderContentChanged: (callback: (data: any) => void) => {
     ipcRenderer.on('folder-content-changed', (event, data) => callback(data));
   },
-  removeFolderContentChangedListener: (callback) => {
+  removeFolderContentChangedListener: (callback: (data: any) => void) => {
     ipcRenderer.removeListener('folder-content-changed', callback);
   },
 
   // =============== 远程图片下载相关 ===============
-  onRemoteImagesDownloaded: (callback) => {
+  onRemoteImagesDownloaded: (callback: (result: any) => void) => {
     ipcRenderer.on('remote-images-downloaded', (event, result) => callback(result));
   },
-  removeRemoteImagesDownloadedListener: (callback) => {
+  removeRemoteImagesDownloadedListener: (callback: (result: any) => void) => {
     ipcRenderer.removeListener('remote-images-downloaded', callback);
   },
 
   // =============== 插件通信相关 ===============
-  on: (channel, callback) => {
+  on: (channel: string, callback: (...args: any[]) => void) => {
     if (channel === 'initialize-plugin') {  // 白名单校验
       ipcRenderer.on(channel, (event, ...args) => callback(...args));
     }
   },
-  removeListener: (channel, callback) => {
+  removeListener: (channel: string, callback: (...args: any[]) => void) => {
     if (channel === 'initialize-plugin') {
       ipcRenderer.removeListener(channel, callback);
     }
@@ -95,10 +95,10 @@ contextBridge.exposeInMainWorld('plugins', {
   getPlugins: () => ipcRenderer.invoke('get-plugins'),
   
   // 初始化指定插件
-  initializePlugin: (pluginId) => ipcRenderer.invoke('plugin-setup', pluginId),
+  initializePlugin: (pluginId: string) => ipcRenderer.invoke('plugin-setup', pluginId),
   
   // 设置插件
-  setupPlugin: (plugin) => {
+  setupPlugin: (plugin: any) => {
     if (plugin) {
       console.log(`设置插件: ${plugin.name}`);
       // setup 函数会通过 initialize-plugin 事件单独处理
@@ -106,13 +106,13 @@ contextBridge.exposeInMainWorld('plugins', {
   },
   
   // 插件通信相关方法
-  on: (channel, callback) => {
+  on: (channel: string, callback: (...args: any[]) => void) => {
     ipcRenderer.on(channel, (event, ...args) => callback(...args));
   },
-  send: (channel, ...args) => {
+  send: (channel: string, ...args: any[]) => {
     ipcRenderer.send(channel, ...parseArgs(args));
   },
-  removeListener: (channel, callback) => {
+  removeListener: (channel: string, callback: (...args: any[]) => void) => {
     ipcRenderer.removeListener(channel, callback);
   }
-});
+}); 
