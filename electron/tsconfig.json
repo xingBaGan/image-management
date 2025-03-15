@@ -10,5 +10,6 @@
     "allowJs": true,
     "skipLibCheck": true,
   },
-  "include": ["./**/*"]
+  "include": ["./**/*.ts", "./**/*.tsx", "./**/*.cts","./**/*.js", "./**/*.jsx"],
+  "exclude": ["../script/**/*", "../node_modules/**/*"]
 } 

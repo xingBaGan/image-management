@@ -98,7 +98,7 @@ async function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.cts'),
+      preload: path.join(__dirname, 'preload.cjs'),
     }
   });
 
@@ -146,7 +146,9 @@ async function createWindow() {
   })
 
   ipcMain.handle('window-maximize', () => {
+  // 根据id获取插件
     if (mainWindow?.isMaximized()) {
+    // 从plugins中获取id对应的插件
       logger.debug('Window unmaximized')
       mainWindow.unmaximize()
       mainWindow.webContents.send('window-unmaximized')
@@ -400,8 +402,10 @@ app.on('window-all-closed', async () => {
   }
 });
 
-require('./services/ipcService.cjs');
+const ipcService = require('./services/ipcService.cjs');
+ipcService.init();
+pluginManager.initializeAndSetupIPC(ipcMain);
 ipcMain.handle('update-folder-watchers', async (event, folders: string[]) => {
   await watchService.updateWatchers(folders);
   return true;
-}); 
+});

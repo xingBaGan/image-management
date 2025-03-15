@@ -28,4 +28,4 @@ function copyDir(src, dest) {
 }
 
 // 复制编译后的文件到 electron 目录
-copyDir(path.join(__dirname, '../dist/electron'), path.join(__dirname, '../electron')); 
+copyDir(path.join(__dirname, '../dist/electron'), path.join(__dirname, '..')); 

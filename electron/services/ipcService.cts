@@ -240,6 +240,18 @@ const init = (): void => {
     return fileMetadata;
   });
 
+  ipcMain.handle('open-folder-dialog', async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory']
+    });
+
+    if (result.canceled) {
+      return null;
+    }
+
+    return result.filePaths[0];
+  });
+
   // =============== 分类管理相关 ===============
   ipcMain.handle('save-categories', async (event, categories: any[]) => {
     try {
@@ -282,6 +294,112 @@ const init = (): void => {
       throw error;
     }
   });
+
+  // =============== 队列 ===============
+  ipcMain.handle('get-queue-status', async () => {
+    return {
+      tag: {
+        queueLength: tagQueue.getQueueLength(),
+        runningTasks: tagQueue.getRunningTasks()
+      },
+      color: {
+        queueLength: colorQueue.getQueueLength(),
+        runningTasks: colorQueue.getRunningTasks()
+      }
+    };
+  });
+
+  ipcMain.handle('reset-queue-progress', async (event, type) => {
+    if (type === 'tag') {
+      tagQueue.reset();
+    } else {
+      colorQueue.reset();
+    }
+    return true;
+  });
+
+  // =============== 文件夹监控相关 ===============
+  ipcMain.handle('process-directory', async (event, dirPath: string, currentCategory: any = {}) => {
+    try {
+      tagQueue.reset();
+      colorQueue.reset();
+      const results = await processDirectoryFiles(dirPath, currentCategory);
+      return results;
+    } catch (error) {
+      logger.error('处理目录失败:', { error } as LogMeta);
+      throw new Error(`处理目录失败: ${(error as Error).message}`);
+    }
+  });
+
+  // =============== 文件夹操作相关 ===============
+  ipcMain.handle('read-images-from-folder', async (event, folderPath: string) => {
+    try {
+      const [files, _category] = await processDirectoryFiles(folderPath);
+
+      // 创建新的分类对象
+      const categoryName = path.basename(folderPath);
+      const category = {
+        id: `category-${Date.now()}`,
+        name: categoryName,
+        images: files.map(file => file.id),
+        count: files.length,
+        folderPath: folderPath,
+        isImportFromFolder: true
+      };
+
+      return {
+        category,
+        images: files
+      };
+    } catch (error) {
+      logger.error('读取文件夹图片失败:', { error } as LogMeta);
+      throw error;
+    }
+  });
+
+  // =============== 文件管理相关 ===============
+  ipcMain.handle('copy-file-to-category-folder', async (event, filePath: string, currentCategory: any) => {
+    const watchService = require('./watchService.cjs');
+    return await watchService.copyFileToCategoryFolder(filePath, currentCategory);
+  });
+
+  ipcMain.handle('delete-file', async (event, filePath: string) => {
+    return await deletePhysicalFile(filePath);
+  });
+
+  ipcMain.handle('read-file', async (event, filePath: string) => {
+    try {
+      if (filePath.includes('local-image://')) {
+        filePath = filePath.replace('local-image://', '');
+      }
+      const buffer = await fsPromises.readFile(filePath);
+      return buffer;
+    } catch (error) {
+      logger.error('读取文件失败:', { error } as LogMeta);
+      throw error;
+    }
+  });
+
+  // =============== JSON文件操作相关 ===============
+  ipcMain.handle('open-image-json', async () => {
+    try {
+      const jsonPath = getJsonFilePath();
+      await shell.openPath(jsonPath);
+      return { success: true };
+    } catch (error) {
+      logger.error('打开 images.json 失败:', { error } as LogMeta);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // =============== 其他功能 ===============
+  ipcMain.handle('is-remote-comfyui', async () => {
+    return isRemoteComfyUI();
+  });
+
+  // 初始化插件系统
+  const pluginService = require('./pluginService.cjs');
+  pluginService.initializeAndSetupIPC(ipcMain);
 };
 
 export { init, isRemoteComfyUI }; 
