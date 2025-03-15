@@ -8,7 +8,6 @@ import { saveImageToLocal } from './services/FileService.cjs';
 import { loadSettings, saveSettings, getComfyURL } from './services/settingService.cjs';
 import { getJsonFilePath } from './services/FileService.cjs';
 import { getImageSize } from './services/mediaService.cjs';
-import pluginManager from './services/pluginService.cjs';
 import { logger } from './services/logService.cjs';
 import watchService from './services/watchService.cjs';
 
@@ -404,7 +403,6 @@ app.on('window-all-closed', async () => {
 
 const ipcService = require('./services/ipcService.cjs');
 ipcService.init();
-pluginManager.initializeAndSetupIPC(ipcMain);
 ipcMain.handle('update-folder-watchers', async (event, folders: string[]) => {
   await watchService.updateWatchers(folders);
   return true;
