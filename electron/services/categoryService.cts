@@ -1,39 +1,55 @@
-import { Category, LocalImageData } from '../dao/type';
-import { ipcMain } from 'electron';
+import { Category, LocalImageData } from '../dao/type.cjs';
 import { DAOFactory } from '../dao/DAOFactory.cjs';
 
+const categoryDAO = DAOFactory.getCategoryDAO();
 
+export const addCategory = async (
+  newCategory: Category,
+  images: LocalImageData[],
+  categories: Category[]
+): Promise<Category[]> => {
+  return await categoryDAO.addCategory(newCategory, images, categories);
+};
 
-export const setupCategoryHandlers = () => {
-  const categoryDAO = DAOFactory.getCategoryDAO();
-  // Add Category
-  ipcMain.handle('add-category', async (_, newCategory: Category, images: LocalImageData[], categories: Category[]) => {
-    return categoryDAO.addCategory(newCategory, images, categories);
-  });
+export const renameCategory = async (
+  categoryId: string,
+  newName: string,
+  categories: Category[]
+): Promise<Category[]> => {
+  return await categoryDAO.renameCategory(categoryId, newName, categories);
+};
 
-  // Rename Category
-  ipcMain.handle('rename-category', async (_, categoryId: string, newName: string, categories: Category[]) => {
-    return categoryDAO.renameCategory(categoryId, newName, categories);
-  });
+export const deleteCategory = async (
+  categoryId: string,
+  images: LocalImageData[],
+  categories: Category[]
+): Promise<{
+  updatedCategories: Category[];
+  updatedImages: LocalImageData[];
+}> => {
+  return await categoryDAO.deleteCategory(categoryId, images, categories);
+};
 
-  // Delete Category
-  ipcMain.handle('delete-category', async (_, categoryId: string, images: LocalImageData[], categories: Category[]) => {
-    return categoryDAO.deleteCategory(categoryId, images, categories);
-  });
+export const addToCategory = async (
+  selectedImages: Set<string>,
+  selectedCategories: string[],
+  images: LocalImageData[],
+  categories: Category[]
+): Promise<{
+  updatedImages: LocalImageData[];
+  updatedCategories: Category[];
+}> => {
+  return await categoryDAO.addToCategory(selectedImages, selectedCategories, images, categories);
+};
 
-  // Add To Category
-  ipcMain.handle('add-to-category', async (
-    _,
-    selectedImages: Set<string>,
-    selectedCategories: string[],
-    images: LocalImageData[],
-    categories: Category[]
-  ) => {
-    return categoryDAO.addToCategory(selectedImages, selectedCategories, images, categories);
-  });
-
-  // Import Folder From Path
-  ipcMain.handle('import-folder-from-path', async (_, folderPath: string, images: LocalImageData[], categories: Category[]) => {
-    return categoryDAO.importFolderFromPath(folderPath, images, categories);
-  });
+export const importFolderFromPath = async (
+  folderPath: string,
+  images: LocalImageData[],
+  categories: Category[]
+): Promise<{
+  newImages: LocalImageData[];
+  updatedCategories: Category[];
+  categoryId: string;
+}> => {
+  return await categoryDAO.importFolderFromPath(folderPath, images, categories);
 }; 

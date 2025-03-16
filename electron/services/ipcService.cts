@@ -1,6 +1,4 @@
-import { app, ipcMain, dialog, shell } from 'electron';
-import * as path from 'path';
-import * as fs from 'fs';
+import { ipcMain, dialog, shell } from 'electron';
 import { promises as fsPromises } from 'fs';
 import { generateHashId } from '../utils/index.cjs';
 import { getComfyURL } from './settingService.cjs';
@@ -10,7 +8,8 @@ import {
   getJsonFilePath, 
   deletePhysicalFile, 
   saveImagesAndCategories,
-  saveCategories
+  saveCategories,
+  showDialog
 } from './FileService.cjs';
 import { 
   getVideoDuration, 
@@ -20,24 +19,6 @@ import {
 import { tagImage, getMainColor } from '../../script/script.cjs';
 import { tagQueue, colorQueue } from './queueService.cjs';
 import { logger } from './logService.cjs';
-
-import { DAOFactory } from '../dao/DAOFactory.cjs';
-
-interface FileMetadata {
-  id: string;
-  path: string;
-  name: string;
-  extension: string;
-  size: number;
-  dateCreated: string;
-  dateModified: string;
-  tags: string[];
-  favorite: boolean;
-  categories: string[];
-  type: 'video' | 'image';
-  duration?: number;
-  thumbnail?: string;
-}
 
 interface LogMeta {
   [key: string]: any;
@@ -185,53 +166,7 @@ const init = (): void => {
 
   // =============== 文件选择对话框相关 ===============
   ipcMain.handle('show-open-dialog', async () => {
-    const result = await dialog.showOpenDialog({
-      properties: ['openFile', 'multiSelections'],
-      filters: [
-        { name: '媒体文件', extensions: ['jpg', 'jpeg', 'png', 'gif', 'mp4', 'mov', 'avi', 'webm'] }
-      ]
-    });
-
-    if (result.canceled) {
-      return [];
-    }
-
-    // 处理选中的文件
-    const fileMetadata = await Promise.all(
-      result.filePaths.map(async (filePath): Promise<FileMetadata> => {
-        const stats = await fsPromises.stat(filePath);
-        const localImageUrl = `local-image://${encodeURIComponent(filePath)}`;
-        const ext = path.extname(filePath).toLowerCase();
-        const isVideo = ['.mp4', '.mov', '.avi', '.webm'].includes(ext);
-
-        const metadata: FileMetadata = {
-          id: Date.now().toString(),
-          path: localImageUrl,
-          name: path.basename(filePath, ext),
-          extension: ext.slice(1),
-          size: stats.size,
-          dateCreated: stats.birthtime.toISOString(),
-          dateModified: stats.mtime.toISOString(),
-          tags: [],
-          favorite: false,
-          categories: [],
-          type: isVideo ? 'video' : 'image',
-        };
-
-        if (isVideo) {
-          try {
-            metadata.duration = await getVideoDuration(filePath);
-            metadata.thumbnail = await generateVideoThumbnail(filePath);
-          } catch (error) {
-            logger.error('处理视频元数据失败:', { error } as LogMeta);
-          }
-        }
-
-        return metadata;
-      })
-    );
-
-    return fileMetadata;
+    return await showDialog();
   });
 
   ipcMain.handle('open-folder-dialog', async () => {
@@ -364,8 +299,10 @@ const init = (): void => {
   // 初始化插件系统
   const pluginService = require('./pluginService.cjs');
   pluginService.initializeAndSetupIPC(ipcMain);
-  const categoryService = require('./categoryService.cjs');
-  categoryService.setupCategoryHandlers();
+  const categoryService = require('../ipc/categoryHandlers.cjs');
+  categoryService.registerCategoryHandlers();
+  const imageService = require('../ipc/imageHandlers.cjs');
+  imageService.registerImageHandlers();
 };
 
 export { init, isRemoteComfyUI }; 

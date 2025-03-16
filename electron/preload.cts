@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { Category, LocalImageData } from './dao/type';
+import { Category, LocalImageData } from './dao/type.cjs';
 
 const parseArgs = (args: any[]): any[] => {
   return [...args].map(arg => JSON.parse(arg));
@@ -57,7 +57,22 @@ contextBridge.exposeInMainWorld('electron', {
     importFolderFromPath: (folderPath: string, images: LocalImageData[], categories: Category[]) => 
       ipcRenderer.invoke('import-folder-from-path', folderPath, images, categories),
   },
-
+  imageAPI: {
+    toggleFavorite: (id: string, images: LocalImageData[], categories: Category[]) => 
+      ipcRenderer.invoke('toggle-favorite', id, images, categories),
+    addImages: (newImages: LocalImageData[], currentImages: LocalImageData[], categories: Category[], currentSelectedCategory: Category) => 
+      ipcRenderer.invoke('add-images', newImages, currentImages, categories, currentSelectedCategory),
+    bulkDeleteSoft: (selectedImages: Set<string>, images: LocalImageData[], categories: Category[]) => 
+      ipcRenderer.invoke('bulk-delete-soft', selectedImages, images, categories),
+    bulkDeleteHard: (selectedImages: Set<string>, images: LocalImageData[], categories: Category[]) => 
+      ipcRenderer.invoke('bulk-delete-hard', selectedImages, images, categories),
+    updateTags: (mediaId: string, newTags: string[], images: LocalImageData[], categories: Category[]) => 
+      ipcRenderer.invoke('update-tags', mediaId, newTags, images, categories),
+    updateRating: (mediaId: string, rate: number, images: LocalImageData[], categories: Category[]) => 
+      ipcRenderer.invoke('update-rating', mediaId, rate, images, categories),
+    filterAndSortImages: (mediaList: LocalImageData[], options: any) => 
+      ipcRenderer.invoke('filter-and-sort-images', mediaList, options),
+  },
   // =============== 设置相关 ===============
   loadSettings: () => ipcRenderer.invoke('load-settings'),
   saveSettings: (settings: any) => ipcRenderer.invoke('save-settings', settings),

@@ -1,7 +1,6 @@
 import { CategoryDAO } from '../CategoryDAO.cjs';
-import { Category } from '../type';
+import { LocalImageData, Category } from '../type.cjs';
 import { loadImagesData, saveImagesAndCategories, saveCategories, readImagesFromFolder } from '../../services/FileService.cjs';
-import { LocalImageData } from '../type';
 
 export default class FileSystemCategoryDAO implements CategoryDAO {
   async getImagesAndCategories() {
@@ -40,7 +39,10 @@ export default class FileSystemCategoryDAO implements CategoryDAO {
     }
   }
 
-  async deleteCategory(categoryId: string, images: LocalImageData[], categories: Category[]): Promise<Category[]> {
+  async deleteCategory(categoryId: string, images: LocalImageData[], categories: Category[]): Promise<{
+    updatedCategories: Category[],
+    updatedImages: LocalImageData[]
+  }> {
     try {
       const deletedCategory = categories.find(category => category.id === categoryId);
       if (deletedCategory?.isImportFromFolder) {
@@ -52,8 +54,12 @@ export default class FileSystemCategoryDAO implements CategoryDAO {
         });
       }
       const updatedCategories = categories.filter(category => category.id !== categoryId);
-      await saveCategories(updatedCategories);
-      return updatedCategories;
+      await saveImagesAndCategories(images, updatedCategories);
+      const { images: updatedImages } = await loadImagesData();
+      return {
+        updatedCategories,
+        updatedImages
+      };
     } catch (error) {
       console.error('Error in delete-category:', error);
       throw error;
@@ -113,7 +119,7 @@ export default class FileSystemCategoryDAO implements CategoryDAO {
       const updatedCategories = [...categories, category];
       const filteredImages = [...images.filter(img => !newImages.some(newImg => newImg.id === img.id)), ...newImages];
       
-      await saveImagesAndCategories([...images, ...newImages], updatedCategories);
+      await saveImagesAndCategories([...images, ...newImages] as LocalImageData[], updatedCategories);
       
       return {
         newImages: filteredImages as LocalImageData[],

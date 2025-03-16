@@ -120,6 +120,7 @@ function App() {
     images: mediaList,
     setSelectedCategory,
   });
+  const [filteredAndSortedImages, setFilteredAndSortedImages] = useState<LocalImageData[]>([]);
 
   const shouldListenFolders = useMemo(() => {
     return categories.filter(cate => cate?.folderPath).map(it => it.folderPath);
@@ -451,8 +452,8 @@ function App() {
     window.electron.openInEditor(path);
   }, []);
 
-  const filteredAndSortedImages = useMemo(() => {
-    return filterAndSortImages(mediaList, {
+  useEffect(() => {
+    filterAndSortImages(mediaList, {
       filter,
       selectedCategory,
       categories,
@@ -461,6 +462,8 @@ function App() {
       multiFilter,
       sortBy,
       sortDirection
+    }).then(images => {
+      setFilteredAndSortedImages(images);
     });
   }, [
     mediaList,

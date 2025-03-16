@@ -25,7 +25,10 @@ export const deleteCategory = async (
   categoryId: string,
   images: LocalImageData[],
   categories: Category[]
-): Promise<Category[]> => {
+): Promise<{
+  updatedCategories: Category[],
+  updatedImages: LocalImageData[]
+}> => {
   return await window.electron.categoryAPI.deleteCategory(categoryId, images, categories);
 };
 

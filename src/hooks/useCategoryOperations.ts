@@ -35,8 +35,9 @@ export const useCategoryOperations = ({
 
   const handleDeleteCategory = async (categoryId: string, images: LocalImageData[]) => {
     try {
-      const updatedCategories = await categoryService.deleteCategory(categoryId, images, categories);
+      const { updatedCategories, updatedImages } = await categoryService.deleteCategory(categoryId, images, categories);
       setCategories(updatedCategories);
+      setImages(updatedImages);
     } catch (error) {
       console.error(t('deleteCategoryFailed', { error: String(error) }));
     }

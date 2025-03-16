@@ -1,160 +1,281 @@
 import { ImageDAO } from '../ImageDAO.cjs';
-import { Image, QueryOptions } from '../type';
-import { loadImagesData, saveImagesAndCategories } from '../../services/FileService.cjs';
+import {
+  loadImagesData,
+  saveImagesAndCategories,
+  deletePhysicalFile,
+} from '../../services/FileService.cjs';
+import {
+  LocalImageData,
+  Category,
+  FilterType,
+  FilterOptions,
+  SortType,
+  SortDirection,
+  ColorInfo,
+} from '../type.cjs';
+
+const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
+};
+
+export const isSimilarColor = (color1: string, color2: string, precision: number = 0.8): boolean => {
+  // 确保精度在有效范围内
+  precision = Math.max(0.1, Math.min(1, precision));
+  
+  // 转换为RGB
+  const rgb1 = hexToRgb(color1);
+  const rgb2 = hexToRgb(color2);
+  
+  if (!rgb1 || !rgb2) return false;
+  
+  // 计算欧几里得距离
+  const distance = Math.sqrt(
+    Math.pow(rgb1.r - rgb2.r, 2) +
+    Math.pow(rgb1.g - rgb2.g, 2) +
+    Math.pow(rgb1.b - rgb2.b, 2)
+  );
+  
+  // 最大可能距离是 sqrt(255^2 + 255^2 + 255^2) ≈ 441.67
+  const maxDistance = Math.sqrt(3 * Math.pow(255, 2));
+  
+  // 计算相似度（0到1之间）
+  const similarity = 1 - (distance / maxDistance);
+  
+  // 根据精度判断是否相似
+  return similarity >= precision;
+}; 
 
 export default class FileSystemImageDAO implements ImageDAO {
-  private async getImagesAndCategories() {
+  async getImagesAndCategories() {
     const data = await loadImagesData();
     return data;
   }
 
-  async create(image: Image): Promise<Image> {
-    const { images, categories } = await this.getImagesAndCategories();
-    images.push(image);
-    await saveImagesAndCategories(images, categories);
-    return image;
+  async toggleFavorite(
+    id: string,
+    images: LocalImageData[],
+    categories: Category[]
+  ): Promise<LocalImageData[]> {
+    const updatedImages = images.map((img) =>
+      img.id === id ? { ...img, favorite: !img.favorite } : img
+    );
+
+    await saveImagesAndCategories(updatedImages, categories);
+    return updatedImages;
   }
 
-  async update(image: Image): Promise<Image> {
-    const { images, categories } = await this.getImagesAndCategories();
-    const index = images.findIndex(img => img.id === image.id);
-    if (index !== -1) {
-      images[index] = { ...images[index], ...image };
-      await saveImagesAndCategories(images, categories);
-    }
-    return image;
+
+  async addImages(
+    newImages: LocalImageData[],
+    currentImages: LocalImageData[],
+    categories: Category[],
+    currentSelectedCategory?: Category
+  ): Promise<LocalImageData[]> {
+    const newImagesData = newImages.filter(img =>
+      !currentImages.some(existingImg => existingImg.id === img.id)
+    );
+
+    const updatedImages = [...currentImages, ...newImagesData];
+    await saveImagesAndCategories(
+      updatedImages,
+      categories,
+    );
+
+    return updatedImages;
   }
 
-  async delete(id: string): Promise<boolean> {
-    const { images, categories } = await this.getImagesAndCategories();
-    const index = images.findIndex(img => img.id === id);
-    if (index !== -1) {
-      images.splice(index, 1);
-      // 同时从所有分类中移除该图片
-      categories.forEach(category => {
-        category.images = category.images.filter((imgId: string) => imgId !== id);
-        category.count = category.images.length;
-      });
-      await saveImagesAndCategories(images, categories);
-      return true;
-    }
-    return false;
+  async bulkDeleteSoft(
+    selectedImages: Set<string>,
+    images: LocalImageData[],
+    categories: Category[]
+  ): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories?: Category[];
+  }> {
+    const updatedImages = images.filter(img => !selectedImages.has(img.id));
+
+    const updatedCategories = categories.map(category => {
+      const newImages = category.images?.filter(id => !selectedImages.has(id)) || [];
+      return {
+        ...category,
+        images: newImages,
+        count: newImages.length
+      };
+    });
+
+    await saveImagesAndCategories(updatedImages, updatedCategories);
+    return {
+      updatedImages: updatedImages,
+      updatedCategories: updatedCategories
+    };
   }
 
-  async get(id: string): Promise<Image | null> {
-    const { images } = await this.getImagesAndCategories();
-    return images.find(img => img.id === id) || null;
-  }
+  async bulkDeleteHard(
+    selectedImages: Set<string>,
+    images: LocalImageData[],
+    categories: Category[]
+  ): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories?: Category[];
+  }> {
+    const updatedImages = images.filter(img => !selectedImages.has(img.id));
+    const deletedImages = images.filter(img => selectedImages.has(img.id));
+    const updatedCategories = categories.map(category => {
+      const newImages = category.images?.filter(id => !selectedImages.has(id)) || [];
+      return {
+        ...category,
+        images: newImages,
+        count: newImages.length
+      };
+    });
 
-  async bulkCreate(images: Image[]): Promise<Image[]> {
-    const { images: existingImages, categories } = await this.getImagesAndCategories();
-    existingImages.push(...images);
-    await saveImagesAndCategories(existingImages, categories);
-    return images;
-  }
-
-  async bulkUpdate(images: Image[]): Promise<Image[]> {
-    const { images: existingImages, categories } = await this.getImagesAndCategories();
-    images.forEach(image => {
-      const index = existingImages.findIndex(img => img.id === image.id);
-      if (index !== -1) {
-        existingImages[index] = { ...existingImages[index], ...image };
+    for (const img of deletedImages) {
+      if (img.path.includes('local-image://') && img.isBindInFolder) {
+        await deletePhysicalFile(img.path);
       }
+    }
+
+    await saveImagesAndCategories(updatedImages, updatedCategories);
+
+    return {
+      updatedImages,
+      updatedCategories
+    };
+  }
+
+  async updateTags(
+    mediaId: string,
+    newTags: string[],
+    images: LocalImageData[],
+    categories: Category[]
+  ): Promise<LocalImageData[]> {
+    const updatedImages = images.map(img =>
+      img.id === mediaId ? { ...img, tags: newTags } : img
+    );
+    await saveImagesAndCategories(updatedImages, categories);
+    return updatedImages;
+  }
+
+  async updateRating(
+    mediaId: string,
+    rate: number,
+    images: LocalImageData[],
+    categories: Category[]
+  ): Promise<{
+    updatedImages: LocalImageData[];
+    updatedImage: LocalImageData | null;
+  }> {
+    const updatedImages = images.map(img =>
+      img.id === mediaId ? { ...img, rating: rate } : img
+    );
+    await saveImagesAndCategories(updatedImages, categories);
+
+    return {
+      updatedImages,
+      updatedImage: updatedImages.find(img => img.id === mediaId) || null
+    };
+  }
+
+  async loadImagesFromJson() {
+    return await loadImagesData();
+  }
+
+  filterAndSortImages(
+    mediaList: LocalImageData[],
+    {
+      filter,
+      selectedCategory,
+      categories,
+      searchTags,
+      filterColors,
+      multiFilter,
+      sortBy,
+      sortDirection
+    }: {
+      filter: FilterType;
+      selectedCategory: FilterType | string;
+      categories: Category[];
+      searchTags: string[];
+      filterColors: string[];
+      multiFilter: FilterOptions;
+      sortBy: SortType;
+      sortDirection: SortDirection;
+    }
+  ): LocalImageData[] {
+    let filtered = mediaList.filter(img => img.type !== 'video') as LocalImageData[];
+
+    if (searchTags.length > 0) {
+      filtered = filtered.filter(img =>
+        searchTags.every(tag =>
+          img.tags?.some((imgTag: string) =>
+            imgTag.toLowerCase().includes(tag.toLowerCase())
+          )
+        )
+      );
+    }
+
+    if (selectedCategory === FilterType.Videos) {
+      filtered = mediaList.filter(img => img.type === 'video') as LocalImageData[];
+    } else if (filter === FilterType.Favorites) {
+      filtered = filtered.filter(img => img.favorite);
+    } else if (filter === FilterType.Recent) {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      filtered = mediaList.filter(img => new Date(img.dateModified) >= sevenDaysAgo);
+    } else if (selectedCategory !== FilterType.Photos) {
+      const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
+      if (selectedCategoryData) {
+        filtered = mediaList.filter(img =>
+          img.categories?.includes(selectedCategory) ||
+          selectedCategoryData.images?.includes(img.id)
+        );
+      }
+    }
+
+    filtered = filtered.filter(img => {
+      if (filterColors.length > 0) {
+        return filterColors.some(filterColor =>
+          (img.colors || []).some((c: string | ColorInfo) => {
+            const imgColor = typeof c === 'string' ? c : c.color;
+            return isSimilarColor(imgColor, filterColor, multiFilter.precision);
+          })
+        );
+      }
+
+      if (multiFilter.ratio.length > 0) {
+        return multiFilter.ratio.some(ratio => img.ratio === ratio);
+      }
+      if (typeof multiFilter.rating === 'number') {
+        return img.rating === multiFilter.rating;
+      }
+      if (multiFilter.formats.length > 0) {
+        const ext = img?.extension?.toLowerCase();
+        return multiFilter.formats.some(format => ext?.endsWith(format.toLowerCase()));
+      }
+      return true;
     });
-    await saveImagesAndCategories(existingImages, categories);
-    return images;
-  }
 
-  async bulkDelete(ids: string[]): Promise<boolean> {
-    const { images, categories } = await this.getImagesAndCategories();
-    const filteredImages = images.filter(img => !ids.includes(img.id));
-    // 从所有分类中移除这些图片
-    categories.forEach(category => {
-      category.images = category.images.filter((imgId: string) => !ids.includes(imgId));
-      category.count = category.images.length;
+    return [...filtered].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortBy) {
+        case SortType.Name:
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case SortType.Date:
+          comparison = new Date(a.dateModified).getTime() - new Date(b.dateModified).getTime();
+          break;
+        case SortType.Size:
+          comparison = a.size - b.size;
+          break;
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison;
     });
-    await saveImagesAndCategories(filteredImages, categories);
-    return true;
-  }
-
-  async query(options?: QueryOptions): Promise<Image[]> {
-    const { images } = await this.getImagesAndCategories();
-    let result = [...images];
-
-    if (options?.sort) {
-      result.sort((a: any, b: any) => {
-        const order = options.sort!.order === 'asc' ? 1 : -1;
-        return (a[options.sort!.field] > b[options.sort!.field] ? 1 : -1) * order;
-      });
-    }
-
-    if (options?.skip) {
-      result = result.slice(options.skip);
-    }
-
-    if (options?.limit) {
-      result = result.slice(0, options.limit);
-    }
-
-    return result;
-  }
-
-  async findByCategory(categoryId: string): Promise<Image[]> {
-    const { images } = await this.getImagesAndCategories();
-    return images.filter(img => img.categories.includes(categoryId));
-  }
-
-  async findByTags(tags: string[]): Promise<Image[]> {
-    const { images } = await this.getImagesAndCategories();
-    return images.filter(img => tags.some(tag => img.tags.includes(tag)));
-  }
-
-  async findByPath(path: string): Promise<Image | null> {
-    const { images } = await this.getImagesAndCategories();
-    return images.find(img => img.path === path) || null;
-  }
-
-  async updateTags(id: string, tags: string[]): Promise<Image> {
-    const { images, categories } = await this.getImagesAndCategories();
-    const index = images.findIndex(img => img.id === id);
-    if (index !== -1) {
-      images[index].tags = tags;
-      await saveImagesAndCategories(images, categories);
-      return images[index];
-    }
-    throw new Error('Image not found');
-  }
-
-  async updateCategories(id: string, categoryIds: string[]): Promise<Image> {
-    const { images, categories } = await this.getImagesAndCategories();
-    const index = images.findIndex(img => img.id === id);
-    if (index !== -1) {
-      images[index].categories = categoryIds;
-      await saveImagesAndCategories(images, categories);
-      return images[index];
-    }
-    throw new Error('Image not found');
-  }
-
-  async toggleFavorite(id: string): Promise<Image> {
-    const { images, categories } = await this.getImagesAndCategories();
-    const index = images.findIndex(img => img.id === id);
-    if (index !== -1) {
-      images[index].favorite = !images[index].favorite;
-      await saveImagesAndCategories(images, categories);
-      return images[index];
-    }
-    throw new Error('Image not found');
-  }
-
-  async updateMetadata(id: string, metadata: Partial<Image>): Promise<Image> {
-    const { images, categories } = await this.getImagesAndCategories();
-    const index = images.findIndex(img => img.id === id);
-    if (index !== -1) {
-      images[index] = { ...images[index], ...metadata };
-      await saveImagesAndCategories(images, categories);
-      return images[index];
-    }
-    throw new Error('Image not found');
   }
 }

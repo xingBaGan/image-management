@@ -182,7 +182,10 @@ export interface ipcCategoryAPI {
   // Category Service Methods
   addCategory: (newCategory: Category, images: LocalImageData[], categories: Category[]) => Promise<Category[]>;
   renameCategory: (categoryId: string, newName: string, categories: Category[]) => Promise<Category[]>;
-  deleteCategory: (categoryId: string, images: LocalImageData[], categories: Category[]) => Promise<Category[]>;
+  deleteCategory: (categoryId: string, images: LocalImageData[], categories: Category[]) => Promise<{
+    updatedCategories: Category[],
+    updatedImages: LocalImageData[]
+  }>;
   addToCategory: (
     selectedImages: Set<string>,
     selectedCategories: string[],
@@ -201,6 +204,61 @@ export interface ipcCategoryAPI {
     updatedCategories: Category[];
     categoryId: string;
   }>;
+}
+
+export interface IPCImageService {
+  toggleFavorite(id: string, images: LocalImageData[], categories: Category[]): Promise<LocalImageData[]>;
+  addImages(
+    newImages: LocalImageData[],
+    currentImages: LocalImageData[],
+    categories: Category[],
+    currentSelectedCategory?: Category
+  ): Promise<LocalImageData[]>;
+  bulkDeleteSoft(
+    selectedImages: Set<string>,
+    images: LocalImageData[],
+    categories: Category[]
+  ): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories?: Category[];
+  }>;
+  bulkDeleteHard(
+    selectedImages: Set<string>,
+    images: LocalImageData[],
+    categories: Category[]
+  ): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories?: Category[];
+  }>;
+  updateTags(
+    mediaId: string,
+    newTags: string[],
+    images: LocalImageData[],
+    categories: Category[]
+  ): Promise<LocalImageData[]>;
+  updateRating(
+    mediaId: string,
+    rate: number,
+    images: LocalImageData[],
+    categories: Category[]
+  ): Promise<{
+    updatedImages: LocalImageData[];
+    updatedImage: LocalImageData | null;
+  }>;
+  loadImagesFromJson(): Promise<any>;
+  filterAndSortImages(
+    mediaList: LocalImageData[],
+    options: {
+      filter: FilterType;
+      selectedCategory: FilterType | string;
+      categories: Category[];
+      searchTags: string[];
+      filterColors: string[];
+      multiFilter: FilterOptions;
+      sortBy: SortType;
+      sortDirection: SortDirection;
+    }
+  ): LocalImageData[];
 }
 
 // =============== Electron API 类型 ===============
@@ -243,6 +301,7 @@ export interface ElectronAPI {
   copyFileToCategoryFolder: (filePath: string, currentCategory: Category) => Promise<boolean>;
   deleteFile: (filePath: string) => Promise<boolean>;
   categoryAPI: ipcCategoryAPI;
+  imageAPI: IPCImageService;
 }
 
 // =============== 类型守卫函数 ===============

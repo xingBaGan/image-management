@@ -86,7 +86,7 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
                     )}
                     <div>
                         <label className="text-sm text-gray-500 dark:text-rose-400">{t('fileName')}</label>
-                        {image.name.length > 10 ? (
+                        {image.name && image.name.length > 10 ? (
                             <div className="relative group">
                                 <p className="text-gray-900 truncate dark:text-white max-w-44">{image.name}</p>
                                 <div className="hidden absolute z-10 px-2 py-1 h-auto text-xs text-white break-words bg-gray-800 rounded group-hover:inline-block max-w-48">
@@ -104,17 +104,17 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
 
                     <div>
                         <label className="text-sm text-gray-500 dark:text-rose-400">{t('fileSize')}</label>
-                        <p className="text-gray-900 dark:text-white">{formatFileSize(image.size)}</p>
+                        <p className="text-gray-900 dark:text-white">{image.size ? formatFileSize(image.size) : ''}</p>
                     </div>
 
                     <div>
                         <label className="text-sm text-gray-500 dark:text-rose-400">{t('dateCreated')}</label>
-                        <p className="text-gray-900 dark:text-white">{formatDate(image.dateCreated)}</p>
+                        <p className="text-gray-900 dark:text-white">{image.dateCreated ? formatDate(image.dateCreated) : ''}</p>
                     </div>
 
                     <div>
                         <label className="text-sm text-gray-500 dark:text-rose-400">{t('dateModified')}</label>
-                        <p className="text-gray-900 dark:text-white">{formatDate(image.dateModified)}</p>
+                        <p className="text-gray-900 dark:text-white">{image.dateModified ? formatDate(image.dateModified) : ''}</p>
                     </div>
 
                     <div>

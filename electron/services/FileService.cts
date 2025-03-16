@@ -1,12 +1,15 @@
-import { app } from 'electron';
+import { app, dialog } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { logger } from './logService.cjs';
 import { promises as fsPromises } from 'fs';
-import { Category } from '../dao/type';
+import { Category } from '../dao/type.cjs';
 import { 
+  getVideoDuration, 
+  generateVideoThumbnail,
   processDirectoryFiles 
 } from './mediaService.cjs';
+import { LocalImageData } from '../dao/type.cjs';
 interface ImageData {
   images: any[];
   categories: any[];
@@ -14,6 +17,22 @@ interface ImageData {
 
 interface LogMeta {
   [key: string]: any;
+}
+
+interface FileMetadata {
+  id: string;
+  path: string;
+  name: string;
+  extension: string;
+  size: number;
+  dateCreated: string;
+  dateModified: string;
+  tags: string[];
+  favorite: boolean;
+  categories: string[];
+  type: 'video' | 'image';
+  duration?: number;
+  thumbnail?: string;
 }
 
 const getJsonFilePath = (): string => {
@@ -49,7 +68,7 @@ const saveImageToLocal = async (imageData: Uint8Array, fileName: string, ext: st
   }
 };
 
-const saveImagesAndCategories = async (images: any[], categories: any[]): Promise<boolean> => {
+const saveImagesAndCategories = async (images: LocalImageData[], categories: Category[]): Promise<boolean> => {
   const jsonPath = getJsonFilePath();
   const tempPath = path.join(app.getPath('userData'), 'images.json.temp');
   // 先写入临时文件
@@ -173,6 +192,56 @@ async function deletePhysicalFile(filePath: string): Promise<boolean> {
   }
 }
 
+async function showDialog() {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile', 'multiSelections'],
+    filters: [
+      { name: '媒体文件', extensions: ['jpg', 'jpeg', 'png', 'gif', 'mp4', 'mov', 'avi', 'webm'] }
+    ]
+  });
+
+  if (result.canceled) {
+    return [];
+  }
+
+  // 处理选中的文件
+  const fileMetadata = await Promise.all(
+    result.filePaths.map(async (filePath): Promise<FileMetadata> => {
+      const stats = await fsPromises.stat(filePath);
+      const localImageUrl = `local-image://${encodeURIComponent(filePath)}`;
+      const ext = path.extname(filePath).toLowerCase();
+      const isVideo = ['.mp4', '.mov', '.avi', '.webm'].includes(ext);
+
+      const metadata: FileMetadata = {
+        id: Date.now().toString(),
+        path: localImageUrl,
+        name: path.basename(filePath, ext),
+        extension: ext.slice(1),
+        size: stats.size,
+        dateCreated: stats.birthtime.toISOString(),
+        dateModified: stats.mtime.toISOString(),
+        tags: [],
+        favorite: false,
+        categories: [],
+        type: isVideo ? 'video' : 'image',
+      };
+
+      if (isVideo) {
+        try {
+          metadata.duration = await getVideoDuration(filePath);
+          metadata.thumbnail = await generateVideoThumbnail(filePath);
+        } catch (error) {
+          logger.error('处理视频元数据失败:', { error } as LogMeta);
+        }
+      }
+
+      return metadata;
+    })
+  );
+
+  return fileMetadata;
+}
+
 export {
   saveImageToLocal,
   loadImagesData,
@@ -182,5 +251,6 @@ export {
   deletePhysicalFile,
   saveImagesAndCategories,
   saveCategories,
-  readImagesFromFolder
+  readImagesFromFolder,
+  showDialog
 } 

@@ -1,4 +1,3 @@
-// src/dao/types.ts
 export interface Image {
   _id?: string;          // PouchDB 主键
   _rev?: string;         // PouchDB 版本号
@@ -85,3 +84,47 @@ export interface VideoData extends BaseMediaData {
 }
 
 export type LocalImageData = ImageData | VideoData;
+
+export enum FilterType {
+  Recent = 'recent',
+  Favorites = 'favorites',
+  All = 'all',
+  Photos = 'photos',
+  Videos = 'videos',
+}
+
+export enum SortDirection {
+  Asc = 'asc',
+  Desc = 'desc',
+}
+
+export enum SortType {
+  Name = 'name',
+  Date = 'date',
+  Size = 'size',
+}
+
+export interface FilterOptions {
+  colors: string[];
+  ratio: string[];
+  rating: number | null;
+  formats: string[];
+  precision: number;
+}
+
+export interface Filter {
+  id: string;
+  type: 'colors' | 'ratio' | 'rating' | 'formats';
+  label: string;
+  options?: string[];
+}
+
+export interface ImportFile extends Omit<File, 'arrayBuffer' | 'text' | 'stream' | 'slice'> {
+  dateCreated: string;
+  dateModified: string;
+  thumbnail?: string;
+  arrayBuffer: () => Promise<ArrayBuffer>;
+  text: () => Promise<string>;
+  stream: () => ReadableStream;
+  slice: (start?: number, end?: number, contentType?: string) => Blob;
+}

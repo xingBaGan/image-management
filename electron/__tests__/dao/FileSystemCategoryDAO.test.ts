@@ -1,6 +1,6 @@
 import FileSystemCategoryDAO from '../../dao/impl/FileSystemCategoryDAO.cjs';
 import { loadImagesData, saveImagesAndCategories, saveCategories, readImagesFromFolder } from '../../services/FileService.cjs';
-import { Category, LocalImageData } from '../../dao/type';
+import { Category, LocalImageData } from '../../dao/type.cjs';
 type CategoryType = Category;
 type LocalImageDataType = LocalImageData;
 
@@ -26,6 +26,8 @@ describe('FileSystemCategoryDAO', () => {
         type: "image",
         width: 800,
         height: 600,
+        rating: 0,
+        ratio: "4:3",
         tags: [],
         favorite: false,
         categories: ["1"],
@@ -43,6 +45,8 @@ describe('FileSystemCategoryDAO', () => {
         type: "image",
         width: 800,
         height: 600,
+        rating: 0,
+        ratio: "4:3",
         tags: [],
         favorite: false,
         categories: ["1"],
@@ -60,11 +64,19 @@ describe('FileSystemCategoryDAO', () => {
 
     mockCategories = [mockCategory];
 
-    // Reset mocks
+    // Reset and setup mocks
     (loadImagesData as jest.Mock).mockReset();
     (saveImagesAndCategories as jest.Mock).mockReset();
     (saveCategories as jest.Mock).mockReset();
     (readImagesFromFolder as jest.Mock).mockReset();
+
+    // Setup default mock returns
+    (loadImagesData as jest.Mock).mockResolvedValue({
+      images: mockImages,
+      categories: mockCategories
+    });
+    (saveImagesAndCategories as jest.Mock).mockResolvedValue(undefined);
+    (saveCategories as jest.Mock).mockResolvedValue(undefined);
   });
 
   describe('getImagesAndCategories', () => {
@@ -100,7 +112,7 @@ describe('FileSystemCategoryDAO', () => {
       const result = await dao.addCategory(newCategory, mockImages, mockCategories);
       
       expect(result).toHaveLength(mockCategories.length + 1);
-      expect(result.find((c: CategoryType) => c.id === "2")).toEqual(newCategory);
+      expect(result.find(c => c.id === "2")).toEqual(newCategory);
       expect(saveImagesAndCategories).toHaveBeenCalledWith(mockImages, result);
     });
   });
@@ -118,11 +130,22 @@ describe('FileSystemCategoryDAO', () => {
 
   describe('deleteCategory', () => {
     it('should delete a normal category successfully', async () => {
+      const updatedImages = mockImages.map(img => ({
+        ...img,
+        categories: (img.categories || []).filter(c => c !== "1")
+      }));
+
+      (loadImagesData as jest.Mock).mockResolvedValueOnce({
+        images: updatedImages,
+        categories: []
+      });
+
       const result = await dao.deleteCategory("1", mockImages, mockCategories);
       
-      expect(result).toHaveLength(mockCategories.length - 1);
-      expect(result.find((c: CategoryType) => c.id === "1")).toBeUndefined();
-      expect(saveCategories).toHaveBeenCalledWith(result);
+      expect(result.updatedCategories).toHaveLength(0);
+      expect(result.updatedCategories.find(c => c.id === "1")).toBeUndefined();
+      expect(result.updatedImages).toEqual(updatedImages);
+      expect(saveImagesAndCategories).toHaveBeenCalledWith(mockImages, []);
     });
 
     it('should handle folder-imported category deletion', async () => {
@@ -130,18 +153,28 @@ describe('FileSystemCategoryDAO', () => {
         ...mockCategory,
         isImportFromFolder: true
       };
+
+      const updatedImages = mockImages.map(img => ({
+        ...img,
+        categories: (img.categories || []).filter(c => c !== folderCategory.id),
+        isBindInFolder: false
+      }));
+
+      (loadImagesData as jest.Mock).mockResolvedValueOnce({
+        images: updatedImages,
+        categories: []
+      });
+
       const result = await dao.deleteCategory(
         folderCategory.id,
         mockImages,
         [folderCategory]
       );
 
-      expect(result).toHaveLength(0);
-      mockImages.forEach(img => {
-        expect(img.isBindInFolder).toBe(false);
-      });
+      expect(result.updatedCategories).toHaveLength(0);
+      expect(result.updatedImages).toBeDefined();
+      expect(result.updatedImages.every(img => !img.isBindInFolder)).toBe(true);
+      expect(saveImagesAndCategories).toHaveBeenCalled();
     });
   });
-
-  // ... rest of the file remains the same ...
 });
