@@ -1,4 +1,4 @@
-import FileSystemImageDAO from '../../dao/impl/FileSystemImageDAO.cts';
+import FileSystemImageDAO from '../../dao/impl/FileSystemImageDAO.cjs';
 import { loadImagesData, saveImagesAndCategories } from '../../services/FileService.cjs';
 import { Image } from '../../dao/type';
 

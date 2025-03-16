@@ -104,19 +104,19 @@ export default class FileSystemCategoryDAO implements CategoryDAO {
     categoryId: string;
   }> {
     try {
-      const result = await readImagesFromFolder(folderPath);
-      const { category, images: newImages } = result as any;
-      
-      const processedImages = [...(images || []), ...newImages].map((img: LocalImageData) => ({
+      let { category, images: newImages } = await readImagesFromFolder(folderPath);
+      newImages = newImages.map(img => ({
         ...img,
         isBindInFolder: true
       }));
       
       const updatedCategories = [...categories, category];
-      const filteredImages = [...(images || []).filter(img => !processedImages.some((newImg: LocalImageData) => newImg.id === img.id)), ...processedImages];
+      const filteredImages = [...images.filter(img => !newImages.some(newImg => newImg.id === img.id)), ...newImages];
+      
       await saveImagesAndCategories([...images, ...newImages], updatedCategories);
+      
       return {
-        newImages: filteredImages,
+        newImages: filteredImages as LocalImageData[],
         updatedCategories,
         categoryId: category.id
       };

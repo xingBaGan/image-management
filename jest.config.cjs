@@ -15,7 +15,7 @@ module.exports = {
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
   testMatch: [
     '**/src/__tests__/**/*.[t]s?(x)',
-    '**/electron/__tests__/**/*.[t]s?(x)',
+    '**/electron/__tests__/**/*.[ct]s?(x)',
     '!**/comfyui_client/**',
     "!**/dist/**",
     "!**/dist-electron/**"
