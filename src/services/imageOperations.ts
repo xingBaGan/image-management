@@ -1,4 +1,4 @@
-import { LocalImageData, Category, ImportFile, ImportStatus, SortDirection, FilterType, SortType, FilterOptions, ColorInfo } from '../types';
+import { LocalImageData, Category, ImportFile, ImportStatus, SortDirection, FilterType, SortType, FilterOptions, ColorInfo } from '../types/index.ts';
 import { processMedia, addImagesToCategory, isSimilarColor } from '../utils';
 export const toggleFavorite = async (
   id: string,

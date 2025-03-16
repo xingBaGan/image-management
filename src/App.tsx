@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { TitleBar } from './components/TitleBar';
 import { MainContent } from './components/MainContent';
 import Sidebar from './components/Sidebar';
-import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ImportFile, FilterType, SortType, SortDirection, FolderContentChangeType } from './types';
+import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ImportFile, FilterType, SortType, SortDirection, FolderContentChangeType } from './types/index.ts';
 import { Trash2, FolderPlus, Tags } from 'lucide-react';
 
 import { addTagsToImages } from './services/tagService';

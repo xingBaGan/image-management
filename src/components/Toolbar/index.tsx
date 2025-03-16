@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Menu, Import } from 'lucide-react';
-import { ViewMode, SortType, FilterOptions, AppendButtonsProps } from '../../types';
+import { ViewMode, SortType, FilterOptions, AppendButtonsProps } from '../../types/index.ts';
 import ThemeToggle from '../ThemeToggle';
 import LanguageToggle from '../LanguageToggle';
 import { useLocale } from '../../contexts/LanguageContext';

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Category, LocalImageData } from '../types';
+import { Category, LocalImageData } from '../types/index.ts';
 import { useLocale } from '../contexts/LanguageContext';
 import * as categoryService from '../services/categoryService';
 

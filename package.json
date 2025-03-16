@@ -21,9 +21,9 @@
     "python:download": "python dataset\\download.py",
     "build:comfyui": "cd comfyui_client && npm install && npm run build && cd ..",
     "generate-icons": "electron-icon-builder --input=./build/icon.png --output=build --flatten",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
@@ -61,7 +61,7 @@
     "@testing-library/react": "^14.2.1",
     "@testing-library/user-event": "^14.5.2",
     "@types/electron": "^1.6.12",
-    "@types/jest": "^29.5.14",
+    "@types/jest": "^29.5.12",
     "@types/lodash": "^4.17.14",
     "@types/node": "^22.10.5",
     "@types/probe-image-size": "^7.2.5",
@@ -88,7 +88,8 @@
     "ts-jest": "^29.1.2",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.3.0",
-    "vite": "^4.5.2"
+    "vite": "^4.5.2",
+    "@jest/types": "^29.6.3"
   },
   "build": {
     "appId": "com.atujii",

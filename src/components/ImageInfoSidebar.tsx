@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LocalImageData } from '../types';
+import { LocalImageData } from '../types/index.ts';
 import { formatFileSize, formatDate } from '../utils';
 import MediaTags from './MediaTags';
 import Rating from './Rating';

@@ -12,7 +12,7 @@ import {
   SortDirection,
   FilterType,
   AppendButtonsProps
-} from '../types';
+} from '../types/index.ts';
 
 interface MainContentProps {
   viewMode: ViewMode;

@@ -3,7 +3,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { logger } from './logService.cjs';
 import { promises as fsPromises } from 'fs';
-
+import { Category } from '../dao/type';
+import { 
+  processDirectoryFiles 
+} from './mediaService.cjs';
 interface ImageData {
   images: any[];
   categories: any[];
@@ -65,6 +68,47 @@ const saveImagesAndCategories = async (images: any[], categories: any[]): Promis
   await fsPromises.rename(tempPath, jsonPath);
 
   return true;
+}
+
+const readImagesFromFolder = async (folderPath: string)=>{
+  try {
+    const [files, _category] = await processDirectoryFiles(folderPath);
+
+    // 创建新的分类对象
+    const categoryName = path.basename(folderPath);
+    const category = {
+      id: `category-${Date.now()}`,
+      name: categoryName,
+      images: files.map(file => file.id),
+      count: files.length,
+      folderPath: folderPath,
+      isImportFromFolder: true
+    };
+
+    return {
+      category,
+      images: files
+    };
+  } catch (error) {
+    logger.error('读取文件夹图片失败:', { error } as LogMeta);
+    throw error;
+  }
+}
+
+const saveCategories = async (categories: Category[]): Promise<{
+  success: boolean;
+  error?: string;
+}> => {
+  try {
+    const filePath = getJsonFilePath();
+    const existingData = JSON.parse(await fsPromises.readFile(filePath, 'utf8'));
+    existingData.categories = categories;
+    await fsPromises.writeFile(filePath, JSON.stringify(existingData, null, 2));
+    return { success: true };
+  } catch (error) {
+    logger.error('保存分类数据失败:', { error } as LogMeta);
+    throw error;
+  }
 }
 
 function loadImagesData(): ImageData {
@@ -137,4 +181,6 @@ export {
   getImagesByIds,
   deletePhysicalFile,
   saveImagesAndCategories,
+  saveCategories,
+  readImagesFromFolder
 } 

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { MediaInfo } from '../types';
+import { MediaInfo } from '../types/index.ts';
 import { useLocale } from '../contexts/LanguageContext';
 
 interface MediaViewerProps {

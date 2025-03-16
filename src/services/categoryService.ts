@@ -1,4 +1,4 @@
-import { Category, LocalImageData } from '../types';
+import { Category, LocalImageData } from '../types/index.ts';
 
 export const addCategory = async (
   newCategory: Category,
@@ -10,10 +10,7 @@ export const addCategory = async (
     images: [],
     count: 0
   };
-
-  const updatedCategories = [...categories, categoryWithImages];
-  await window.electron.saveImagesToJson(images, updatedCategories);
-  return updatedCategories;
+   return await window.electron.categoryAPI.addCategory(categoryWithImages, images, categories);
 };
 
 export const renameCategory = async (
@@ -21,13 +18,7 @@ export const renameCategory = async (
   newName: string,
   categories: Category[]
 ): Promise<Category[]> => {
-  const updatedCategories = categories.map(category =>
-    category.id === categoryId
-      ? { ...category, name: newName }
-      : category
-  );
-  await window.electron.saveCategories(updatedCategories);
-  return updatedCategories;
+  return await window.electron.categoryAPI.renameCategory(categoryId, newName, categories);
 };
 
 export const deleteCategory = async (
@@ -35,18 +26,7 @@ export const deleteCategory = async (
   images: LocalImageData[],
   categories: Category[]
 ): Promise<Category[]> => {
-  const deletedCategory = categories.find(category => category.id === categoryId);
-  if (deletedCategory?.isImportFromFolder) {
-    deletedCategory?.images?.forEach(imageId => {
-      const image = images.find(img => img.id === imageId);
-      if (image) {
-        image.isBindInFolder = false;
-      }
-    });
-  }
-  const updatedCategories = categories.filter(category => category.id !== categoryId);
-  await window.electron.saveImagesToJson(images, updatedCategories);
-  return updatedCategories;
+  return await window.electron.categoryAPI.deleteCategory(categoryId, images, categories);
 };
 
 export const addToCategory = async (
@@ -58,33 +38,7 @@ export const addToCategory = async (
   updatedImages: LocalImageData[];
   updatedCategories: Category[];
 }> => {
-  const updatedImages = images.map(img => {
-    if (selectedImages.has(img.id)) {
-      return {
-        ...img,
-        categories: Array.from(new Set([...(img.categories || []), ...selectedCategories]))
-      };
-    }
-    return img;
-  });
-
-  const updatedCategories = categories.map(category => {
-    if (selectedCategories.includes(category.id)) {
-      const existingImages = category.images || [];
-      const newImages = Array.from(selectedImages);
-      const allImages = Array.from(new Set([...existingImages, ...newImages]));
-
-      return {
-        ...category,
-        images: allImages,
-        count: allImages.length
-      };
-    }
-    return category;
-  });
-
-  await window.electron.saveImagesToJson(updatedImages, updatedCategories);
-  return { updatedImages, updatedCategories };
+  return await window.electron.categoryAPI.addToCategory(selectedImages, selectedCategories, images, categories);
 };
 
 export const importFolderFromPath = async (
@@ -96,20 +50,5 @@ export const importFolderFromPath = async (
   updatedCategories: Category[];
   categoryId: string;
 }> => {
-  let { category, images: newImages } = await window.electron.readImagesFromFolder(folderPath);
-  newImages = newImages.map(img => ({
-    ...img,
-    isBindInFolder: true
-  }));
-  
-  const updatedCategories = [...categories, category];
-  const filteredImages = [...images.filter(img => !newImages.some(newImg => newImg.id === img.id)), ...newImages];
-  
-  await window.electron.saveImagesToJson([...images, ...newImages], updatedCategories);
-  
-  return {
-    newImages: filteredImages,
-    updatedCategories,
-    categoryId: category.id
-  };
+  return await window.electron.categoryAPI.importFolderFromPath(folderPath, images, categories);
 }; 

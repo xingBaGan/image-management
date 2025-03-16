@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import { ImportStatus } from '../types';
+import { ImportStatus } from '../types/index.ts';
 import { useLocale } from '../contexts/LanguageContext';
 
 interface DragOverlayProps {

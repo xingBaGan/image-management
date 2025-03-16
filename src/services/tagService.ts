@@ -1,4 +1,4 @@
-import { ImportStatus, LocalImageData } from '../types';
+import { ImportStatus, LocalImageData } from '../types/index.ts';
 import { getMainColor } from '../utils';
 
 const baseUrl = 'http://localhost:3000';

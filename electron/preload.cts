@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import { Category, LocalImageData } from './dao/type';
 
 const parseArgs = (args: any[]): any[] => {
   return [...args].map(arg => JSON.parse(arg));
@@ -40,6 +41,22 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.invoke('process-directory', dirPath, currentCategory),
   copyFileToCategoryFolder: (filePath: string, currentCategory: any) => 
     ipcRenderer.invoke('copy-file-to-category-folder', filePath, currentCategory),
+  categoryAPI: {
+    addCategory: (newCategory: Category, images: LocalImageData[], categories: Category[]) => 
+      ipcRenderer.invoke('add-category', newCategory, images, categories),
+    
+    renameCategory: (categoryId: string, newName: string, categories: Category[]) => 
+      ipcRenderer.invoke('rename-category', categoryId, newName, categories),
+    
+    deleteCategory: (categoryId: string, images: LocalImageData[], categories: Category[]) => 
+      ipcRenderer.invoke('delete-category', categoryId, images, categories),
+    
+    addToCategory: (selectedImages: Set<string>, selectedCategories: string[], images: LocalImageData[], categories: Category[]) => 
+      ipcRenderer.invoke('add-to-category', selectedImages, selectedCategories, images, categories),
+    
+    importFolderFromPath: (folderPath: string, images: LocalImageData[], categories: Category[]) => 
+      ipcRenderer.invoke('import-folder-from-path', folderPath, images, categories),
+  },
 
   // =============== 设置相关 ===============
   loadSettings: () => ipcRenderer.invoke('load-settings'),

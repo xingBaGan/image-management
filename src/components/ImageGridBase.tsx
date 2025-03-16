@@ -1,4 +1,4 @@
-import { Category, LocalImageData, ViewMode, ImportStatus, AppendButtonsProps } from '../types';
+import { Category, LocalImageData, ViewMode, ImportStatus, AppendButtonsProps } from '../types/index.ts';
 
 export interface ImageGridBaseProps {
   images: LocalImageData[];

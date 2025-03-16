@@ -178,6 +178,31 @@ export enum FolderContentChangeType {
   Remove = 'remove',
 }
 
+export interface ipcCategoryAPI {
+  // Category Service Methods
+  addCategory: (newCategory: Category, images: LocalImageData[], categories: Category[]) => Promise<Category[]>;
+  renameCategory: (categoryId: string, newName: string, categories: Category[]) => Promise<Category[]>;
+  deleteCategory: (categoryId: string, images: LocalImageData[], categories: Category[]) => Promise<Category[]>;
+  addToCategory: (
+    selectedImages: Set<string>,
+    selectedCategories: string[],
+    images: LocalImageData[],
+    categories: Category[]
+  ) => Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories: Category[];
+  }>;
+  importFolderFromPath: (
+    folderPath: string,
+    images: LocalImageData[],
+    categories: Category[]
+  ) => Promise<{
+    newImages: LocalImageData[];
+    updatedCategories: Category[];
+    categoryId: string;
+  }>;
+}
+
 // =============== Electron API 类型 ===============
 export interface ElectronAPI {
   minimize: () => void
@@ -217,6 +242,7 @@ export interface ElectronAPI {
   removeFolderContentChangedListener: (callback: (data: {  type: FolderContentChangeType, newImages: LocalImageData[], category: Category }) => void) => void;
   copyFileToCategoryFolder: (filePath: string, currentCategory: Category) => Promise<boolean>;
   deleteFile: (filePath: string) => Promise<boolean>;
+  categoryAPI: ipcCategoryAPI;
 }
 
 // =============== 类型守卫函数 ===============

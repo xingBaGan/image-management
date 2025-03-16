@@ -1,6 +1,6 @@
 import React from 'react';
 import { Grid, List } from 'lucide-react';
-import { ViewMode } from '../../types';
+import { ViewMode } from '../../types/index.ts';
 import { useLocale } from '../../contexts/LanguageContext';
 
 interface ViewModeToggleProps {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AppendButtonsProps, Category } from '../../types';
+import { AppendButtonsProps, Category } from '../../types/index.ts';
 import { useLocale } from '../../contexts/LanguageContext';
 import { DynamicIcon } from 'lucide-react/dynamic';
 

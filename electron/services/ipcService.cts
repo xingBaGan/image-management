@@ -9,17 +9,19 @@ import {
   loadImagesData, 
   getJsonFilePath, 
   deletePhysicalFile, 
-  saveImagesAndCategories 
+  saveImagesAndCategories,
+  saveCategories
 } from './FileService.cjs';
 import { 
   getVideoDuration, 
-  generateVideoThumbnail, 
-  getImageSize, 
+  generateVideoThumbnail,
   processDirectoryFiles 
 } from './mediaService.cjs';
 import { tagImage, getMainColor } from '../../script/script.cjs';
 import { tagQueue, colorQueue } from './queueService.cjs';
 import { logger } from './logService.cjs';
+
+import { DAOFactory } from '../dao/DAOFactory.cjs';
 
 interface FileMetadata {
   id: string;
@@ -40,7 +42,6 @@ interface FileMetadata {
 interface LogMeta {
   [key: string]: any;
 }
-
 // 检查是否为远程 ComfyUI
 const isRemoteComfyUI = async function (): Promise<boolean> {
   const ComfyUI_URL = await getComfyURL();
@@ -166,14 +167,7 @@ const init = (): void => {
   // =============== 数据管理相关 ===============
   ipcMain.handle('load-images-from-json', async () => {
     try {
-      const jsonPath = getJsonFilePath();
-
-      if (!fs.existsSync(jsonPath)) {
-        return { images: [], categories: [] };
-      }
-
-      const data = await fs.promises.readFile(jsonPath, 'utf-8');
-      return JSON.parse(data);
+      return await loadImagesData();
     } catch (error) {
       logger.error('加载图片数据失败:', { error } as LogMeta);
       throw error;
@@ -254,16 +248,7 @@ const init = (): void => {
 
   // =============== 分类管理相关 ===============
   ipcMain.handle('save-categories', async (event, categories: any[]) => {
-    try {
-      const filePath = getJsonFilePath();
-      const existingData = JSON.parse(await fsPromises.readFile(filePath, 'utf8'));
-      existingData.categories = categories;
-      await fsPromises.writeFile(filePath, JSON.stringify(existingData, null, 2));
-      return { success: true };
-    } catch (error) {
-      logger.error('保存分类数据失败:', { error } as LogMeta);
-      throw error;
-    }
+    return await saveCategories(categories);
   });
 
   // =============== 图片分析相关 ===============
@@ -333,28 +318,7 @@ const init = (): void => {
 
   // =============== 文件夹操作相关 ===============
   ipcMain.handle('read-images-from-folder', async (event, folderPath: string) => {
-    try {
-      const [files, _category] = await processDirectoryFiles(folderPath);
-
-      // 创建新的分类对象
-      const categoryName = path.basename(folderPath);
-      const category = {
-        id: `category-${Date.now()}`,
-        name: categoryName,
-        images: files.map(file => file.id),
-        count: files.length,
-        folderPath: folderPath,
-        isImportFromFolder: true
-      };
-
-      return {
-        category,
-        images: files
-      };
-    } catch (error) {
-      logger.error('读取文件夹图片失败:', { error } as LogMeta);
-      throw error;
-    }
+    return await processDirectoryFiles(folderPath);
   });
 
   // =============== 文件管理相关 ===============
@@ -400,6 +364,8 @@ const init = (): void => {
   // 初始化插件系统
   const pluginService = require('./pluginService.cjs');
   pluginService.initializeAndSetupIPC(ipcMain);
+  const categoryService = require('./categoryService.cjs');
+  categoryService.setupCategoryHandlers();
 };
 
 export { init, isRemoteComfyUI }; 

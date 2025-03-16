@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { LocalImageData } from '@/types';
+import { LocalImageData } from '@/types/index.ts';
 import { jest } from '@jest/globals';
 
 describe('useKeyboardShortcuts', () => {

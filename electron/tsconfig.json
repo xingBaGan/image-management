@@ -10,6 +10,18 @@
     "allowJs": true,
     "skipLibCheck": true,
   },
-  "include": ["./**/*.ts", "./**/*.tsx", "./**/*.cts","./**/*.js", "./**/*.jsx"],
-  "exclude": ["../script/**/*", "../node_modules/**/*"]
-} 
+  "include": [
+    "./**/*.ts",
+    "./**/*.tsx",
+    "./**/*.cts",
+    "./**/*.js",
+    "./**/*.jsx"
+  ],
+  "exclude": [
+    "../script/**/*",
+    "../node_modules/**/*",
+    "../electron/__tests__/**/*",
+    "../electron/dao/**/*",
+    "../electron/**/*.test.ts"
+  ]
+}

@@ -1,6 +1,6 @@
 import React, { memo, useState } from 'react';
 import { Heart, MoreVertical, Check } from 'lucide-react';
-import { LocalImageData, AppendButtonsProps } from '../types';
+import { LocalImageData, AppendButtonsProps } from '../types/index.ts';
 import { useLocale } from '../contexts/LanguageContext';
 
 interface ImageItemProps {
