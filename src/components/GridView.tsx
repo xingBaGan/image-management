@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import Masonry from 'react-masonry-css';
-import { AppendButtonsProps, LocalImageData, VideoData, isVideoMedia } from '../types';
+import { AppendButtonsProps, LocalImageData, VideoData, isVideoMedia } from '../types/index.ts';
 import { ImageGridBaseProps, handleContextMenu, breakpointColumns } from './ImageGridBase';
 import ImageItem from './ImageItem';
 import VideoItem from './VideoItem';

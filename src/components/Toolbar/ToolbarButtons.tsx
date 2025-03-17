@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { FileJson, Settings as SettingsIcon, FilterIcon, Keyboard } from 'lucide-react';
 import { useLocale } from '../../contexts/LanguageContext';
-import { FilterOptions } from '../../types';
+import { FilterOptions } from '../../types/index.ts';
 
 interface ToolbarButtonsProps {
   onOpenConfig: () => Promise<void>;

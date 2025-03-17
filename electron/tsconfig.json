@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES2020",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "strict": true,
@@ -8,7 +9,19 @@
     "rootDir": "..",
     "allowJs": true,
     "skipLibCheck": true,
-    "module": "ESNext"
   },
-  "include": ["./**/*"]
-} 
+  "include": [
+    "./**/*.ts",
+    "./**/*.tsx",
+    "./**/*.cts",
+    "./**/*.js",
+    "./**/*.jsx"
+  ],
+  "exclude": [
+    "../script/**/*",
+    "../node_modules/**/*",
+    "../electron/__tests__/**/*",
+    "../electron/dao/**/*",
+    "../electron/**/*.test.ts"
+  ]
+}

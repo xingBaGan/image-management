@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { LocalImageData } from '../types';
+import { LocalImageData } from '../types/index.ts';
 
 interface UseKeyboardShortcutsProps {
   selectedImages: Set<string>;

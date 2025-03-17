@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SortAsc, SortDesc } from 'lucide-react';
-import { SortType } from '../../types';
+import { SortType } from '../../types/index.ts';
 import { useLocale } from '../../contexts/LanguageContext';
 
 interface SortDropdownProps {

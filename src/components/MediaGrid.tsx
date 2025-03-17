@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { handleDrop as handleDropUtil } from '../utils';
 import DragOverlay from './DragOverlay';
 import MediaViewer from './MediaViewer';
-import { ImportStatus, LocalImageData } from '../types';
+import { ImportStatus, LocalImageData } from '../types/index.ts';
 import { ImageGridBaseProps } from './ImageGridBase';
 import GridView from './GridView';
 import ListView from './ListView';

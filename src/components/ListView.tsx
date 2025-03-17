@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback, memo } from 'react';
 import { FileText, Calendar, Heart } from 'lucide-react';
 import { FixedSizeList as List, areEqual } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import { LocalImageData, VideoData, isVideoMedia } from '../types';
+import { LocalImageData, VideoData, isVideoMedia } from '../types/index.ts';
 import { ImageGridBaseProps, handleContextMenu } from './ImageGridBase';
 import ImageItem from './ImageItem';
 import VideoItem from './VideoItem';

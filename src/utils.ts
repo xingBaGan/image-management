@@ -85,7 +85,7 @@ export const processMedia = async (
   files: ImportFile[], 
   existingImages: LocalImageData[], 
   categories: Category[],
-  setImportState: (importState: ImportStatus) => void,
+  setImportState?: (importState: ImportStatus) => void,
   currentSelectedCategory?: Category,
   shouldSaveToLocal: boolean = true,
 ): Promise<LocalImageData[]> => {
@@ -109,7 +109,7 @@ export const processMedia = async (
     const isImage = type === 'image';
     let tags: string[] = [];
     if (autoTaggingEnabled && isImage) {
-      setImportState(ImportStatus.Tagging);
+      setImportState?.(ImportStatus.Tagging);
       tags = await window.electron.tagImage(file.path, defaultModel);
       // 按照字母顺序排序
       tags = tags.map(tag => tag.trim()).sort((a, b) => a.localeCompare(b));
@@ -129,7 +129,7 @@ export const processMedia = async (
     const [thumbnail, width, height] = thumbnailItem || [undefined, undefined, undefined];
     const extension = (file as any).extension || file.name.split('.').pop() || file.type.split('/').pop() || 'jpg';
     let colors: string[] = [];
-    setImportState(ImportStatus.Importing);
+    setImportState?.(ImportStatus.Importing);
     if (autoColorEnabled && isImage) {
       colors = await getMainColor(file);
     }
@@ -157,7 +157,7 @@ export const processMedia = async (
   }));
 
   const localImageDataList: LocalImageData[] = [...(existingImages || []), ...updatedImages];
-  setImportState(ImportStatus.Imported);
+  setImportState?.(ImportStatus.Imported);
   if (shouldSaveToLocal) {
     await window.electron.saveImagesToJson(localImageDataList, categories, currentSelectedCategory);
   }

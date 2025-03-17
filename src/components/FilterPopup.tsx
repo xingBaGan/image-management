@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, Image, FileJson, Star, Palette } from 'lucide-react';
-import { Filter, FilterOptions } from '../types';
+import { Filter, FilterOptions } from '../types/index.ts';
 import { useLocale } from '../contexts/LanguageContext';
 
 interface FilterPopupProps {

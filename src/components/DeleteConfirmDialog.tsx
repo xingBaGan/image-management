@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocale } from '../contexts/LanguageContext';
-import { Category } from '../types';
+import { Category } from '../types/index.ts';
 interface DeleteConfirmDialogProps {
   onCancel: () => void;
   onConfirm: () => void;

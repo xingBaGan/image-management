@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { Play, Check } from 'lucide-react';
-import type { LocalImageData } from '../types';
+import type { LocalImageData } from '../types/index.ts';
 import throttle from 'lodash/throttle';
 import { useLocale } from '../contexts/LanguageContext';
 

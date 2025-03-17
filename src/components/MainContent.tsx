@@ -12,7 +12,7 @@ import {
   SortDirection,
   FilterType,
   AppendButtonsProps
-} from '../types';
+} from '../types/index.ts';
 
 interface MainContentProps {
   viewMode: ViewMode;
@@ -103,7 +103,7 @@ export const MainContent: React.FC<MainContentProps> = ({
 }) => {
   // 获取当前选中的图片
   const selectedImage = React.useMemo(() => 
-    images.find(img => selectedImages.has(img.id)) || null
+    images?.find(img => selectedImages.has(img.id)) || null
   , [images, selectedImages]);
 
   return (
@@ -153,7 +153,7 @@ export const MainContent: React.FC<MainContentProps> = ({
         <div className="fixed right-0 bottom-0 top-16">
           {!isSidebarOpen && (
             <ImageInfoSidebar
-              image={selectedImage}
+              image={selectedImage as LocalImageData}
               onTagsUpdate={updateTagsByMediaId}
               onRateChange={onRateChange}
               totalImages={images.length}

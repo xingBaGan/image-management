@@ -33,3 +33,11 @@ models/
 r2-worker/
 
 RTC/
+electron/**/*.cjs
+electron/**/*.js
+*.mdc
+coverage/
+electron/**/*.js
+src/types/**/*
+jest.config.cjs
+jest.config.js
