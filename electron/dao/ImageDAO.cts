@@ -56,4 +56,5 @@ export interface IPCImageService {
 }
 export interface ImageDAO extends IPCImageService {
   getImagesAndCategories(): Promise<{ images: LocalImageData[], categories: Category[] }>;
+  saveImagesAndCategories(images: LocalImageData[], categories: Category[]): Promise<boolean>;
 }

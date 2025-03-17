@@ -46,6 +46,7 @@ export interface BaseMediaData extends MediaInfo {
   categories?: string[];
   colors: (string | ColorInfo)[];
   isBindInFolder?: boolean | Category;
+  isDirty?: boolean;
 }
 
 export interface ImageData extends BaseMediaData {
@@ -273,7 +274,7 @@ export interface ElectronAPI {
   readDirectory: (path: string) => Promise<string[]>;
   readFileMetadata: (path: string) => Promise<FileMetadata>;
   showOpenDialog: () => Promise<any[]>;
-  saveImagesToJson: (images: LocalImageData[], categories: Category[], currentSelectedCategory?: Category) => Promise<void>;
+  saveImagesToJson: (images: LocalImageData[], categories: Category[]) => Promise<void>;
   loadImagesFromJson: () => Promise<{ images: LocalImageData[]; categories: Category[] }>;
   openImageJson: () => Promise<OpenImageJsonResult>;
   saveCategories: (categories: Category[]) => Promise<void>;

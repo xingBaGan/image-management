@@ -42,8 +42,8 @@ class AtujiiClient {
       options,
       eventId
     });
-    this.ipcRenderer.on(eventId, (event, ids: string[]) => {
-      callback(getImagesByIds(ids)?.[0]);
+    this.ipcRenderer.on(eventId, async (event, ids: string[]) => {
+      callback((await getImagesByIds(ids))?.[0]);
     });
   }
 
@@ -53,8 +53,8 @@ class AtujiiClient {
       options,
       eventId
     });
-    this.ipcRenderer.on(eventId, (event, ids: string[]) => {
-      callback(getImagesByIds(ids));
+    this.ipcRenderer.on(eventId, async (event, ids: string[]) => {
+      callback(await getImagesByIds(ids));
     });
   }
 }

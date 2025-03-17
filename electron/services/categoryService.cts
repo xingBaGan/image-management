@@ -1,6 +1,5 @@
 import { Category, LocalImageData } from '../dao/type.cjs';
 import { DAOFactory } from '../dao/DAOFactory.cjs';
-
 const categoryDAO = DAOFactory.getCategoryDAO();
 
 export const addCategory = async (
@@ -25,7 +24,7 @@ export const deleteCategory = async (
   categories: Category[]
 ): Promise<{
   updatedCategories: Category[];
-  updatedImages: LocalImageData[];
+  updatedImages: LocalImageData[]
 }> => {
   return await categoryDAO.deleteCategory(categoryId, images, categories);
 };

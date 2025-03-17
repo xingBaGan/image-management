@@ -10,6 +10,8 @@ import {
   processDirectoryFiles 
 } from './mediaService.cjs';
 import { LocalImageData } from '../dao/type.cjs';
+import { DAOFactory } from '../dao/DAOFactory.cjs';
+import { isReadFromDB } from '../utils/index.cjs';
 interface ImageData {
   images: any[];
   categories: any[];
@@ -69,24 +71,9 @@ const saveImageToLocal = async (imageData: Uint8Array, fileName: string, ext: st
 };
 
 const saveImagesAndCategories = async (images: LocalImageData[], categories: Category[]): Promise<boolean> => {
-  const jsonPath = getJsonFilePath();
-  const tempPath = path.join(app.getPath('userData'), 'images.json.temp');
-  // 先写入临时文件
-  const jsonData = JSON.stringify({ images, categories }, null, 2);
-  await fsPromises.writeFile(tempPath, jsonData, 'utf-8');
-
-  // 验证临时文件的完整性
-  try {
-    const tempContent = await fsPromises.readFile(tempPath, 'utf-8');
-    JSON.parse(tempContent); // 验证 JSON 格式是否正确
-  } catch (error) {
-    throw new Error('临时文件写入验证失败');
-  }
-
-  // 如果验证成功，替换原文件
-  await fsPromises.rename(tempPath, jsonPath);
-
-  return true;
+    const imageDAO = DAOFactory.getImageDAO();
+    await imageDAO.saveImagesAndCategories(images, categories);
+    return true;
 }
 
 const readImagesFromFolder = async (folderPath: string)=>{
@@ -130,8 +117,14 @@ const saveCategories = async (categories: Category[]): Promise<{
   }
 }
 
-function loadImagesData(): ImageData {
+async function loadImagesData(loadFromDB: boolean = false): Promise<ImageData> {
   try {
+    if (loadFromDB) {
+      const imageDAO = DAOFactory.getImageDAO();
+      const { images, categories } = await imageDAO.getImagesAndCategories();
+      return { images, categories };
+    }
+
     const imagesJsonPath = getJsonFilePath();
 
     if (!fs.existsSync(imagesJsonPath)) {
@@ -162,13 +155,13 @@ function loadImagesData(): ImageData {
   }
 }
 
-function getImageById(id: string): any | undefined {
-  const data = loadImagesData();
+async function getImageById(id: string): Promise<LocalImageData | undefined> {
+  const data = await loadImagesData(isReadFromDB());
   return data.images.find(img => img.id === id);
 }
 
-function getImagesByIds(ids: string[]): any[] {
-  const data = loadImagesData();
+async function getImagesByIds(ids: string[]): Promise<LocalImageData[]> {
+  const data = await loadImagesData(isReadFromDB());
   return data.images.filter(img => ids.includes(img.id));
 }
 

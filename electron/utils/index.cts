@@ -22,8 +22,13 @@ function getReadableFilePath(filePath: string): string {
   return decodeURIComponent(filePath.replace('local-image://', '')).replace(/\\/g, '/').replace(/\//g, '\\');
 }
 
+function isReadFromDB(): boolean {
+  return true;
+}
+
 export {
     generateHashId,
     notifyAllWindows,
-    getReadableFilePath
+    getReadableFilePath,
+    isReadFromDB
 } 

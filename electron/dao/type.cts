@@ -1,6 +1,6 @@
 export interface Image {
   _id?: string;          // PouchDB 主键
-  _rev?: string;         // PouchDB 版本号
+  rev?: string;         // PouchDB 版本号
   id: string;            // 业务ID
   path: string;
   name: string;
@@ -18,11 +18,13 @@ export interface Image {
   duration?: number;
   thumbnail?: string;
   isBindInFolder: boolean;
+  rating: number;
+  colors: string[];
 }
 
 export interface Category {
   _id?: string;          // PouchDB 主键
-  _rev?: string;         // PouchDB 版本号
+  rev?: string;         // PouchDB 版本号
   id: string;            // 业务ID
   name: string;
   images: string[];
@@ -69,8 +71,9 @@ export interface BaseMediaData extends MediaInfo {
   favorite?: boolean;
   tags: string[];
   categories?: string[];
-  colors: (string | ColorInfo)[];
-  isBindInFolder?: boolean | Category;
+  colors: ColorInfo[];
+  isBindInFolder?: boolean;
+  isDirty?: boolean;
 }
 
 export interface ImageData extends BaseMediaData {

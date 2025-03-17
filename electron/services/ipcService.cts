@@ -1,6 +1,6 @@
 import { ipcMain, dialog, shell } from 'electron';
 import { promises as fsPromises } from 'fs';
-import { generateHashId } from '../utils/index.cjs';
+import { generateHashId, isReadFromDB } from '../utils/index.cjs';
 import { getComfyURL } from './settingService.cjs';
 import { 
   saveImageToLocal, 
@@ -148,14 +148,14 @@ const init = (): void => {
   // =============== 数据管理相关 ===============
   ipcMain.handle('load-images-from-json', async () => {
     try {
-      return await loadImagesData();
+      return await loadImagesData(isReadFromDB());
     } catch (error) {
       logger.error('加载图片数据失败:', { error } as LogMeta);
       throw error;
     }
   });
 
-  ipcMain.handle('save-images-to-json', async (event, images: any[], categories: any[], currentSelectedCategory: string) => {
+  ipcMain.handle('save-images-to-json', async (event, images: any[], categories: any[]) => {
     try {
       return await saveImagesAndCategories(images, categories);
     } catch (error) {

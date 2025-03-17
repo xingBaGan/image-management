@@ -1,7 +1,7 @@
 import { Category, LocalImageData, FilterType, FilterOptions, SortType, SortDirection } from '../dao/type.cjs';
-import FileSystemImageDAO from '../dao/impl/FileSystemImageDAO.cjs';
+import { DAOFactory } from '../dao/DAOFactory.cjs';
 
-const imageDAO = new FileSystemImageDAO();
+const imageDAO = DAOFactory.getImageDAO();
 
 export const toggleFavorite = async (
   id: string,

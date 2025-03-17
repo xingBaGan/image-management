@@ -41,3 +41,5 @@ electron/**/*.js
 src/types/**/*
 jest.config.cjs
 jest.config.js
+images-db
+images.json

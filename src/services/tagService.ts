@@ -66,7 +66,8 @@ export async function addTagsToImages(
           // 合并现有标签和新标签，去重
           image = {
             ...image,
-            tags: [...new Set([...image.tags, ...sortedTags])]
+            tags: [...new Set([...image.tags, ...sortedTags])],
+            isDirty: true
           };
         }
         tagsImages.push(image);

@@ -10,15 +10,16 @@ module.exports = {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
       useESM: true,
       tsconfig: 'tsconfig.json'
-    }]
+    }],
   },
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
   testMatch: [
     '**/src/__tests__/**/*.[t]s?(x)',
     '**/electron/__tests__/**/*.[ct]s?(x)',
+    '**/electron/__tests__/pouchDB/*.test.cjs',
     '!**/comfyui_client/**',
     "!**/dist/**",
     "!**/dist-electron/**"
   ],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node']
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node','cjs']
 }; 
