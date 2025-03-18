@@ -108,7 +108,8 @@ export default class DBImageDAO implements ImageDAO {
         images: cat.images || [],
         count: cat.count || 0,
         folderPath: cat.folderPath,
-        isImportFromFolder: cat.isImportFromFolder
+        isImportFromFolder: cat.isImportFromFolder,
+        order: cat.order
       }));
 
       return { images, categories };
@@ -400,7 +401,6 @@ export default class DBImageDAO implements ImageDAO {
   async saveImagesAndCategories(images: LocalImageData[], categories: Category[]): Promise<boolean> {
     // 使用 Promise.all 来并行处理所有图片更新
     await Promise.all(images.map(async (image) => {
-      console.log('saveImagesAndCategories',image);
       try {
         if (image.isDirty) {
           delete image.isDirty;

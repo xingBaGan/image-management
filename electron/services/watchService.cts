@@ -59,7 +59,7 @@ class WatchService {
       ...it,
       categories: [...new Set([...it?.categories, category?.id])]
     }));
-    if (category) {
+    if (category.id) {
       category.images = [...new Set([...new Set(category?.images), ...newImages.map(it => it.id)])];
       category.count = category.images.length;
       saveImagesAndCategories(

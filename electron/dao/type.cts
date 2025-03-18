@@ -31,6 +31,7 @@ export interface Category {
   count: number;
   folderPath?: string;
   isImportFromFolder?: boolean;
+  order?: number;
 }
 
 export interface QueryOptions {

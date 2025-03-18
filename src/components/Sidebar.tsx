@@ -97,10 +97,13 @@ const Sidebar: React.FC<SidebarProps> = ({
       return;
     }
 
-    const reorderedCategories = Array.from(categories);
+    let reorderedCategories = Array.from(categories);
     const [removed] = reorderedCategories.splice(source.index, 1);
     reorderedCategories.splice(destination.index, 0, removed);
-
+    reorderedCategories = reorderedCategories.map((category, index) => ({
+      ...category,
+      order: index
+    }));
     onUpdateCategories(reorderedCategories);
   };
 

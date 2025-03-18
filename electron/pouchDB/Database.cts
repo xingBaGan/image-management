@@ -43,6 +43,7 @@ export interface Image {
     count: number;
     folderPath?: string;
     isImportFromFolder?: boolean;
+    order?: number;
   }
 
 export class ImageDatabase {

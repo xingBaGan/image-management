@@ -12,7 +12,7 @@
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
-    "build": "cross-env NODE_ENV=development tsc -p electron/tsconfig.json && vite build",
+    "build": "cross-env NODE_ENV=development tsc -p electron/tsconfig.json && node scripts/copy-electron.cjs",
     "lint": "eslint .",
     "electron:dev": "cross-env NODE_ENV=development tsc -p electron/tsconfig.json && node scripts/copy-electron.cjs && concurrently \"vite\" \"electron .\"",
     "electron:build": "npm run build:comfyui && tsc -p electron/tsconfig.json && vite build && node -e \"require('fs').cpSync('electron', 'dist-electron', {recursive: true})\" && electron-builder",

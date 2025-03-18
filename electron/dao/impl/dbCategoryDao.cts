@@ -45,7 +45,8 @@ export default class DBCategoryDAO implements CategoryDAO {
         images: cat.images || [],
         count: cat.count || 0,
         folderPath: cat.folderPath,
-        isImportFromFolder: cat.isImportFromFolder
+        isImportFromFolder: cat.isImportFromFolder,
+        order: cat.order
       }));
 
       return { images, categories };
@@ -287,6 +288,23 @@ export default class DBCategoryDAO implements CategoryDAO {
       };
     } catch (error) {
       console.error('Error in import-folder-from-path:', error);
+      throw error;
+    }
+  }
+
+  async saveCategories(categories: Category[]): Promise<boolean> {
+    try {
+      await Promise.all(categories.map(async (category) => {
+        const dbCategory = await this.db.getCategory(category.id);
+        if (dbCategory) {
+          await this.db.updateCategory(category.id, category);
+        } else {
+          await this.db.createCategory(category);
+        }
+      }));
+      return true;
+    } catch (error) {
+      console.error('Error in save-categories:', error);
       throw error;
     }
   }

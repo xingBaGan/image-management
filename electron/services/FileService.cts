@@ -105,16 +105,9 @@ const saveCategories = async (categories: Category[]): Promise<{
   success: boolean;
   error?: string;
 }> => {
-  try {
-    const filePath = getJsonFilePath();
-    const existingData = JSON.parse(await fsPromises.readFile(filePath, 'utf8'));
-    existingData.categories = categories;
-    await fsPromises.writeFile(filePath, JSON.stringify(existingData, null, 2));
-    return { success: true };
-  } catch (error) {
-    logger.error('保存分类数据失败:', { error } as LogMeta);
-    throw error;
-  }
+  const categoryDAO = DAOFactory.getCategoryDAO();
+  const success = await categoryDAO.saveCategories(categories);
+  return { success };
 }
 
 async function loadImagesData(loadFromDB: boolean = false): Promise<ImageData> {
@@ -122,7 +115,8 @@ async function loadImagesData(loadFromDB: boolean = false): Promise<ImageData> {
     if (loadFromDB) {
       const imageDAO = DAOFactory.getImageDAO();
       const { images, categories } = await imageDAO.getImagesAndCategories();
-      return { images, categories };
+      const sortedCategories = categories.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      return { images, categories: sortedCategories };
     }
 
     const imagesJsonPath = getJsonFilePath();
