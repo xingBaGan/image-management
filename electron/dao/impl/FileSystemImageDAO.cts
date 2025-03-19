@@ -3,6 +3,7 @@ import {
   loadImagesData,
   saveImagesAndCategories,
   deletePhysicalFile,
+  getJsonFilePath,
 } from '../../services/FileService.cjs';
 import {
   LocalImageData,
@@ -14,7 +15,6 @@ import {
   ColorInfo,
 } from '../type.cjs';
 import { promises as fsPromises } from 'fs';
-import { getJsonFilePath } from '../../services/FileService.cjs';
 import { app } from 'electron';
 import * as path from 'path';
 const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
@@ -64,14 +64,12 @@ export default class FileSystemImageDAO implements ImageDAO {
     images: LocalImageData[],
     categories: Category[]
   ): Promise<LocalImageData[]> {
-    const updatedImages = images.map((img) =>
-      img.id === id ? { ...img, favorite: !img.favorite } : img
-    );
-
-    await saveImagesAndCategories(updatedImages, categories);
+    const updatedImages = images.map((img) => img.id === id ? { ...img, favorite: !img.favorite } : img);
+    if (updatedImages.some(img => img.id === id && img.favorite !== images.find(img => img.id === id)?.favorite)) {
+      await saveImagesAndCategories(updatedImages, categories);
+    }
     return updatedImages;
   }
-
 
   async addImages(
     newImages: LocalImageData[],
@@ -82,7 +80,7 @@ export default class FileSystemImageDAO implements ImageDAO {
     const newImagesData = newImages.filter(img =>
       !currentImages.some(existingImg => existingImg.id === img.id)
     );
-
+    if (!newImagesData.length) return currentImages;
     const updatedImages = [...currentImages, ...newImagesData];
     await saveImagesAndCategories(
       updatedImages,
@@ -160,7 +158,11 @@ export default class FileSystemImageDAO implements ImageDAO {
     const updatedImages = images.map(img =>
       img.id === mediaId ? { ...img, tags: newTags } : img
     );
-    await saveImagesAndCategories(updatedImages, categories);
+    const ids = updatedImages.map(img => img.id);
+    console.log('updatedImages', updatedImages, mediaId, ids);
+    if (ids.includes(mediaId)) {
+      await saveImagesAndCategories(updatedImages, categories);
+    }
     return updatedImages;
   }
 
@@ -176,7 +178,9 @@ export default class FileSystemImageDAO implements ImageDAO {
     const updatedImages = images.map(img =>
       img.id === mediaId ? { ...img, rating: rate } : img
     );
-    await saveImagesAndCategories(updatedImages, categories);
+    if (updatedImages.some(img => img.id === mediaId && img.rating !== images.find(img => img.id === mediaId)?.rating)) {
+      await saveImagesAndCategories(updatedImages, categories);
+    }
 
     return {
       updatedImages,

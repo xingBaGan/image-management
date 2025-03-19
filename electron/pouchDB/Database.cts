@@ -126,7 +126,7 @@ export class ImageDatabase {
                 rev: existing.rev,
                 updatedAt: Date.now()
             };
-            console.log('-------updateImage-------',updated);
+            // console.log('-------updateImage-------',updated);
             const result = await (this.db as any).rel.save('image', updated);
             return result;
         } catch (error) {

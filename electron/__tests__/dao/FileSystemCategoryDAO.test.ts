@@ -4,7 +4,12 @@ import { Category, LocalImageData } from '../../dao/type.cjs';
 type CategoryType = Category;
 type LocalImageDataType = LocalImageData;
 
-jest.mock('../../services/FileService.cjs');
+jest.mock('../../services/FileService.cjs', () => ({
+  loadImagesData: jest.fn(),
+  saveImagesAndCategories: jest.fn(),
+  saveCategories: jest.fn(),
+  readImagesFromFolder: jest.fn(),
+}));
 
 describe('FileSystemCategoryDAO', () => {
   let dao: InstanceType<typeof FileSystemCategoryDAO>;

@@ -21,9 +21,9 @@
     "python:download": "python dataset\\download.py",
     "build:comfyui": "cd comfyui_client && npm install && npm run build && cd ..",
     "generate-icons": "electron-icon-builder --input=./build/icon.png --output=build --flatten",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test": "yarn build && jest",
+    "test:watch": "yarn build && jest --watch",
+    "test:coverage": "yarn build && jest --coverage",
     "view-db": "node scripts/view-db.cjs"
   },
   "dependencies": {

@@ -72,7 +72,11 @@ const saveImageToLocal = async (imageData: Uint8Array, fileName: string, ext: st
 
 const saveImagesAndCategories = async (images: LocalImageData[], categories: Category[]): Promise<boolean> => {
     const imageDAO = DAOFactory.getImageDAO();
-    await imageDAO.saveImagesAndCategories(images, categories);
+    const indexedCategories = categories.map((it, index) => ({
+      ...it,
+      order: index
+    }));
+    await imageDAO.saveImagesAndCategories(images, indexedCategories);
     return true;
 }
 
@@ -106,7 +110,11 @@ const saveCategories = async (categories: Category[]): Promise<{
   error?: string;
 }> => {
   const categoryDAO = DAOFactory.getCategoryDAO();
-  const success = await categoryDAO.saveCategories(categories);
+  const indexedCategories = categories.map((it, index) => ({
+    ...it,
+    order: index
+  }));
+  const success = await categoryDAO.saveCategories(indexedCategories);
   return { success };
 }
 

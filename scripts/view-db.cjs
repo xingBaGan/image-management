@@ -7,9 +7,9 @@ const path = require('path');
 //   console.log(info);
 // });
 
-db.syncDatabaseFromLocalJson('C:\\Users\\jzj\\AppData\\Roaming\\atujii\\images.json').then(result => {
-  console.log(result);
-});
+// db.syncDatabaseFromLocalJson('C:\\Users\\jzj\\AppData\\Roaming\\atujii\\images.json').then(result => {
+//   console.log(result);
+// });
 
 
 
@@ -17,8 +17,8 @@ db.syncDatabaseFromLocalJson('C:\\Users\\jzj\\AppData\\Roaming\\atujii\\images.j
 //   console.log(info);
 // });
 
-// const jsonPath = path.join(process.cwd(), 'images.json');
-// db.exportDatabaseToLocalJson(jsonPath).then(result => {
-//   console.log(result);
-// });
+const jsonPath = path.join(process.cwd(), 'images.json');
+db.exportDatabaseToLocalJson(jsonPath).then(result => {
+  console.log(result);
+});
 
