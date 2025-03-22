@@ -15,26 +15,26 @@ const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
 export const isSimilarColor = (color1: string, color2: string, precision: number = 0.8): boolean => {
   // 确保精度在有效范围内
   precision = Math.max(0.1, Math.min(1, precision));
-  
+
   // 转换为RGB
   const rgb1 = hexToRgb(color1);
   const rgb2 = hexToRgb(color2);
-  
+
   if (!rgb1 || !rgb2) return false;
-  
+
   // 计算欧几里得距离
   const distance = Math.sqrt(
     Math.pow(rgb1.r - rgb2.r, 2) +
     Math.pow(rgb1.g - rgb2.g, 2) +
     Math.pow(rgb1.b - rgb2.b, 2)
   );
-  
+
   // 最大可能距离是 sqrt(255^2 + 255^2 + 255^2) ≈ 441.67
   const maxDistance = Math.sqrt(3 * Math.pow(255, 2));
-  
+
   // 计算相似度（0到1之间）
   const similarity = 1 - (distance / maxDistance);
-  
+
   // 根据精度判断是否相似
   return similarity >= precision;
 };
@@ -185,13 +185,13 @@ export default class DBImageDAO implements ImageDAO {
       // 更新分类中的图片引用
       const updatedCategories = categories.map(category => {
         const newImages = category.images?.filter(id => !selectedImages.has(id)) || [];
-        
+
         // 更新数据库中的分类
-        this.db.updateCategory(category.id, { 
+        this.db.updateCategory(category.id, {
           images: newImages,
           count: newImages.length
         });
-        
+
         return {
           ...category,
           images: newImages,
@@ -229,13 +229,13 @@ export default class DBImageDAO implements ImageDAO {
       // 更新分类中的图片引用
       const updatedCategories = categories.map(category => {
         const newImages = category.images?.filter(id => !selectedImages.has(id)) || [];
-        
+
         // 更新数据库中的分类
-        this.db.updateCategory(category.id, { 
+        this.db.updateCategory(category.id, {
           images: newImages,
           count: newImages.length
         });
-        
+
         return {
           ...category,
           images: newImages,
@@ -264,7 +264,7 @@ export default class DBImageDAO implements ImageDAO {
   ): Promise<LocalImageData[]> {
     try {
       await this.db.updateImage(mediaId, { tags: newTags });
-      
+
       return images.map(img =>
         img.id === mediaId ? { ...img, tags: newTags } : img
       );
@@ -285,11 +285,11 @@ export default class DBImageDAO implements ImageDAO {
   }> {
     try {
       await this.db.updateImage(mediaId, { rating: rate });
-      
+
       const updatedImages = images.map(img =>
         img.id === mediaId ? { ...img, rating: rate } : img
       );
-      
+
       return {
         updatedImages,
         updatedImage: updatedImages.find(img => img.id === mediaId) || null
@@ -353,8 +353,10 @@ export default class DBImageDAO implements ImageDAO {
         if (image.isDirty) {
           delete image.isDirty;
           await this.db.updateImage(image.id, convertToPouchDBImage(image));
-        } else {
-          delete image.isDirty;
+          return;
+        }
+        const isExist = await this.db.getImage(image.id);
+        if (!isExist) {
           await this.db.createImage(convertToPouchDBImage(image));
         }
       } catch (error) {

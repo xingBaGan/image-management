@@ -96,6 +96,7 @@ export enum ImportStatus {
   Tagging = 'tagging',
   Imported = 'imported',
   Failed = 'failed',
+  Loading = 'loading',
 }
 
 // =============== 插件系统相关类型 ===============

@@ -7,6 +7,7 @@ import logging
 set_verbosity_info()
 logging.basicConfig(level=logging.INFO)
 
+size = 20000
 def load_and_process_dataset():
     try:
         # 使用 streaming=True 来启用流式加载
@@ -17,12 +18,12 @@ def load_and_process_dataset():
         )
         
         # 创建保存目录
-        save_dir = r"K:\dataset\animesfw"
+        save_dir = r"K:\dataset2\animesfw"
         os.makedirs(save_dir, exist_ok=True)
         
         # 使用迭代器处理数据
         for idx, item in enumerate(ds):
-            if idx > 1000:
+            if idx > size:
                 break
             try:
                 # 获取图片数据

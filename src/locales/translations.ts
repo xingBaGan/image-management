@@ -123,6 +123,7 @@ export const translations = {
     // Import Status
     importing: 'Importing...',
     tagging: 'Tagging...',
+    loading: 'Loading...',
     releaseToUpload: 'Release to upload',
     rateImage: 'Rate image',
     rateVideo: 'Rate video',
@@ -308,6 +309,7 @@ export const translations = {
     // 导入状态
     importing: '正在导入...',
     tagging: '正在标记...',
+    loading: '加载中...',
     releaseToUpload: '松开以上传',
     rateImage: '给图片评分',
     rateVideo: '给视频评分',

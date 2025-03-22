@@ -367,12 +367,13 @@ export class ImageDatabase {
             selector['data.extension'] = { $in: multiFilter.formats.map((format: string) => format.toLowerCase()) };
           }
           
+          const allImages = await this.getAllImages();
 
         //   // Perform the query
           const result = await this.db.find({
             fields: fields,
             selector,
-            limit: 10000
+            limit: allImages.length
           });
 
           const images = result.docs.map((doc: any) => {

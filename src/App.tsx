@@ -453,6 +453,7 @@ function App() {
   }, []);
 
   useEffect(() => {
+    setImportState(ImportStatus.Loading);
     filterAndSortImages(mediaList, {
       filter,
       selectedCategory,
@@ -464,6 +465,8 @@ function App() {
       sortDirection
     }).then(images => {
       setFilteredAndSortedImages(images);
+    }).finally(() => {
+      setImportState(ImportStatus.Imported);
     });
   }, [
     mediaList,
