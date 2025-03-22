@@ -1,5 +1,5 @@
 import { ImageDAO } from '../ImageDAO.cjs';
-import { LocalImageData, Category, FilterType, FilterOptions, SortType, SortDirection, ColorInfo, VideoData } from '../type.cjs';
+import { LocalImageData, Category, FilterType, FilterOptions, SortType, SortDirection } from '../type.cjs';
 import { ImageDatabase, Image } from '../../pouchDB/Database.cjs';
 
 // 颜色相似度比较函数
@@ -304,7 +304,7 @@ export default class DBImageDAO implements ImageDAO {
     return await this.getImagesAndCategories();
   }
 
-  filterAndSortImages(
+  async filterAndSortImages(
     mediaList: LocalImageData[],
     {
       filter,
@@ -325,76 +325,24 @@ export default class DBImageDAO implements ImageDAO {
       sortBy: SortType;
       sortDirection: SortDirection;
     }
-  ): LocalImageData[] {
-    let filtered = mediaList.filter(img => img.type !== 'video') as LocalImageData[];
-
-    if (searchTags.length > 0) {
-      filtered = filtered.filter(img =>
-        searchTags.every(tag =>
-          img.tags?.some((imgTag: string) =>
-            imgTag.toLowerCase().includes(tag.toLowerCase())
-          )
-        )
-      );
-    }
-
-    if (selectedCategory === FilterType.Videos) {
-      filtered = mediaList.filter(img => img.type === 'video') as LocalImageData[];
-    } else if (filter === FilterType.Favorites) {
-      filtered = filtered.filter(img => img.favorite);
-    } else if (filter === FilterType.Recent) {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      filtered = mediaList.filter(img => new Date(img.dateModified) >= sevenDaysAgo);
-    } else if (selectedCategory !== FilterType.Photos) {
-      const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
-      if (selectedCategoryData) {
-        filtered = mediaList.filter(img =>
-          img.categories?.includes(selectedCategory) ||
-          selectedCategoryData.images?.includes(img.id)
-        );
-      }
-    }
-
-    filtered = filtered.filter(img => {
-      if (filterColors.length > 0) {
-        return filterColors.some(filterColor =>
-          (img.colors || []).some((c: string | ColorInfo) => {
-            const imgColor = typeof c === 'string' ? c : c.color;
-            return isSimilarColor(imgColor, filterColor, multiFilter.precision);
-          })
-        );
-      }
-
-      if (multiFilter.ratio.length > 0) {
-        return multiFilter.ratio.some(ratio => img.ratio === ratio);
-      }
-      if (typeof multiFilter.rating === 'number') {
-        return img.rating === multiFilter.rating;
-      }
-      if (multiFilter.formats.length > 0) {
-        const ext = img?.extension?.toLowerCase();
-        return multiFilter.formats.some(format => ext?.endsWith(format.toLowerCase()));
-      }
-      return true;
-    });
-
-    return [...filtered].sort((a, b) => {
-      let comparison = 0;
-
-      switch (sortBy) {
-        case SortType.Name:
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case SortType.Date:
-          comparison = new Date(a.dateModified).getTime() - new Date(b.dateModified).getTime();
-          break;
-        case SortType.Size:
-          comparison = a.size - b.size;
-          break;
-      }
-
-      return sortDirection === 'asc' ? comparison : -comparison;
+  ): Promise<LocalImageData[]> {
+    // console.log(
+    //   '\nfilter', filter,
+    //   '\nselectedCategory', selectedCategory,
+    //   '\nsearchTags', searchTags,
+    //   '\nfilterColors', filterColors,
+    //   '\nmultiFilter', multiFilter,
+    //   '\nsortBy', sortBy,
+    //   '\nsortDirection', sortDirection);
+    return await this.db.filterAndSortImagesFromDB({
+      filter,
+      selectedCategory,
+      categories,
+      searchTags,
+      filterColors,
+      multiFilter,
+      sortBy,
+      sortDirection
     });
   }
 

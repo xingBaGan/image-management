@@ -1,5 +1,6 @@
 import PouchDB from 'pouchdb';
 import PouchDBFind from 'pouchdb-find';
+import { LocalImageData, FilterType, FilterOptions, SortType, SortDirection } from '../dao/type.cjs';
 import RelationalPouch from 'relational-pouch';
 import * as fs from 'fs/promises';
 // Register PouchDB plugins
@@ -126,7 +127,6 @@ export class ImageDatabase {
                 rev: existing.rev,
                 updatedAt: Date.now()
             };
-            // console.log('-------updateImage-------',updated);
             const result = await (this.db as any).rel.save('image', updated);
             return result;
         } catch (error) {
@@ -284,4 +284,119 @@ export class ImageDatabase {
         const jsonData = JSON.stringify({ images, categories }, null, 2);
         await fs.writeFile(jsonPath, jsonData);
     }
+
+    async filterAndSortImagesFromDB({
+        filter,
+        selectedCategory,
+        categories,
+        searchTags,
+        filterColors,
+        multiFilter,
+        sortBy,
+        sortDirection
+      }: {
+        filter: FilterType;
+        selectedCategory: FilterType | string;
+        categories: Category[];
+        searchTags: string[];
+        filterColors: string[];
+        multiFilter: FilterOptions;
+        sortBy: SortType;
+        sortDirection: SortDirection;
+      }): Promise<LocalImageData[]> {
+        try {
+        const fields = [
+            'data.path',
+            'data.name',
+            'data.tags',
+            'data.favorite',
+            'data.categories',
+            'data.colors',
+            'data.ratio',
+            'data.rating',
+            'data.dateModified',
+            'data.extension',
+            'data.type',
+            'data.size',
+            'data.id',
+            'data.width',
+            'data.height',
+            '_id',
+            '_rev'
+        ];
+          // Create an index if not already created
+          await this.db.createIndex({
+            index: {
+              fields: fields,
+            }
+          });
+    
+          // Build the selector for the query
+          const selector: any = {};
+    
+          if (searchTags.length > 0) {
+            selector['data.tags'] = { $all: searchTags };
+          }
+          selector['data.type'] = 'image';
+          if (selectedCategory === FilterType.Videos) {
+            selector['data.type'] = { $eq: 'video' };
+          } else if (filter === FilterType.Favorites) {
+            selector['data.favorite'] = { $eq: true };
+          } else if (filter === FilterType.Recent) {
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            selector['data.dateModified'] = { $gte: sevenDaysAgo.toISOString() };
+          } else if (selectedCategory !== FilterType.Photos) {
+            const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
+            if (selectedCategoryData) {
+              selector['data.categories'] = { $in: [selectedCategory] };
+            }
+          }
+
+          if (filterColors.length > 0) {
+            selector['data.colors'] = { $elemMatch: { $in: filterColors } };
+          }
+    
+          if (multiFilter.ratio.length > 0) {
+            selector['data.ratio'] = { $in: multiFilter.ratio };
+          }
+          if (typeof multiFilter.rating === 'number') {
+            selector['data.rating'] = multiFilter.rating;
+          }
+          if (multiFilter.formats.length > 0) {
+            selector['data.extension'] = { $in: multiFilter.formats.map((format: string) => format.toLowerCase()) };
+          }
+          
+
+        //   // Perform the query
+          const result = await this.db.find({
+            fields: fields,
+            selector,
+            limit: 10000
+          });
+
+          const images = result.docs.map((doc: any) => {
+            const id = doc._id.split('_')[2];
+            return {
+                ...doc.data,
+                id,
+                dateModified: doc.data.dateModified || doc.data.dateCreated
+              } as LocalImageData;
+          });
+          let sortedImages = images;
+          // 内存里排序
+          if (sortBy === SortType.Date) {
+            sortedImages = images.sort((a, b) => new Date(a.dateModified).getTime() - new Date(b.dateModified).getTime());
+          } else if (sortBy === SortType.Name) {
+            sortedImages = images.sort((a, b) => a.name.localeCompare(b.name));
+          } else if (sortBy === SortType.Size) {
+            sortedImages = images.sort((a, b) => a.size - b.size);
+          }
+          return sortDirection === 'asc' ? sortedImages : sortedImages.reverse();
+        } catch (error) {
+          console.error('Error querying images from DB:', error);
+          return [];
+        }
+      }
+    
 } 

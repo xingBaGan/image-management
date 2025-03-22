@@ -192,7 +192,7 @@ export default class FileSystemImageDAO implements ImageDAO {
     return await loadImagesData();
   }
 
-  filterAndSortImages(
+  async filterAndSortImages(
     mediaList: LocalImageData[],
     {
       filter,
@@ -213,7 +213,7 @@ export default class FileSystemImageDAO implements ImageDAO {
       sortBy: SortType;
       sortDirection: SortDirection;
     }
-  ): LocalImageData[] {
+  ): Promise<LocalImageData[]> {
     let filtered = mediaList.filter(img => img.type !== 'video') as LocalImageData[];
 
     if (searchTags.length > 0) {
