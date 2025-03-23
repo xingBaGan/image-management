@@ -61,7 +61,8 @@ const mockImagesContent = {
       "dateModified": "2024-01-02T00:00:00.000Z",
       "tags": ["nature", "sunset"],
       "favorite": false,
-      "categories": []
+      "categories": [],
+      "type": "image"
     },
     {
       "id": "3",
@@ -72,7 +73,8 @@ const mockImagesContent = {
       "dateModified": "2024-01-03T00:00:00.000Z",
       "tags": ["work", "desk"],
       "favorite": false,
-      "categories": []
+      "categories": [],
+      "type": "image"
     },
     {
       "id": "4",
@@ -83,7 +85,8 @@ const mockImagesContent = {
       "dateModified": "2024-01-04T00:00:00.000Z",
       "tags": ["food", "photography"],
       "favorite": true,
-      "categories": []
+      "categories": [],
+      "type": "image"
     }
   ],
   "categories": [

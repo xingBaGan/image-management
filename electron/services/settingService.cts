@@ -24,7 +24,7 @@ const loadSettings = async (): Promise<Settings> => {
         autoTagging: true,
         autoColor: false,
         ComfyUI_URL: 'http://localhost:8188',
-        backgroundUrl: 'https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/%E8%8D%89%E5%8E%9F%E7%89%9B%E5%9B%BE%E7%94%9F%E6%88%90.png',
+        backgroundUrl: 'https://pica.zhimg.com/v2-8fe89aff1426d94bf36f8d4e1c25ed32_1440w.jpg',
         modelName: 'wd-v1-4-moat-tagger-v2'
       };
       console.log('不存在文件, 创建文件');
