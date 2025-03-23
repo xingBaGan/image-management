@@ -60,6 +60,7 @@ jobs:
           npm ci
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          packageManager: pnpm
 
       - name: Build Electron App
         run: npm run electron:build
