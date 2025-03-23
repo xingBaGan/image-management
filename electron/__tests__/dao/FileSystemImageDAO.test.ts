@@ -1,11 +1,22 @@
 import FileSystemImageDAO from '../../dao/impl/FileSystemImageDAO.cjs';
-import { loadImagesData, saveImagesAndCategories, deletePhysicalFile } from '../../services/FileService.cjs';
+import { loadImagesData, saveImagesAndCategories, deletePhysicalFile, getJsonFilePath } from '../../services/FileService.cjs';
 import { LocalImageData, Category, FilterType, FilterOptions, SortType, SortDirection } from '../../dao/type.cjs';
 
-jest.mock('../../services/FileService.cjs');
+jest.mock('../../services/mediaService.cjs', () => ({
+  getVideoDuration: jest.fn(),
+  generateVideoThumbnail: jest.fn(),
+  processDirectoryFiles: jest.fn(),
+}));
 
+jest.mock('../../services/FileService.cjs', () => ({
+  loadImagesData: jest.fn(),
+  saveImagesAndCategories: jest.fn(),
+  saveCategories: jest.fn(),
+  readImagesFromFolder: jest.fn(),
+  deletePhysicalFile: jest.fn(),
+  getJsonFilePath: jest.fn(),
+}));
 
-jest.mock('../../services/FileService.cjs');
 
 describe('FileSystemImageDAO', () => {
   let dao: FileSystemImageDAO;
@@ -37,7 +48,10 @@ describe('FileSystemImageDAO', () => {
         favorite: false,
         rating: 0,
         tags: ['tag1'],
-        colors: ['#FF0000'],
+        colors: [{
+          color: '#FF0000',
+          percentage: 0.5
+        }],
         ratio: '16:9',
         categories: ['cat1'],
         isBindInFolder: true
@@ -54,7 +68,10 @@ describe('FileSystemImageDAO', () => {
         favorite: true,
         rating: 5,
         tags: ['tag2'],
-        colors: ['#00FF00'],
+        colors: [{
+          color: '#00FF00',
+          percentage: 0.5
+        }],
         ratio: '4:3',
         categories: ['cat2'],
         isBindInFolder: false
@@ -88,6 +105,7 @@ describe('FileSystemImageDAO', () => {
     });
     (saveImagesAndCategories as jest.Mock).mockResolvedValue(undefined);
     (deletePhysicalFile as jest.Mock).mockResolvedValue(undefined);
+    (getJsonFilePath as jest.Mock).mockReturnValue('test.json');
   });
 
   afterEach(() => {
@@ -100,6 +118,11 @@ describe('FileSystemImageDAO', () => {
       expect(result).toEqual({ images: mockImages, categories: mockCategories });
       expect(loadImagesData).toHaveBeenCalled();
     });
+
+    it('should handle errors when loading images and categories', async () => {
+      (loadImagesData as jest.Mock).mockRejectedValue(new Error('Failed to load data'));
+      await expect(dao.getImagesAndCategories()).rejects.toThrow('Failed to load data');
+    });
   });
 
   describe('toggleFavorite', () => {
@@ -107,6 +130,12 @@ describe('FileSystemImageDAO', () => {
       const result = await dao.toggleFavorite('1', mockImages, mockCategories);
       expect(result.find(img => img.id === '1')?.favorite).toBe(true);
       expect(saveImagesAndCategories).toHaveBeenCalled();
+    });
+
+    it('should handle invalid image ID gracefully', async () => {
+      const result = await dao.toggleFavorite('invalid-id', mockImages, mockCategories);
+      expect(result).toEqual(mockImages);
+      expect(saveImagesAndCategories).not.toHaveBeenCalled();
     });
   });
 
@@ -135,6 +164,30 @@ describe('FileSystemImageDAO', () => {
       expect(result.find(img => img.id === '3')).toBeTruthy();
       expect(saveImagesAndCategories).toHaveBeenCalled();
     });
+
+    it('should handle adding images with existing IDs', async () => {
+      const duplicateImage: LocalImageData = {
+        id: '1',
+        name: 'duplicate.jpg',
+        path: 'path/to/duplicate.jpg',
+        size: 3000,
+        type: 'image',
+        extension: '.jpg',
+        dateModified: '2024-01-03',
+        dateCreated: '2024-01-03',
+        favorite: false,
+        rating: 0,
+        tags: [],
+        colors: [],
+        ratio: '16:9',
+        categories: [],
+        isBindInFolder: false
+      };
+
+      const result = await dao.addImages([duplicateImage], mockImages, mockCategories);
+      expect(result).toHaveLength(2); // No new image should be added
+      expect(saveImagesAndCategories).not.toHaveBeenCalled();
+    });
   });
 
   describe('bulkDeleteSoft and bulkDeleteHard', () => {
@@ -155,6 +208,20 @@ describe('FileSystemImageDAO', () => {
       expect(deletePhysicalFile).toHaveBeenCalledWith('local-image://path/to/test1.jpg');
       expect(saveImagesAndCategories).toHaveBeenCalled();
     });
+
+    it('should handle empty selection for soft delete', async () => {
+      const selectedImages = new Set<string>();
+      const result = await dao.bulkDeleteSoft(selectedImages, mockImages, mockCategories);
+      expect(result.updatedImages).toHaveLength(2);
+      expect(saveImagesAndCategories).toHaveBeenCalled();
+    });
+
+    it('should handle empty selection for hard delete', async () => {
+      const selectedImages = new Set<string>();
+      const result = await dao.bulkDeleteHard(selectedImages, mockImages, mockCategories);
+      expect(result.updatedImages).toHaveLength(2);
+      expect(saveImagesAndCategories).toHaveBeenCalled();
+    });
   });
 
   describe('updateTags', () => {
@@ -164,6 +231,13 @@ describe('FileSystemImageDAO', () => {
       expect(result.find(img => img.id === '1')?.tags).toEqual(newTags);
       expect(saveImagesAndCategories).toHaveBeenCalled();
     });
+
+    it('should handle updating tags for non-existent image', async () => {
+      const newTags = ['newTag1', 'newTag2'];
+      const result = await dao.updateTags('invalid-id', newTags, mockImages, mockCategories);
+      expect(result).toEqual(mockImages);
+      expect(saveImagesAndCategories).not.toHaveBeenCalled();
+    });
   });
 
   describe('updateRating', () => {
@@ -172,12 +246,18 @@ describe('FileSystemImageDAO', () => {
       expect(result.updatedImages.find(img => img.id === '1')?.rating).toBe(5);
       expect(saveImagesAndCategories).toHaveBeenCalled();
     });
+
+    it('should handle updating rating for non-existent image', async () => {
+      const result = await dao.updateRating('invalid-id', 5, mockImages, mockCategories);
+      expect(result.updatedImages).toEqual(mockImages);
+      expect(saveImagesAndCategories).not.toHaveBeenCalled();
+    });
   });
 
   describe('filterAndSortImages', () => {
     describe('filtering', () => {
-      it('should filter by category', () => {
-        const result = dao.filterAndSortImages(mockImages, {
+      it('should filter by category', async () => {
+        const result = await dao.filterAndSortImages(mockImages, {
           ...filterOptions,
           selectedCategory: 'cat1'
         });
@@ -185,8 +265,8 @@ describe('FileSystemImageDAO', () => {
         expect(result[0].id).toBe('1');
       });
 
-      it('should filter by favorites', () => {
-        const result = dao.filterAndSortImages(mockImages, {
+      it('should filter by favorites', async () => {
+        const result = await dao.filterAndSortImages(mockImages, {
           ...filterOptions,
           filter: FilterType.Favorites
         });
@@ -194,8 +274,8 @@ describe('FileSystemImageDAO', () => {
         expect(result[0].id).toBe('2');
       });
 
-      it('should filter by search tags', () => {
-        const result = dao.filterAndSortImages(mockImages, {
+      it('should filter by search tags', async () => {
+        const result = await dao.filterAndSortImages(mockImages, {
           ...filterOptions,
           searchTags: ['tag1']
         });
@@ -203,8 +283,8 @@ describe('FileSystemImageDAO', () => {
         expect(result[0].id).toBe('1');
       });
 
-      it('should filter by colors', () => {
-        const result = dao.filterAndSortImages(mockImages, {
+      it('should filter by colors', async () => {
+        const result = await dao.filterAndSortImages(mockImages, {
           ...filterOptions,
           filterColors: ['#FF0000']
         });
@@ -214,8 +294,8 @@ describe('FileSystemImageDAO', () => {
     });
 
     describe('sorting', () => {
-      it('should sort by name in ascending order', () => {
-        const result = dao.filterAndSortImages(mockImages, {
+      it('should sort by name in ascending order', async () => {
+        const result = await dao.filterAndSortImages(mockImages, {
           ...filterOptions,
           sortBy: SortType.Name,
           sortDirection: SortDirection.Asc
@@ -225,8 +305,8 @@ describe('FileSystemImageDAO', () => {
         expect(result[1].name).toBe('test2.jpg');
       });
 
-      it('should sort by name in descending order', () => {
-        const result = dao.filterAndSortImages(mockImages, {
+      it('should sort by name in descending order', async () => {
+        const result = await dao.filterAndSortImages(mockImages, {
           ...filterOptions,
           sortBy: SortType.Name,
           sortDirection: SortDirection.Desc
@@ -236,8 +316,8 @@ describe('FileSystemImageDAO', () => {
         expect(result[1].name).toBe('test1.jpg');
       });
 
-      it('should sort by date in ascending order', () => {
-        const result = dao.filterAndSortImages(mockImages, {
+      it('should sort by date in ascending order', async () => {
+        const result = await dao.filterAndSortImages(mockImages, {
           ...filterOptions,
           sortBy: SortType.Date,
           sortDirection: SortDirection.Asc
@@ -247,8 +327,8 @@ describe('FileSystemImageDAO', () => {
         expect(result[1].dateModified).toBe('2024-01-02');
       });
 
-      it('should sort by date in descending order', () => {
-        const result = dao.filterAndSortImages(mockImages, {
+      it('should sort by date in descending order', async () => {
+        const result = await dao.filterAndSortImages(mockImages, {
           ...filterOptions,
           sortBy: SortType.Date,
           sortDirection: SortDirection.Desc
@@ -258,11 +338,16 @@ describe('FileSystemImageDAO', () => {
         expect(result[1].dateModified).toBe('2024-01-01');
       });
     });
+
+    it('should handle empty media list', async () => {
+      const result = await dao.filterAndSortImages([], filterOptions);
+      expect(result).toHaveLength(0);
+    });
   });
 
   describe('isSimilarColor', () => {
-    it('should return true for similar colors', () => {
-      const result = dao.filterAndSortImages(mockImages, {
+    it('should return true for similar colors', async () => {
+      const result = await dao.filterAndSortImages(mockImages, {
         ...filterOptions,
         selectedCategory: FilterType.Photos,
         filterColors: ['#FF0001']
@@ -271,8 +356,8 @@ describe('FileSystemImageDAO', () => {
       expect(result[0].id).toBe('1');
     });
 
-    it('should return false for different colors', () => {
-      const result = dao.filterAndSortImages(mockImages, {
+    it('should return false for different colors', async () => {
+      const result = await dao.filterAndSortImages(mockImages, {
         ...filterOptions,
         selectedCategory: FilterType.Photos,
         filterColors: ['#0000FF']

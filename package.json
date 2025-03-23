@@ -1,7 +1,7 @@
 {
   "name": "atujii",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "ai image management tool",
   "author": {
     "name": "jzj",
@@ -12,18 +12,19 @@
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "cross-env NODE_ENV=development tsc -p electron/tsconfig.json && node scripts/copy-electron.cjs",
     "lint": "eslint .",
     "electron:dev": "cross-env NODE_ENV=development tsc -p electron/tsconfig.json && node scripts/copy-electron.cjs && concurrently \"vite\" \"electron .\"",
-    "electron:build": "npm run build:comfyui && tsc -p electron/tsconfig.json && vite build && node -e \"require('fs').cpSync('electron', 'dist-electron', {recursive: true})\" && electron-builder",
+    "electron:build": "pnpm install  --shamefully-hoist && npm run build:comfyui && tsc -p electron/tsconfig.json && vite build && node -e \"require('fs').cpSync('electron', 'dist-electron', {recursive: true})\" && electron-builder",
     "electron:preview": "concurrently \"vite\" \"electron .\"",
     "script": "cross-env NODE_ENV=development node script/script.cjs",
     "python:download": "python dataset\\download.py",
     "build:comfyui": "cd comfyui_client && npm install && npm run build && cd ..",
     "generate-icons": "electron-icon-builder --input=./build/icon.png --output=build --flatten",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "yarn build && jest",
+    "test:watch": "yarn build && jest --watch",
+    "test:coverage": "yarn build && jest --coverage",
+    "view-db": "node scripts/view-db.cjs"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
@@ -36,10 +37,17 @@
     "@uiw/react-markdown-preview": "^5.1.3",
     "chokidar": "^4.0.3",
     "comfyui-client": "file:comfyui_client",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
     "fluent-ffmpeg": "^2.1.3",
+    "form-data": "^4.0.0",
     "framer-motion": "^12.4.3",
     "i18next": "^24.2.2",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.475.0",
+    "node-fetch": "^2.7.0",
+    "pouchdb": "^9.0.0",
+    "pouchdb-find": "^9.0.0",
     "probe-image-size": "^7.2.3",
     "python-shell": "^5.0.0",
     "queue": "^6.0.2",
@@ -53,14 +61,20 @@
     "react-scan": "^0.1.3",
     "react-virtualized": "^9.22.6",
     "react-virtualized-auto-sizer": "^1.0.25",
-    "react-window": "^1.8.11"
+    "react-window": "^1.8.11",
+    "relational-pouch": "^4.1.1",
+    "uuid": "^11.0.5",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
+    "@jest/globals": "^29.7.0",
+    "@jest/types": "^29.6.3",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^14.2.1",
     "@testing-library/user-event": "^14.5.2",
     "@types/electron": "^1.6.12",
+    "@types/express": "^4.17.21",
     "@types/jest": "^29.5.12",
     "@types/lodash": "^4.17.14",
     "@types/node": "^22.10.5",
@@ -89,7 +103,7 @@
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.3.0",
     "vite": "^4.5.2",
-    "@jest/types": "^29.6.3"
+    "@types/pouchdb": "^6.4.2"
   },
   "build": {
     "appId": "com.atujii",

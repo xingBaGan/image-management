@@ -2,16 +2,13 @@
 [Chinese Version](readme.zh.md)
 
 A clean and elegant local image management tool to help you easily manage and organize your images and video resources.
+Supports Windows, MacOS, Linux.
+Could manage 100000+ images and videos with good performance.
 
 
-Image Management
-![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v.3.0-1.png)
-
-![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v.0.3.0-2.png)
-
-Video Management
-![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v.0.3.0-3.png)
-
+![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v0.4.1_3.png)
+![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v0.4.1_1.png)
+![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v0.4.1_2.png)
 ## Main Features
 
 ### Media Management
@@ -47,9 +44,7 @@ Video Management
 
 ### AI Features
 - [x] AI Auto-tagging - Use deep learning models to automatically identify image content and add tags
-- [x] ComfyUI Workflow - Support custom ComfyUI workflows for image processing
-- [x] Batch Processing - Support batch AI tag recognition
-- [x] Tag Management - Support editing and managing AI-generated tags
+- [] ComfyUI Workflow - Support custom ComfyUI workflows for image processing
 
 ## User Guide
 
@@ -128,6 +123,7 @@ For installation instructions, see [install.en.md](install.en.md)
 - FFmpeg - Video processing
 - Python - AI feature support
 - ComfyUI - AI image processing
+- pouchdb - Local database
 
 ## Development Guide
 
@@ -162,7 +158,6 @@ npm run electron:build --linux
 - Supported video formats: mp4, mov, avi, webm
 - AI features require corresponding Python environment and dependencies
 - ComfyUI features require proper ComfyUI environment configuration
-- Recommended to regularly backup configuration file (images.json)
 
 ## Future Plans
 

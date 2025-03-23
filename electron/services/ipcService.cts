@@ -2,6 +2,7 @@ import { ipcMain, dialog, shell } from 'electron';
 import { promises as fsPromises } from 'fs';
 import { generateHashId } from '../utils/index.cjs';
 import { getComfyURL } from './settingService.cjs';
+import { isReadFromDB } from './checkImageCount.cjs';
 import { 
   saveImageToLocal, 
   loadImagesData, 
@@ -9,7 +10,8 @@ import {
   deletePhysicalFile, 
   saveImagesAndCategories,
   saveCategories,
-  showDialog
+  showDialog,
+  imageCountManager,
 } from './FileService.cjs';
 import { 
   getVideoDuration, 
@@ -19,6 +21,7 @@ import {
 import { tagImage, getMainColor } from '../../script/script.cjs';
 import { tagQueue, colorQueue } from './queueService.cjs';
 import { logger } from './logService.cjs';
+import { MAX_IMAGE_COUNT } from '../services/checkImageCount.cjs';
 
 interface LogMeta {
   [key: string]: any;
@@ -148,14 +151,14 @@ const init = (): void => {
   // =============== 数据管理相关 ===============
   ipcMain.handle('load-images-from-json', async () => {
     try {
-      return await loadImagesData();
+      return await loadImagesData(isReadFromDB());
     } catch (error) {
       logger.error('加载图片数据失败:', { error } as LogMeta);
       throw error;
     }
   });
 
-  ipcMain.handle('save-images-to-json', async (event, images: any[], categories: any[], currentSelectedCategory: string) => {
+  ipcMain.handle('save-images-to-json', async (event, images: any[], categories: any[]) => {
     try {
       return await saveImagesAndCategories(images, categories);
     } catch (error) {
@@ -282,6 +285,9 @@ const init = (): void => {
   // =============== JSON文件操作相关 ===============
   ipcMain.handle('open-image-json', async () => {
     try {
+      if (imageCountManager.count > MAX_IMAGE_COUNT) {
+        await imageCountManager.exportDatabaseToLocalJson();
+      }
       const jsonPath = getJsonFilePath();
       await shell.openPath(jsonPath);
       return { success: true };

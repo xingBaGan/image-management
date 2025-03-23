@@ -116,6 +116,7 @@ const GridView: React.FC<ImageGridBaseProps & {
       };
 
       return <MediaItem
+        key={media.id}
         media={media}
         index={index}
         currentViewIndex={currentViewIndex}

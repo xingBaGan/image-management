@@ -151,15 +151,15 @@ export const processMedia = async (
       thumbnail: thumbnail,
       width: isImage ? imageSize.width : width,
       height: isImage ? imageSize.height : height,
-      rate: 0,
-      colors: colors
+      rating: 0,
+      colors: colors,
     };
   }));
 
   const localImageDataList: LocalImageData[] = [...(existingImages || []), ...updatedImages];
   setImportState?.(ImportStatus.Imported);
   if (shouldSaveToLocal) {
-    await window.electron.saveImagesToJson(localImageDataList, categories, currentSelectedCategory);
+    await window.electron.saveImagesToJson(localImageDataList, categories);
   }
   return updatedImages;
 };

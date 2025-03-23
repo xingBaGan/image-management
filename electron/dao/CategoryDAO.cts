@@ -32,4 +32,5 @@ export interface ipcCategoryAPI {
 
 export interface CategoryDAO extends ipcCategoryAPI {
   getImagesAndCategories: () => Promise<{ images: LocalImageData[], categories: Category[] }>;
+  saveCategories: (categories: Category[]) => Promise<boolean>;
 }

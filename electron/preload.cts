@@ -26,8 +26,8 @@ contextBridge.exposeInMainWorld('electron', {
 
   // =============== 图片数据管理相关 ===============
   loadImagesFromJson: () => ipcRenderer.invoke('load-images-from-json'),
-  saveImagesToJson: (images: any[], categories: any[], currentSelectedCategory: string) => 
-    ipcRenderer.invoke('save-images-to-json', images, categories, currentSelectedCategory),
+  saveImagesToJson: (images: any[], categories: any[]) => 
+    ipcRenderer.invoke('save-images-to-json', images, categories),
   openImageJson: () => ipcRenderer.invoke('open-image-json'),
   saveImageToLocal: (imageBuffer: Buffer, fileName: string, ext: string) => 
     ipcRenderer.invoke('save-image-to-local', imageBuffer, fileName, ext),

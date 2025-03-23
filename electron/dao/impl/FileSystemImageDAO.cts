@@ -3,6 +3,7 @@ import {
   loadImagesData,
   saveImagesAndCategories,
   deletePhysicalFile,
+  getJsonFilePath,
 } from '../../services/FileService.cjs';
 import {
   LocalImageData,
@@ -13,7 +14,9 @@ import {
   SortDirection,
   ColorInfo,
 } from '../type.cjs';
-
+import { promises as fsPromises } from 'fs';
+import { app } from 'electron';
+import * as path from 'path';
 const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result ? {
@@ -61,14 +64,12 @@ export default class FileSystemImageDAO implements ImageDAO {
     images: LocalImageData[],
     categories: Category[]
   ): Promise<LocalImageData[]> {
-    const updatedImages = images.map((img) =>
-      img.id === id ? { ...img, favorite: !img.favorite } : img
-    );
-
-    await saveImagesAndCategories(updatedImages, categories);
+    const updatedImages = images.map((img) => img.id === id ? { ...img, favorite: !img.favorite } : img);
+    if (updatedImages.some(img => img.id === id && img.favorite !== images.find(img => img.id === id)?.favorite)) {
+      await saveImagesAndCategories(updatedImages, categories);
+    }
     return updatedImages;
   }
-
 
   async addImages(
     newImages: LocalImageData[],
@@ -79,7 +80,7 @@ export default class FileSystemImageDAO implements ImageDAO {
     const newImagesData = newImages.filter(img =>
       !currentImages.some(existingImg => existingImg.id === img.id)
     );
-
+    if (!newImagesData.length) return currentImages;
     const updatedImages = [...currentImages, ...newImagesData];
     await saveImagesAndCategories(
       updatedImages,
@@ -157,7 +158,11 @@ export default class FileSystemImageDAO implements ImageDAO {
     const updatedImages = images.map(img =>
       img.id === mediaId ? { ...img, tags: newTags } : img
     );
-    await saveImagesAndCategories(updatedImages, categories);
+    const ids = updatedImages.map(img => img.id);
+    console.log('updatedImages', updatedImages, mediaId, ids);
+    if (ids.includes(mediaId)) {
+      await saveImagesAndCategories(updatedImages, categories);
+    }
     return updatedImages;
   }
 
@@ -173,7 +178,9 @@ export default class FileSystemImageDAO implements ImageDAO {
     const updatedImages = images.map(img =>
       img.id === mediaId ? { ...img, rating: rate } : img
     );
-    await saveImagesAndCategories(updatedImages, categories);
+    if (updatedImages.some(img => img.id === mediaId && img.rating !== images.find(img => img.id === mediaId)?.rating)) {
+      await saveImagesAndCategories(updatedImages, categories);
+    }
 
     return {
       updatedImages,
@@ -185,7 +192,7 @@ export default class FileSystemImageDAO implements ImageDAO {
     return await loadImagesData();
   }
 
-  filterAndSortImages(
+  async filterAndSortImages(
     mediaList: LocalImageData[],
     {
       filter,
@@ -206,7 +213,7 @@ export default class FileSystemImageDAO implements ImageDAO {
       sortBy: SortType;
       sortDirection: SortDirection;
     }
-  ): LocalImageData[] {
+  ): Promise<LocalImageData[]> {
     let filtered = mediaList.filter(img => img.type !== 'video') as LocalImageData[];
 
     if (searchTags.length > 0) {
@@ -277,5 +284,29 @@ export default class FileSystemImageDAO implements ImageDAO {
 
       return sortDirection === 'asc' ? comparison : -comparison;
     });
+  }
+
+  async saveImagesAndCategories(images: LocalImageData[], categories: Category[]): Promise<boolean> {
+    const jsonPath = getJsonFilePath();
+    const tempPath = path.join(app.getPath('userData'), 'images.json.temp');
+    // 先写入临时文件
+    images.forEach(img => {
+      delete img.isDirty;
+    });
+    const jsonData = JSON.stringify({ images, categories }, null, 2);
+    await fsPromises.writeFile(tempPath, jsonData, 'utf-8');
+  
+    // 验证临时文件的完整性
+    try {
+      const tempContent = await fsPromises.readFile(tempPath, 'utf-8');
+      JSON.parse(tempContent); // 验证 JSON 格式是否正确
+    } catch (error) {
+      throw new Error('临时文件写入验证失败');
+    }
+  
+    // 如果验证成功，替换原文件
+    await fsPromises.rename(tempPath, jsonPath);
+  
+    return true;
   }
 }

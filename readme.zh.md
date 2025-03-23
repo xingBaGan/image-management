@@ -3,15 +3,11 @@
 [English Version](readme.md)
 
 一个简洁优雅的本地图片管理工具，帮助你轻松管理和组织图片与视频资源。
-
-图片管理
-![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v.3.0-1.png)
-
-![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v.0.3.0-2.png)
-
-video 管理
-![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v.0.3.0-3.png)
-
+支持 Windows, MacOS, Linux.
+可以管理 100000+ 图片和视频，并保持良好的性能。
+![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v0.4.1_3.png)
+![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v0.4.1_1.png)
+![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v0.4.1_2.png)
 ## 主要功能
 
 ### 媒体管理
@@ -131,7 +127,7 @@ video 管理
 - FFmpeg - 视频处理
 - Python - AI 功能支持
 - ComfyUI - AI 图像处理
-
+- PouchDB - 本地数据库
 ## 开发指南
 
 1. 安装依赖
@@ -180,7 +176,6 @@ npm run electron:build --linux
    - [ ] 图片编辑功能
    - [ ] 更多 AI 模型集成
 - [ ] ComfyUI 集成 - 支持通过 ComfyUI 进行图片处理
-- [ ] 高级搜索过滤
 
 ## 贡献指南
 

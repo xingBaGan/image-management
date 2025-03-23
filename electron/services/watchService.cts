@@ -6,6 +6,7 @@ import { processDirectoryFiles } from './mediaService.cjs';
 import { join } from 'path';
 import * as path from 'path';
 import * as fs from 'fs';
+import { isReadFromDB } from '../services/checkImageCount.cjs';
 
 interface Category {
   id: string;
@@ -50,7 +51,7 @@ class WatchService {
 
   // 每次初始化，都同步文件夹内容
   async syncFolderContent(folderPath: string): Promise<void> {
-    const { images, categories } = await loadImagesData();
+    const { images, categories } = await loadImagesData(isReadFromDB());
     let [newImages, category] = await processDirectoryFiles(folderPath, null);
     if (!newImages.length) return;
     // 更新
@@ -58,7 +59,7 @@ class WatchService {
       ...it,
       categories: [...new Set([...it?.categories, category?.id])]
     }));
-    if (category) {
+    if (category.id) {
       category.images = [...new Set([...new Set(category?.images), ...newImages.map(it => it.id)])];
       category.count = category.images.length;
       saveImagesAndCategories(
@@ -106,8 +107,8 @@ class WatchService {
     try {
       // 按文件夹分组处理变更
       for (const [folderPath, changes] of this.changeQueue.entries()) {
-        const { images, categories } = await loadImagesData();
-        const category = this.getWatchCategory(folderPath);
+        const { images, categories } = await loadImagesData(isReadFromDB());
+        const category = await this.getWatchCategory(folderPath);
         if (!category) continue;
 
         let allNewImages: Image[] = [];
@@ -262,9 +263,9 @@ class WatchService {
     return watcherPaths.find(watcherPath => _path.startsWith(watcherPath));
   }
 
-  getWatchCategory(path: string): Category | undefined {
+  async getWatchCategory(path: string): Promise<Category | undefined> {
     const inWatcherPath = this.inWatcherPath(path);
-    const { categories } = loadImagesData();
+    const { categories } = await loadImagesData(isReadFromDB());
     return categories.find(_category => _category?.folderPath?.replace(/\\/g, '/') === inWatcherPath);
   }
 

@@ -1,4 +1,5 @@
 import { BrowserWindow } from 'electron';
+import { loadImagesData } from '../services/FileService.cjs';
 
 const generateHashId = (filePath: string, fileSize: number): string => {
     const str = `${filePath}-${fileSize}`;
@@ -13,7 +14,7 @@ const generateHashId = (filePath: string, fileSize: number): string => {
 
 function notifyAllWindows(name: string, data: any): void {
   const windows = BrowserWindow.getAllWindows();
-  windows.forEach(window => {
+  windows.forEach((window: BrowserWindow) => {
     window.webContents.send(name, data);
   });
 }
@@ -22,8 +23,9 @@ function getReadableFilePath(filePath: string): string {
   return decodeURIComponent(filePath.replace('local-image://', '')).replace(/\\/g, '/').replace(/\//g, '\\');
 }
 
+
 export {
     generateHashId,
     notifyAllWindows,
-    getReadableFilePath
+    getReadableFilePath,
 } 

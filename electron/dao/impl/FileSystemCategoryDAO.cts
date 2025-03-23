@@ -1,6 +1,14 @@
 import { CategoryDAO } from '../CategoryDAO.cjs';
 import { LocalImageData, Category } from '../type.cjs';
 import { loadImagesData, saveImagesAndCategories, saveCategories, readImagesFromFolder } from '../../services/FileService.cjs';
+import { promises as fsPromises } from 'fs';
+import { getJsonFilePath } from '../../services/FileService.cjs';
+import { logger } from '../../services/logService.cjs';
+
+interface LogMeta {
+  [key: string]: any;
+}
+
 
 export default class FileSystemCategoryDAO implements CategoryDAO {
   async getImagesAndCategories() {
@@ -128,6 +136,19 @@ export default class FileSystemCategoryDAO implements CategoryDAO {
       };
     } catch (error) {
       console.error('Error in import-folder-from-path:', error);
+      throw error;
+    }
+  }
+
+  async saveCategories(categories: Category[]): Promise<boolean> {
+    try {
+      const filePath = getJsonFilePath();
+      const existingData = JSON.parse(await fsPromises.readFile(filePath, 'utf8'));
+      existingData.categories = categories;
+      await fsPromises.writeFile(filePath, JSON.stringify(existingData, null, 2));
+      return true;
+    } catch (error) {
+      logger.error('保存分类数据失败:', { error } as LogMeta);
       throw error;
     }
   }

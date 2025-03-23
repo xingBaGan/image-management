@@ -1,6 +1,5 @@
 import { Category, LocalImageData } from '../dao/type.cjs';
 import { DAOFactory } from '../dao/DAOFactory.cjs';
-
 const categoryDAO = DAOFactory.getCategoryDAO();
 
 export const addCategory = async (
@@ -8,6 +7,7 @@ export const addCategory = async (
   images: LocalImageData[],
   categories: Category[]
 ): Promise<Category[]> => {
+  newCategory.order = categories.length;
   return await categoryDAO.addCategory(newCategory, images, categories);
 };
 
@@ -25,9 +25,13 @@ export const deleteCategory = async (
   categories: Category[]
 ): Promise<{
   updatedCategories: Category[];
-  updatedImages: LocalImageData[];
+  updatedImages: LocalImageData[]
 }> => {
-  return await categoryDAO.deleteCategory(categoryId, images, categories);
+  const indexedCategories = categories.map((it, index) => ({
+    ...it,
+    order: index
+  }));
+  return await categoryDAO.deleteCategory(categoryId, images, indexedCategories);
 };
 
 export const addToCategory = async (
@@ -51,5 +55,9 @@ export const importFolderFromPath = async (
   updatedCategories: Category[];
   categoryId: string;
 }> => {
-  return await categoryDAO.importFolderFromPath(folderPath, images, categories);
+  const indexedCategories = categories.map((it, index) => ({
+    ...it,
+    order: index
+  }));
+  return await categoryDAO.importFolderFromPath(folderPath, images, indexedCategories);
 }; 

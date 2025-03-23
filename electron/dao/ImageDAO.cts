@@ -52,8 +52,9 @@ export interface IPCImageService {
       sortBy: SortType;
       sortDirection: SortDirection;
     }
-  ): LocalImageData[];
+  ): Promise<LocalImageData[]>;
 }
 export interface ImageDAO extends IPCImageService {
   getImagesAndCategories(): Promise<{ images: LocalImageData[], categories: Category[] }>;
+  saveImagesAndCategories(images: LocalImageData[], categories: Category[]): Promise<boolean>;
 }
