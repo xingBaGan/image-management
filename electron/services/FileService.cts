@@ -11,7 +11,8 @@ import {
 } from './mediaService.cjs';
 import { LocalImageData } from '../dao/type.cjs';
 import { DAOFactory } from '../dao/DAOFactory.cjs';
-import { isReadFromDB } from '../utils/index.cjs';
+import { isReadFromDB, MAX_IMAGE_COUNT } from '../services/checkImageCount.cjs';
+import { ImageDatabase } from '../pouchDB/Database.cjs';
 interface ImageData {
   images: any[];
   categories: any[];
@@ -37,6 +38,77 @@ interface FileMetadata {
   thumbnail?: string;
 }
 
+const mockImagesContent = {
+  "images": [
+    {
+      "id": "1",
+      "path": "https://images.unsplash.com/photo-1518791841217-8f162f1e1131",
+      "name": "Cute cat",
+      "size": 1024000,
+      "dateCreated": "2024-01-01T00:00:00.000Z",
+      "dateModified": "2024-01-01T00:00:00.000Z",
+      "tags": ["animals", "cats"],
+      "favorite": true,
+      "categories": [],
+      "type": "image"
+    },
+    {
+      "id": "2",
+      "path": "https://images.unsplash.com/photo-1579353977828-2a4eab540b9a",
+      "name": "Sunset view",
+      "size": 2048000,
+      "dateCreated": "2024-01-02T00:00:00.000Z",
+      "dateModified": "2024-01-02T00:00:00.000Z",
+      "tags": ["nature", "sunset"],
+      "favorite": false,
+      "categories": []
+    },
+    {
+      "id": "3",
+      "path": "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
+      "name": "Workspace",
+      "size": 1536000,
+      "dateCreated": "2024-01-03T00:00:00.000Z",
+      "dateModified": "2024-01-03T00:00:00.000Z",
+      "tags": ["work", "desk"],
+      "favorite": false,
+      "categories": []
+    },
+    {
+      "id": "4",
+      "path": "https://images.unsplash.com/photo-1484723091739-30a097e8f929",
+      "name": "Food photography",
+      "size": 3072000,
+      "dateCreated": "2024-01-04T00:00:00.000Z",
+      "dateModified": "2024-01-04T00:00:00.000Z",
+      "tags": ["food", "photography"],
+      "favorite": true,
+      "categories": []
+    }
+  ],
+  "categories": [
+    {
+      "id": "1",
+      "name": "landscape",
+      "images": []
+    },
+    {
+      "id": "2",
+      "name": "person",
+      "images": []
+    },
+    {
+      "id": "3",
+      "name": "food",
+      "images": []
+    },
+    {
+      "id": "4",
+      "name": "building",
+      "images": []
+    }
+  ]
+};
 const getJsonFilePath = (): string => {
   return path.join(app.getPath('userData'), 'images.json');
 };
@@ -77,6 +149,7 @@ const saveImagesAndCategories = async (images: LocalImageData[], categories: Cat
       order: index
     }));
     await imageDAO.saveImagesAndCategories(images, indexedCategories);
+    imageCountManager.updateCount(images.length);
     return true;
 }
 
@@ -94,6 +167,8 @@ const readImagesFromFolder = async (folderPath: string)=>{
       folderPath: folderPath,
       isImportFromFolder: true
     };
+
+    imageCountManager.updateCount(imageCountManager.getCount() + files.length);
 
     return {
       category,
@@ -118,6 +193,52 @@ const saveCategories = async (categories: Category[]): Promise<{
   return { success };
 }
 
+const imageCountManager = {
+  count: 0,
+  oldCount: 0,
+  db: null as ImageDatabase | null,
+  async init() {
+    this.db = ImageDatabase.getInstance();
+    const data = await loadImagesData(isReadFromDB());
+    this.count = data.images.length;
+    const dbCount = await this.db.getImagesLength();
+    if(this.count >= MAX_IMAGE_COUNT && this.count !== dbCount){
+      this.syncDatabaseFromLocalJson();
+    }
+  },
+
+  async syncDatabaseFromLocalJson(){
+    const db = ImageDatabase.getInstance();
+    const jsonPath = getJsonFilePath();
+    const { images, categories } = await db.syncDatabaseFromLocalJson(jsonPath);
+    return { images, categories };
+  },
+  
+  async exportDatabaseToLocalJson(){
+    const db = ImageDatabase.getInstance();
+    const jsonPath = getJsonFilePath();
+    const { images, categories } = await db.exportDatabaseToLocalJson(jsonPath);
+    return { images, categories };
+  },
+  
+  updateCount(newCount: number) {
+    this.oldCount = this.count;
+    this.count = newCount;
+    if (this.oldCount >= MAX_IMAGE_COUNT && this.count < MAX_IMAGE_COUNT) {
+      this.exportDatabaseToLocalJson();
+    } else if (this.count >= MAX_IMAGE_COUNT && this.oldCount < MAX_IMAGE_COUNT) {
+      console.log('---delete---')
+      this.syncDatabaseFromLocalJson();
+    }
+  },
+  
+  getCount() {
+    return this.count;
+  }
+};
+
+imageCountManager.init();
+
 async function loadImagesData(loadFromDB: boolean = false): Promise<ImageData> {
   try {
     if (loadFromDB) {
@@ -130,7 +251,7 @@ async function loadImagesData(loadFromDB: boolean = false): Promise<ImageData> {
     const imagesJsonPath = getJsonFilePath();
 
     if (!fs.existsSync(imagesJsonPath)) {
-      const initialData: ImageData = { images: [], categories: [] };
+      const initialData: ImageData = mockImagesContent;
       fs.writeFileSync(imagesJsonPath, JSON.stringify(initialData, null, 2));
       return initialData;
     }
@@ -144,7 +265,9 @@ async function loadImagesData(loadFromDB: boolean = false): Promise<ImageData> {
     }
 
     try {
-      return JSON.parse(text);
+      const data = JSON.parse(text);
+      imageCountManager.updateCount(data.images.length);
+      return data;
     } catch (parseError) {
       logger.error('JSON 解析失败，恢复到初始状态', { error: parseError } as LogMeta);
       const initialData: ImageData = { images: [], categories: [] };
@@ -247,5 +370,6 @@ export {
   saveImagesAndCategories,
   saveCategories,
   readImagesFromFolder,
-  showDialog
+  showDialog,
+  imageCountManager
 } 

@@ -3,6 +3,7 @@ import PouchDBFind from 'pouchdb-find';
 import { LocalImageData, FilterType, FilterOptions, SortType, SortDirection } from '../dao/type.cjs';
 import RelationalPouch from 'relational-pouch';
 import * as fs from 'fs/promises';
+import * as lodash from 'lodash';
 // Register PouchDB plugins
 PouchDB.plugin(RelationalPouch);
 PouchDB.plugin(PouchDBFind);
@@ -45,6 +46,10 @@ export interface Image {
     folderPath?: string;
     isImportFromFolder?: boolean;
     order?: number;
+  }
+
+  function compare(oriImage: Image | Category, newImage: Image | Category) {
+    return lodash.isEqual(oriImage, newImage);
   }
 
 export class ImageDatabase {
@@ -114,6 +119,11 @@ export class ImageDatabase {
     async getAllImages(): Promise<Image[]> {
         const result = await (this.db as any).rel.find('image');
         return result.images;
+    }
+
+    async getImagesLength(): Promise<number> {
+        const images = await this.getAllImages();
+        return images.length;
     }
 
     async updateImage(id: string, updates: Partial<Image>): Promise<Image | null> {
@@ -273,16 +283,51 @@ export class ImageDatabase {
     async syncDatabaseFromLocalJson(jsonPath: string): Promise<{ images: Image[], categories: Category[] }> {
         const jsonData = await fs.readFile(jsonPath, 'utf8');
         const { images, categories } = JSON.parse(jsonData);
-        const createdImages = await this.createImages(images);
-        const createdCategories = await this.createCategories(categories);
-        return { images: createdImages, categories: createdCategories };
+        const oriImages = await this.getAllImages();
+        const oriCategories = await this.getAllCategories();
+        if (images.length === 0 && categories.length === 0) {
+            return { images: [], categories: [] };
+        }
+        const isSame = images.length === oriImages.length && categories.length === oriCategories.length;
+        if (isSame) {
+            return { images: [], categories: [] };
+        }
+        const newImages = images.filter((image: Image) => !oriImages.some((oriImage: Image) => oriImage.id === image.id));
+        const newCategories = categories.filter((category: Category) => !oriCategories.some((oriCategory: Category) => oriCategory.id === category.id));
+        const deletedImages = oriImages.filter((image: Image) => !images.some((newImage: Image) => newImage.id === image.id));
+        const deletedCategories = oriCategories.filter((category: Category) => !categories.some((newCategory: Category) => newCategory.id === category.id));
+        const updatedImages = images.filter((image: Image) => oriImages.some((oriImage: Image) => oriImage.id === image.id));
+        const updatedCategories = categories.filter((category: Category) => oriCategories.some((oriCategory: Category) => oriCategory.id === category.id));
+        await Promise.all(deletedImages.map((image: Image) => this.deleteImage(image.id)));
+        await Promise.all(deletedCategories.map((category: Category) => this.deleteCategory(category.id)));
+        await this.createImages(newImages);
+        await this.createCategories(newCategories);
+        await Promise.all(updatedImages.map(async (image: Image) => {
+            const oriImage = await this.getImage(image.id);
+            if (!oriImage) return;
+            const idDiff = compare(oriImage, image);
+            if (idDiff) {
+                await this.updateImage(image.id, image)
+            }
+        }));
+        await Promise.all(updatedCategories.map(async (category: Category) => {
+            const oriCategory = await this.getCategory(category.id);
+            if (!oriCategory) return;
+            const idDiff = compare(oriCategory, category);
+            if (idDiff) {
+                await this.updateCategory(category.id, category)
+            }
+        }));
+        return { images, categories };
     }
 
-    async exportDatabaseToLocalJson(jsonPath: string): Promise<void> {
+    async exportDatabaseToLocalJson(jsonPath: string): Promise<{ images: Image[], categories: Category[] }> {
         const images = await this.getAllImages();
         const categories = await this.getAllCategories();
-        const jsonData = JSON.stringify({ images, categories }, null, 2);
+        const result = { images, categories };
+        const jsonData = JSON.stringify(result, null, 2);
         await fs.writeFile(jsonPath, jsonData);
+        return result;
     }
 
     async filterAndSortImagesFromDB({
@@ -387,11 +432,11 @@ export class ImageDatabase {
           let sortedImages = images;
           // 内存里排序
           if (sortBy === SortType.Date) {
-            sortedImages = images.sort((a, b) => new Date(a.dateModified).getTime() - new Date(b.dateModified).getTime());
+            sortedImages = images.sort((a: LocalImageData, b: LocalImageData) => new Date(a.dateModified).getTime() - new Date(b.dateModified).getTime());
           } else if (sortBy === SortType.Name) {
-            sortedImages = images.sort((a, b) => a.name.localeCompare(b.name));
+            sortedImages = images.sort((a: LocalImageData, b: LocalImageData) => a.name.localeCompare(b.name));
           } else if (sortBy === SortType.Size) {
-            sortedImages = images.sort((a, b) => a.size - b.size);
+            sortedImages = images.sort((a: LocalImageData, b: LocalImageData) => a.size - b.size);
           }
           return sortDirection === 'asc' ? sortedImages : sortedImages.reverse();
         } catch (error) {

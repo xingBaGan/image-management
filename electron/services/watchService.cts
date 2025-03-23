@@ -6,7 +6,7 @@ import { processDirectoryFiles } from './mediaService.cjs';
 import { join } from 'path';
 import * as path from 'path';
 import * as fs from 'fs';
-import { isReadFromDB } from '../utils/index.cjs';
+import { isReadFromDB } from '../services/checkImageCount.cjs';
 
 interface Category {
   id: string;

@@ -242,102 +242,11 @@ const downloadRemoteImagesInBackground = async (jsonPath: string): Promise<void>
 };
 
 const initializeUserData = async (): Promise<void> => {
-  const mockImagesContent = {
-    "images": [
-      {
-        "id": "1",
-        "path": "https://images.unsplash.com/photo-1518791841217-8f162f1e1131",
-        "name": "Cute cat",
-        "size": 1024000,
-        "dateCreated": "2024-01-01T00:00:00.000Z",
-        "dateModified": "2024-01-01T00:00:00.000Z",
-        "tags": ["animals", "cats"],
-        "favorite": true,
-        "categories": [],
-        "type": "image"
-      },
-      {
-        "id": "2",
-        "path": "https://images.unsplash.com/photo-1579353977828-2a4eab540b9a",
-        "name": "Sunset view",
-        "size": 2048000,
-        "dateCreated": "2024-01-02T00:00:00.000Z",
-        "dateModified": "2024-01-02T00:00:00.000Z",
-        "tags": ["nature", "sunset"],
-        "favorite": false,
-        "categories": []
-      },
-      {
-        "id": "3",
-        "path": "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
-        "name": "Workspace",
-        "size": 1536000,
-        "dateCreated": "2024-01-03T00:00:00.000Z",
-        "dateModified": "2024-01-03T00:00:00.000Z",
-        "tags": ["work", "desk"],
-        "favorite": false,
-        "categories": []
-      },
-      {
-        "id": "4",
-        "path": "https://images.unsplash.com/photo-1484723091739-30a097e8f929",
-        "name": "Food photography",
-        "size": 3072000,
-        "dateCreated": "2024-01-04T00:00:00.000Z",
-        "dateModified": "2024-01-04T00:00:00.000Z",
-        "tags": ["food", "photography"],
-        "favorite": true,
-        "categories": []
-      }
-    ],
-    "categories": [
-      {
-        "id": "1",
-        "name": "风景",
-        "images": []
-      },
-      {
-        "id": "2",
-        "name": "人物",
-        "images": []
-      },
-      {
-        "id": "3",
-        "name": "美食",
-        "images": []
-      },
-      {
-        "id": "4",
-        "name": "建筑",
-        "images": []
-      }
-    ]
-  };
   try {
     const jsonPath = getJsonFilePath();
     console.log('用户数据目录路径:', jsonPath);
-
-    // 检查文件是否存在
-    try {
-      await fsPromises.access(jsonPath);
-      // 即使文件存在，也启动后台下载检查
-      downloadRemoteImagesInBackground(jsonPath);
-      return;
-    } catch {
-      console.log('images.json 文件不存在，开始初始化');
-
-      // 先保存初始数据
-      await fsPromises.writeFile(
-        jsonPath,
-        JSON.stringify(mockImagesContent, null, 2),
-        'utf-8'
-      );
-
-      // 启动后台下载
-      downloadRemoteImagesInBackground(jsonPath);
-
-      console.log('用户数据初始化完成，图片将在后台继续下载');
-    }
+    downloadRemoteImagesInBackground(jsonPath);
+    console.log('用户数据初始化完成，图片将在后台继续下载');
   } catch (error) {
     console.error('初始化用户数据失败:', error);
   }

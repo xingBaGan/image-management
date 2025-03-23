@@ -1,6 +1,9 @@
 import { ImageDAO } from '../ImageDAO.cjs';
 import { LocalImageData, Category, FilterType, FilterOptions, SortType, SortDirection } from '../type.cjs';
 import { ImageDatabase, Image } from '../../pouchDB/Database.cjs';
+import {
+  deletePhysicalFile,
+} from '../../services/FileService.cjs';
 
 // 颜色相似度比较函数
 const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
@@ -244,7 +247,11 @@ export default class DBImageDAO implements ImageDAO {
       });
 
       // 如果需要物理删除文件，可以在这里添加代码
-      // 这里可以调用 electron 的 API 来删除文件
+      for (const img of deletedImages) {
+        if (img.path.includes('local-image://') && img.isBindInFolder) {
+          await deletePhysicalFile(img.path);
+        }
+      }
 
       return {
         updatedImages,

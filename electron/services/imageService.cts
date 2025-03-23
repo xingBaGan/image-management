@@ -1,5 +1,6 @@
 import { Category, LocalImageData, FilterType, FilterOptions, SortType, SortDirection } from '../dao/type.cjs';
 import { DAOFactory } from '../dao/DAOFactory.cjs';
+import { imageCountManager } from './FileService.cjs';
 
 const imageDAO = DAOFactory.getImageDAO();
 
@@ -17,7 +18,9 @@ export const addImages = async (
   categories: Category[],
   currentSelectedCategory?: Category
 ): Promise<LocalImageData[]> => {
-  return await imageDAO.addImages(newImages, currentImages, categories, currentSelectedCategory);
+  const updatedImages = await imageDAO.addImages(newImages, currentImages, categories, currentSelectedCategory);
+  imageCountManager.updateCount(updatedImages.length);
+  return updatedImages;
 };
 
 export const bulkDeleteSoft = async (
@@ -28,7 +31,9 @@ export const bulkDeleteSoft = async (
   updatedImages: LocalImageData[];
   updatedCategories?: Category[];
 }> => {
-  return await imageDAO.bulkDeleteSoft(selectedImages, images, categories);
+  const { updatedImages, updatedCategories } = await imageDAO.bulkDeleteSoft(selectedImages, images, categories);
+  imageCountManager.updateCount(updatedImages.length);
+  return { updatedImages, updatedCategories };
 };
 
 export const bulkDeleteHard = async (
@@ -39,7 +44,9 @@ export const bulkDeleteHard = async (
   updatedImages: LocalImageData[];
   updatedCategories?: Category[];
 }> => {
-  return await imageDAO.bulkDeleteHard(selectedImages, images, categories);
+  const { updatedImages, updatedCategories } = await imageDAO.bulkDeleteHard(selectedImages, images, categories);
+  imageCountManager.updateCount(updatedImages.length);
+  return { updatedImages, updatedCategories };
 };
 
 export const updateTags = async (

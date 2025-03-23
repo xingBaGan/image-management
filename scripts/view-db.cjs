@@ -1,5 +1,6 @@
 const { ImageDatabase } = require('../electron/pouchDB/Database.cjs');
 const PouchDB = require('pouchdb');
+const path = require('path');
 
 const db = ImageDatabase.getInstance();
 
@@ -8,7 +9,8 @@ const db = ImageDatabase.getInstance();
 // });
 
 // db.syncDatabaseFromLocalJson('C:\\Users\\jzj\\AppData\\Roaming\\atujii\\images.json').then(result => {
-//   console.log(result);
+//   // console.log(result);
+//   console.log('----syncDatabaseFromLocalJson---');
 // });
 
 
@@ -17,10 +19,10 @@ const db = ImageDatabase.getInstance();
 //   console.log(info);
 // });
 
-// const jsonPath = path.join(process.cwd(), 'images.json');
-// db.exportDatabaseToLocalJson(jsonPath).then(result => {
-//   console.log(result);
-// });
+const jsonPath = path.join(process.cwd(), 'images.json');
+db.exportDatabaseToLocalJson(jsonPath).then(result => {
+  console.log(result);
+});
 
 async function main() {
   // const result = await db.getDatabaseInfo();
@@ -83,4 +85,4 @@ async function main() {
   // console.log(rows);
 }
 
-main();
+// main();

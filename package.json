@@ -15,7 +15,7 @@
     "build": "cross-env NODE_ENV=development tsc -p electron/tsconfig.json && node scripts/copy-electron.cjs",
     "lint": "eslint .",
     "electron:dev": "cross-env NODE_ENV=development tsc -p electron/tsconfig.json && node scripts/copy-electron.cjs && concurrently \"vite\" \"electron .\"",
-    "electron:build": "npm run build:comfyui && tsc -p electron/tsconfig.json && vite build && node -e \"require('fs').cpSync('electron', 'dist-electron', {recursive: true})\" && electron-builder",
+    "electron:build": "pnpm install  --shamefully-hoist && npm run build:comfyui && tsc -p electron/tsconfig.json && vite build && node -e \"require('fs').cpSync('electron', 'dist-electron', {recursive: true})\" && electron-builder",
     "electron:preview": "concurrently \"vite\" \"electron .\"",
     "script": "cross-env NODE_ENV=development node script/script.cjs",
     "python:download": "python dataset\\download.py",

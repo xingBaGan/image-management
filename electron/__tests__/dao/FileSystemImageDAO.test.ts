@@ -256,8 +256,8 @@ describe('FileSystemImageDAO', () => {
 
   describe('filterAndSortImages', () => {
     describe('filtering', () => {
-      it('should filter by category', () => {
-        const result = dao.filterAndSortImages(mockImages, {
+      it('should filter by category', async () => {
+        const result = await dao.filterAndSortImages(mockImages, {
           ...filterOptions,
           selectedCategory: 'cat1'
         });
@@ -265,8 +265,8 @@ describe('FileSystemImageDAO', () => {
         expect(result[0].id).toBe('1');
       });
 
-      it('should filter by favorites', () => {
-        const result = dao.filterAndSortImages(mockImages, {
+      it('should filter by favorites', async () => {
+        const result = await dao.filterAndSortImages(mockImages, {
           ...filterOptions,
           filter: FilterType.Favorites
         });
@@ -274,8 +274,8 @@ describe('FileSystemImageDAO', () => {
         expect(result[0].id).toBe('2');
       });
 
-      it('should filter by search tags', () => {
-        const result = dao.filterAndSortImages(mockImages, {
+      it('should filter by search tags', async () => {
+        const result = await dao.filterAndSortImages(mockImages, {
           ...filterOptions,
           searchTags: ['tag1']
         });
@@ -283,8 +283,8 @@ describe('FileSystemImageDAO', () => {
         expect(result[0].id).toBe('1');
       });
 
-      it('should filter by colors', () => {
-        const result = dao.filterAndSortImages(mockImages, {
+      it('should filter by colors', async () => {
+        const result = await dao.filterAndSortImages(mockImages, {
           ...filterOptions,
           filterColors: ['#FF0000']
         });
@@ -294,8 +294,8 @@ describe('FileSystemImageDAO', () => {
     });
 
     describe('sorting', () => {
-      it('should sort by name in ascending order', () => {
-        const result = dao.filterAndSortImages(mockImages, {
+      it('should sort by name in ascending order', async () => {
+        const result = await dao.filterAndSortImages(mockImages, {
           ...filterOptions,
           sortBy: SortType.Name,
           sortDirection: SortDirection.Asc
@@ -305,8 +305,8 @@ describe('FileSystemImageDAO', () => {
         expect(result[1].name).toBe('test2.jpg');
       });
 
-      it('should sort by name in descending order', () => {
-        const result = dao.filterAndSortImages(mockImages, {
+      it('should sort by name in descending order', async () => {
+        const result = await dao.filterAndSortImages(mockImages, {
           ...filterOptions,
           sortBy: SortType.Name,
           sortDirection: SortDirection.Desc
@@ -316,8 +316,8 @@ describe('FileSystemImageDAO', () => {
         expect(result[1].name).toBe('test1.jpg');
       });
 
-      it('should sort by date in ascending order', () => {
-        const result = dao.filterAndSortImages(mockImages, {
+      it('should sort by date in ascending order', async () => {
+        const result = await dao.filterAndSortImages(mockImages, {
           ...filterOptions,
           sortBy: SortType.Date,
           sortDirection: SortDirection.Asc
@@ -327,8 +327,8 @@ describe('FileSystemImageDAO', () => {
         expect(result[1].dateModified).toBe('2024-01-02');
       });
 
-      it('should sort by date in descending order', () => {
-        const result = dao.filterAndSortImages(mockImages, {
+      it('should sort by date in descending order', async () => {
+        const result = await dao.filterAndSortImages(mockImages, {
           ...filterOptions,
           sortBy: SortType.Date,
           sortDirection: SortDirection.Desc
@@ -339,15 +339,15 @@ describe('FileSystemImageDAO', () => {
       });
     });
 
-    it('should handle empty media list', () => {
-      const result = dao.filterAndSortImages([], filterOptions);
+    it('should handle empty media list', async () => {
+      const result = await dao.filterAndSortImages([], filterOptions);
       expect(result).toHaveLength(0);
     });
   });
 
   describe('isSimilarColor', () => {
-    it('should return true for similar colors', () => {
-      const result = dao.filterAndSortImages(mockImages, {
+    it('should return true for similar colors', async () => {
+      const result = await dao.filterAndSortImages(mockImages, {
         ...filterOptions,
         selectedCategory: FilterType.Photos,
         filterColors: ['#FF0001']
@@ -356,8 +356,8 @@ describe('FileSystemImageDAO', () => {
       expect(result[0].id).toBe('1');
     });
 
-    it('should return false for different colors', () => {
-      const result = dao.filterAndSortImages(mockImages, {
+    it('should return false for different colors', async () => {
+      const result = await dao.filterAndSortImages(mockImages, {
         ...filterOptions,
         selectedCategory: FilterType.Photos,
         filterColors: ['#0000FF']
