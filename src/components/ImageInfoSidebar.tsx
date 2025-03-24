@@ -58,7 +58,7 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
     );
 
     return (
-        <div className="overflow-y-auto p-2 w-60 border-l border-gray-200 backdrop-blur-md bg-white/30 dark:bg-gray-800/30 dark:border-gray-700"
+        <div className="overflow-y-auto overflow-x-hidden p-2 w-60 border-l border-gray-200 backdrop-blur-md bg-white/30 dark:bg-gray-800/30 dark:border-gray-700"
             style={{
                 height: 'calc(100vh - 6rem)',
             }}

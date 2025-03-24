@@ -593,7 +593,7 @@ function App() {
           gridItemAppendButtonsProps={gridItemAppendButtonsProps}
           onRateChange={handleRateChange}
           setSelectedImages={setSelectedImages}
-          currentSelectedCategory={currentSelectedCategory}
+          currentSelectedCategory={currentSelectedCategory || selectedCategory}
         />
       </div>
 

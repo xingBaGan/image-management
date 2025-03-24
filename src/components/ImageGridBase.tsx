@@ -16,7 +16,7 @@ export interface ImageGridBaseProps {
   onOpenInEditor: (path: string) => void;
   showInFolder?: (path: string) => void;
   gridItemAppendButtonsProps: AppendButtonsProps[];
-  currentSelectedCategory?: Category;
+  currentSelectedCategory?: Category | string;
 }
 
 export interface MediaItemProps {
