@@ -237,6 +237,7 @@ function App() {
       mediaList,
       categories,
       settings.modelName,
+      settings.targetLang,
       setImportState,
     );
 

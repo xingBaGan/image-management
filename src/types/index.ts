@@ -78,6 +78,7 @@ export interface Settings {
   backgroundUrl: string;
   modelName: string;
   autoColor: boolean;
+  targetLang: string;
 }
 
 // =============== 导入相关类型 ===============
@@ -284,7 +285,9 @@ export interface ElectronAPI {
   saveSettings: (settings: Settings) => Promise<boolean>;
   isRemoteComfyUI: () => Promise<boolean>;
   readFile: (filePath: string) => Promise<Buffer>;
-  tagImage: (imagePath: string, modelName: string) => Promise<string[]>;
+  tagImage: (imagePath: string, modelName: string, targetLang: string) => Promise<string[]>;
+  translateTextFromEnglish: (targetLang: string, englishText: string) => Promise<string>;
+  getAllLangs: () => Promise<string[]>;
   processDirectoryFiles: (dirPath: string| string[],currentCategory?: null | Category) => Promise<[LocalImageData[], Category]>;
   openInEditor: (filePath: string) => Promise<{ success: boolean; error?: string }>;
   downloadUrlImage: (url: string) => Promise<DownloadUrlImageResult>;

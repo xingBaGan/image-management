@@ -18,7 +18,7 @@ import {
   generateVideoThumbnail,
   processDirectoryFiles 
 } from './mediaService.cjs';
-import { tagImage, getMainColor } from '../../script/script.cjs';
+import { tagImage, getMainColor, translateTextFromEnglish, getAllLangs } from '../../script/script.cjs';
 import { tagQueue, colorQueue } from './queueService.cjs';
 import { logger } from './logService.cjs';
 import { MAX_IMAGE_COUNT } from '../services/checkImageCount.cjs';
@@ -190,18 +190,36 @@ const init = (): void => {
   });
 
   // =============== 图片分析相关 ===============
-  ipcMain.handle('tag-image', async (event, imagePath: string, modelName: string) => {
+  ipcMain.handle('tag-image', async (event, imagePath: string, modelName: string, targetLang: string = 'english') => {
     const taskId = `tag-${Date.now()}`;
     try {
       return await tagQueue.addTask(async () => {
         imagePath = decodeURIComponent(imagePath);
         imagePath = imagePath.replace('local-image://', '');
-        return await tagImage(imagePath, modelName);
+        let result = await tagImage(imagePath, modelName);
+        if (targetLang !== 'english') {
+          let text = result.map((str: string) => str.toLowerCase().replace(/_/g, ' ').replace(/\\/g, '').replace(/[\(\)]/g, '')).join(',');
+          console.log('text', text)
+          text = await translateTextFromEnglish(targetLang, text);
+          text = text.replace(/\{.*\}/g, '')
+          console.log('translated', text)
+          result = text.split(',');
+        }
+        return result;
       }, taskId);
     } catch (error) {
       logger.error('图片标签分析失败:', { error } as LogMeta);
       throw error;
     }
+  });
+
+  ipcMain.handle('translate-text-from-english', async (event, targetLang: string, englishText: string) => {
+    const result = await translateTextFromEnglish(targetLang, englishText);
+    return result;
+  });
+
+  ipcMain.handle('get-all-langs', async () => {
+    return await getAllLangs();
   });
 
   ipcMain.handle('get-main-color', async (event, imagePath: string) => {

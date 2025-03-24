@@ -31,7 +31,9 @@ contextBridge.exposeInMainWorld('electron', {
   openImageJson: () => ipcRenderer.invoke('open-image-json'),
   saveImageToLocal: (imageBuffer: Buffer, fileName: string, ext: string) => 
     ipcRenderer.invoke('save-image-to-local', imageBuffer, fileName, ext),
-  tagImage: (imagePath: string, modelName: string) => ipcRenderer.invoke('tag-image', imagePath, modelName),
+  tagImage: (imagePath: string, modelName: string, targetLang: string = 'english') => ipcRenderer.invoke('tag-image', imagePath, modelName, targetLang),
+  translateTextFromEnglish: (targetLang: string, englishText: string) => ipcRenderer.invoke('translate-text-from-english', targetLang, englishText),
+  getAllLangs: () => ipcRenderer.invoke('get-all-langs'),
   getMainColor: (imagePath: string) => ipcRenderer.invoke('get-main-color', imagePath),
   downloadUrlImage: (url: string) => ipcRenderer.invoke('download-url-image', url),
 

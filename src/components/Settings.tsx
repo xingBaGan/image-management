@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { supportModes } from '../config';
 import { useLocale } from '../contexts/LanguageContext';
+import { getAllLangs } from '../services/tagService';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -32,6 +33,8 @@ const Settings: React.FC<SettingsProps> = ({
   const [backgroundUrl, setBackgroundUrl] = useState('');
   const [modelName, setModelName] = useState('');
   const [autoColor, setAutoColor] = useState(false);
+  const [languages, setLanguages] = useState<string[]>(['english']);
+
   useEffect(() => {
     if (isOpen) {
       setComfyUrl(settings.ComfyUI_URL);
@@ -40,6 +43,15 @@ const Settings: React.FC<SettingsProps> = ({
       setAutoColor(settings.autoColor);
     }
   }, [isOpen, settings]);
+
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      const langs = await getAllLangs();
+      setLanguages(langs);
+    };
+
+    fetchLanguages();
+  }, []);
 
   const handleSave = async () => {
     try {
@@ -143,6 +155,23 @@ const Settings: React.FC<SettingsProps> = ({
                   <option key={mode} value={mode}>{mode}</option>
                 ))}
               </select>
+            </div>
+            <div>
+              <label className="block mb-1 text-sm font-medium text-gray-700dark:text-rose-300">
+                {t('targetLang')}
+              </label>
+              {languages.length > 1 && (
+                <select
+                  title={t('targetLang')}
+                  value={settings.targetLang}
+                  onChange={(e) => updateSettings({ targetLang: e.target.value })}
+                className="px-3 py-2 w-full rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              >   <option value="english" defaultChecked>english</option>
+                  {languages.map((lang) => (
+                    <option key={lang} value={lang}>{lang}</option>
+                  ))}
+                </select>
+              )}
             </div>
             <div className="flex justify-end mt-6 space-x-3">
               <button

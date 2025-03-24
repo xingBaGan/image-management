@@ -15,7 +15,8 @@ let options = {
     pythonPath: pythonPath,
     pythonOptions: ['-u'], // get print results in real-time
     scriptPath: './',
-    args: []
+    args: [],
+    encoding: 'utf8'
 };
 const delimiter = ', ';
 async function tagImage(imagePath, modelName) {
@@ -49,7 +50,24 @@ async function getMainColor(imagePath) {
     result = JSON.parse(result);
     return result;
 }
+async function translateTextFromEnglish(targetLang, englishText) {
+    const translation_path = isDev ? path.join(__dirname, './translation.py') : path.join(process.resourcesPath, 'script', 'translation.py');
+    options.scriptPath = path.dirname(translation_path);
+    options.args = ['translate', targetLang, englishText];
+    const result = await PythonShell.run(path.basename(translation_path), options);
+    return result[0];
+}
+async function getAllLangs() {
+    const translation_path = isDev ? path.join(__dirname, './translation.py') : path.join(process.resourcesPath, 'script', 'translation.py');
+    options.scriptPath = path.dirname(translation_path);
+    options.args = ['get_all_langs'];
+    const result = await PythonShell.run(path.basename(translation_path), options);
+    const stringResult = result[0];
+    return JSON.parse(stringResult.replaceAll('\'', '"'));
+}
 module.exports = {
     tagImage,
-    getMainColor
+    getMainColor,
+    translateTextFromEnglish,
+    getAllLangs
 };

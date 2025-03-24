@@ -184,6 +184,7 @@ export const translations = {
     deleteImagesConfirmTitle: 'Delete Images',
     deleteImagesConfirmMessage: 'Are you sure you want to delete {{count}} images?',
     deleteBindInFolder: '(Delete the bind folder category, it will automatically unbind from the image)',
+    targetLang: 'Target Language',
   },
   zh: {
     // 工具栏
@@ -369,5 +370,6 @@ export const translations = {
     deleteImagesConfirmTitle: '删除图片',
     deleteImagesConfirmMessage: '确定要删除这{{count}}张图片吗？',
     deleteBindInFolder: '(删除该绑定文件夹分类，将会自动解除与图片的绑定)',
+    targetLang: '目标语言',
   }
 }; 

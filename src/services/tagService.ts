@@ -36,11 +36,16 @@ export async function generateImageTags(imagePath: string): Promise<string[]> {
   }
 }
 
+export async function getAllLangs(): Promise<string[]> {
+  return await window.electron.getAllLangs();
+}
+
 export async function addTagsToImages(
   selectedImages: LocalImageData[], 
   allImages: LocalImageData[],
   categories: any[],
   modelName: string,
+  targetLang: string = 'english',
   setImportState: (importState: ImportStatus) => void
 ): Promise<{
   updatedImages: LocalImageData[],
@@ -54,7 +59,7 @@ export async function addTagsToImages(
     await Promise.all(
       selectedImages.map(async (image, index) => {
         const imagePath = await getLocalImagePath(image.path);
-        const newTags = await window.electron.tagImage(imagePath, modelName);
+        const newTags = await window.electron.tagImage(imagePath, modelName, targetLang);
         // 按照字母顺序排序
         const sortedTags = newTags.map(tag => tag.trim()).sort((a, b) => a.localeCompare(b));
         if (!image?.colors?.length) {
