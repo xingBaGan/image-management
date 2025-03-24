@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import { generateHashId } from '../utils/index.cjs';
+import { ffprobe } from 'fluent-ffmpeg';
 
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path.replace('app.asar', 'app.asar.unpacked');
 const ffprobePath = require('@ffprobe-installer/ffprobe').path.replace('app.asar', 'app.asar.unpacked');
@@ -62,20 +63,36 @@ const getVideoDuration = (filePath: string): Promise<number> => {
   });
 };
 
-// 生成视频缩略图
-const generateVideoThumbnail = (filePath: string): Promise<string> => {
+const getVideoSize = async (filePath: string): Promise<{ width: number, height: number }> => {
   return new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(filePath, (err: Error | null, metadata: any) => {
+      if (err) {
+        console.error('获取视频时长失败:', err);
+        reject(err);
+        return;
+      }
+      const width = metadata.streams[0].width;
+      const height = metadata.streams[0].height;
+      resolve({ width, height });
+    });
+  });
+};
+
+// 生成视频缩略图
+const generateVideoThumbnail = async (filePath: string): Promise<string> => {
+  return new Promise(async (resolve, reject) => {
     const thumbnailPath = path.join(app.getPath('userData'), 'thumbnails', `${path.basename(filePath)}.png`);
 
     // 确保缩略图目录存在
     fs.mkdirSync(path.dirname(thumbnailPath), { recursive: true });
-
+    // 获取video 的原宽高
+    const { width, height } = await getVideoSize(filePath);
     ffmpeg(filePath)
       .screenshots({
         timestamps: ['1'], // 在1秒处截图
         filename: path.basename(thumbnailPath),
         folder: path.dirname(thumbnailPath),
-        size: '320x240' // 缩略图尺寸
+        size: `${width}x${height}`,
       })
       .on('end', () => {
         // 将缩略图转换为 base64

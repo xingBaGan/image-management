@@ -61,7 +61,7 @@ interface MainContentProps {
   
   // 添加 setSelectedImages
   setSelectedImages: (images: Set<string>) => void;
-  currentSelectedCategory?: Category;
+  currentSelectedCategory?: Category| string;
 }
 
 export const MainContent: React.FC<MainContentProps> = ({
@@ -158,7 +158,7 @@ export const MainContent: React.FC<MainContentProps> = ({
               onRateChange={onRateChange}
               totalImages={images.length}
               totalVideos={images.filter(img => img.type === 'video').length}
-              type={selectedImage?.type || 'image'}
+              type={currentSelectedCategory === FilterType.Videos ? 'video' : 'image'}
               setFilterColors={setFilterColors}
               setSelectedImages={setSelectedImages}
             />
