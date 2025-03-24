@@ -67,6 +67,7 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@electron/remote": "^2.0.10",
     "@eslint/js": "^9.9.1",
     "@jest/globals": "^29.7.0",
     "@jest/types": "^29.6.3",

@@ -103,6 +103,8 @@ async function createWindow() {
 
   if (isDev) {
     await mainWindow.loadURL('http://localhost:5173');
+    const devtools = new BrowserWindow();
+    mainWindow.webContents.setDevToolsWebContents(devtools.webContents)
     mainWindow.webContents.openDevTools({
       mode: 'detach'
     });
