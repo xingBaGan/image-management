@@ -23,31 +23,46 @@ async function tagImage(imagePath, modelName) {
     const tag_path = isDev ? path.join(__dirname, './ai_tagger.py') : path.join(process.resourcesPath, 'script', 'ai_tagger.py');
     options.scriptPath = path.dirname(tag_path);
     options.args = [imagePath, modelName, model_dir_path];
-    const result = await PythonShell.run(path.basename(tag_path), options);
-    return result[2].split(delimiter);
+    try {
+        const result = await PythonShell.run(path.basename(tag_path), options);
+        if (result.length < 2) {
+            return [];
+        }
+        return result[2].split(delimiter);
+    }
+    catch (err) {
+        console.error('AI标注出错:', err);
+        return ['AI标注出错: ' + err.message];
+    }
 }
 async function getMainColor(imagePath) {
     const color_path = isDev ? path.join(__dirname, './get_main_color.py') : path.join(process.resourcesPath, 'script', 'get_main_color.py');
     options.scriptPath = path.dirname(color_path);
     options.args = [imagePath];
-    let result = await PythonShell.run(path.basename(color_path), options);
-    // console.log('result', result)
-    /**
-     * ["[{'color': '#bdb87d', 'percentage': np.float64(18.3)},
-     * {'color': '#eff0e7', 'percentage': np.float64(16.44)},
-     * {'color': '#90c1eb', 'percentage': np.float64(12.75)},
-     * {'color': '#7c6648', 'percentage': np.float64(12.65)}
-     * ]"'
-     * 转为
-     * [{color: '#bdb87d', percentage: 18.3},
-     * {color: '#eff0e7', percentage: 16.44},
-     * {color: '#90c1eb', percentage: 12.75},
-     * {color: '#7c6648', percentage: 12.65}
-     * ]
-     */
-    result = result[1].replaceAll('np.float64(', '').replaceAll(')', '').replaceAll('\'', '"');
-    result = JSON.parse(result);
-    return result;
+    try {
+        let result = await PythonShell.run(path.basename(color_path), options);
+        // console.log('result', result)
+        /**
+         * ["[{'color': '#bdb87d', 'percentage': np.float64(18.3)},
+         * {'color': '#eff0e7', 'percentage': np.float64(16.44)},
+         * {'color': '#90c1eb', 'percentage': np.float64(12.75)},
+         * {'color': '#7c6648', 'percentage': np.float64(12.65)}
+         * ]"'
+         * 转为
+         * [{color: '#bdb87d', percentage: 18.3},
+         * {color: '#eff0e7', percentage: 16.44},
+         * {color: '#90c1eb', percentage: 12.75},
+         * {color: '#7c6648', percentage: 12.65}
+         * ]
+         */
+        result = result[1].replaceAll('np.float64(', '').replaceAll(')', '').replaceAll('\'', '"');
+        result = JSON.parse(result);
+        return result;
+    }
+    catch (err) {
+        console.error('主色提取出错:', err);
+        return ['主色提取出错: ' + err.message];
+    }
 }
 module.exports = {
     tagImage,

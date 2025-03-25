@@ -100,19 +100,23 @@ def get_dominant_colors_kmeans(image_path, num_colors=5):
     return result
 
 def main():
-    if len(sys.argv) < 2:
-        print("请提供图片路径")
-        sys.exit(1)
+    try:
+        if len(sys.argv) < 2:
+            print("error:请提供图片路径")
+            sys.exit(1)
         
-    image_path = sys.argv[1]
+        image_path = sys.argv[1]
 
-    # 确保图片路径存在
-    if not os.path.exists(image_path):
-        print(f"图片不存在: {image_path}")
-        sys.exit(1)
+        # 确保图片路径存在
+        if not os.path.exists(image_path):
+            print(f"error:图片不存在: {image_path}")
+            sys.exit(1)
         
-    colors = get_dominant_colors_kmeans(image_path, 10)
-    print(colors)
+        colors = get_dominant_colors_kmeans(image_path, 10)
+        print(colors)
+    except Exception as e:
+        print(f"error:{str(e)}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

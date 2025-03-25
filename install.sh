@@ -73,6 +73,14 @@ else
     echo "Dependencies updated successfully!"
 fi
 
+if command -v nvidia-smi &> /dev/null; then
+    echo "NVIDIA GPU detected."
+    source venv/bin/activate
+    pip install cupy-cuda12x
+else
+    echo "Skipping CuPy installation as no NVIDIA GPU is detected."
+fi
+
 echo
 echo "Downloading AI model..."
 python3 script/download_models.py
