@@ -86,7 +86,7 @@ export const processMedia = async (
   existingImages: LocalImageData[], 
   categories: Category[],
   setImportState?: (importState: ImportStatus) => void,
-  currentSelectedCategory?: Category,
+  currentSelectedCategory?: Category | string,
   shouldSaveToLocal: boolean = true,
 ): Promise<LocalImageData[]> => {
   const existingIds = new Set((existingImages || []).map(img => img.id));
@@ -197,14 +197,15 @@ export const handleDrop = async (
   setImportState: (importState: ImportStatus) => void,
   currentSelectedCategory?: Category | string
 ) => {
-  if (typeof currentSelectedCategory === 'string')  return;
   e.preventDefault();
   const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'));
   const dirPaths = Array.from(e.dataTransfer.files).filter(files => files.type === "");
   let images: LocalImageData[] = [];
   if (files.length > 0) {
     let newImages = await processMedia(files as ImportFile[], existingImages, categories, setImportState, currentSelectedCategory, false);
-    newImages = await addImagesToCategory(newImages, categories, currentSelectedCategory);
+    if (typeof currentSelectedCategory !== 'string') {
+      newImages = await addImagesToCategory(newImages, categories, currentSelectedCategory);
+    }
     images.push(...newImages);
   }
 
