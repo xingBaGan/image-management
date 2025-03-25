@@ -74,6 +74,19 @@ export const useImageOperations = () => {
       .then(setImages);
   };
 
+  const handleBatchTagImages = async (imageIds: string[], tagNames: string[], categories: Category[]) => {
+    imageIds.forEach(async (id: string) => {
+      const image = images.find(img => img.id === id);
+      if (image) {
+        const tags = new Set([...image.tags, ...tagNames]);
+        image.tags = Array.from(tags);
+      }
+    });
+    setImages([...images]);
+    await window.electron.saveImagesToJson(images, categories);
+    return images;
+  };
+
   const handleRateChange = async (mediaId: string, rate: number, categories: Category[]) => {
     const { updatedImages, updatedImage } = await imageOperations.updateRating(mediaId, rate, images, categories);
     setImages(updatedImages);
@@ -106,5 +119,6 @@ export const useImageOperations = () => {
     showBindInFolderConfirm,
     setShowBindInFolderConfirm,
     executeDelete,
+    handleBatchTagImages,
   };
 }; 

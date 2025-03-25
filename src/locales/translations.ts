@@ -33,7 +33,7 @@ export const translations = {
     delete: 'Delete',
     rename: 'Rename',
     addToCategory: 'Add to Category',
-    addTags: 'Add Tags',
+    addTags: 'AI Tag',
     confirm: 'Confirm',
     cancel: 'Cancel',
     openConfig: 'Open Config File',
@@ -108,6 +108,13 @@ export const translations = {
     addTag: 'Add tag',
     tagInput: 'Enter tag',
     editTagTitle: 'Edit Tag',
+    batchTagSuccess: 'Batch tag success: {{count}} images',
+    batchTagError: 'Batch tag error',
+    batchTag: 'Add Tag',
+    batchTagDialogTitle: 'Batch Tag {{count}} images',
+    batchTagImages: 'Batch Tag {{count}} images',
+    confirmTagTitle: 'Confirm Tag',
+    confirmTagMessage: 'Are you sure you want to add the same tags to these {{count}} images?',
 
     // Colors
     percentage: 'Percentage: {{value}}%',
@@ -220,7 +227,7 @@ export const translations = {
     delete: '删除',
     rename: '重命名',
     addToCategory: '添加到分类',
-    addTags: '添加标签',
+    addTags: 'AI 打标',
     confirm: '确认',
     cancel: '取消',
     openConfig: '打开配置文件',
@@ -236,10 +243,15 @@ export const translations = {
     dateCreated: '创建日期',
     dateModified: '修改日期',
     tags: '标签',
+
+    // 标签 dialog
     tagsHint: '(按回车添加标签，按退格键删除)',
     totalImages: '{{count}}张图片',
     totalVideos: '{{count}}个视频',
     selected: '已选择{{count}}项',
+    batchTagImages: '添加标签{{count}}张图片',
+    confirmTagTitle: '确认添加标签',
+    confirmTagMessage: '确定要这{{count}}张图片添加相同的标签吗？',
 
     // 搜索
     searchImages: '搜索图片...',
@@ -291,9 +303,13 @@ export const translations = {
     enterTagName: '输入标签名称',
     closeDialog: '关闭对话框',
     deleteTag: '删除标签 {{tag}}',
-    addTag: '添加标签',
+    addTag: 'AI 打标',
     tagInput: '输入标签',
     editTagTitle: '编辑标签',
+    batchTagSuccess: '批量添加标签成功: {{count}} 张图片',
+    batchTagError: '批量添加标签失败',
+    batchTag: '添加标签',
+    batchTagDialogTitle: '批量添加标签 {{count}} 张图片',
 
     // 颜色
     percentage: '占比: {{value}}%',

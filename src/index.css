@@ -12,3 +12,39 @@
 .animate-fade-in-out {
   animation: fadeInOut 3s ease-in-out forwards;
 }
+
+.batch-tag-dialog {
+  .textarea {
+    width: 100%;
+    display: block;
+
+    > div {
+      margin-left: 5px;
+
+      > div > div {
+        /* 内陷效果 */
+        box-shadow: inset 2px 2px 4px 0px rgba(0, 0, 0, 0.2);
+        border-bottom: 2px solid #ccc;
+        border-right: 2px solid #ccc;
+
+        .group {
+          font-size: 18px;
+          padding: 6px;
+          height: 2.5rem;
+        }
+      }
+    }
+
+    input {
+      width: 100%;
+      border-top: 1px solid #ccc;
+      padding-top: 10px; 
+    }
+
+
+    .dialog-footer {
+      border-top: 1px solid #ccc;
+      box-shadow: 0 0 4px 0px rgba(0, 0, 0, 0.2);
+    }
+  }
+}

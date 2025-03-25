@@ -3,8 +3,7 @@ import { TitleBar } from './components/TitleBar';
 import { MainContent } from './components/MainContent';
 import Sidebar from './components/Sidebar';
 import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ImportFile, FilterType, SortType, SortDirection, FolderContentChangeType } from './types/index.ts';
-import { Trash2, FolderPlus, Tags } from 'lucide-react';
-
+import { Trash2, FolderPlus, Tags, Tag } from 'lucide-react';
 import { addTagsToImages } from './services/tagService';
 import { processMedia, addImagesToCategory } from './utils';
 import Settings from './components/Settings';
@@ -21,6 +20,10 @@ import { scan } from "react-scan";
 import ProgressBar from './components/ProgressBar';
 import DeleteImagesConfirmDialog from './components/DeleteImagesConfirmDialog';
 import { filterAndSortImages } from './services/imageOperations';
+import useBatchTag from './hooks/useBatchTag';
+import BatchTagDialog from './components/BatchTagDialog.tsx';
+import ConfirmTagDialog from './components/ConfirmTagDialog.tsx';
+
 const isDev = import.meta.env.DEV;
 if (isDev) {
   scan({ enabled: true, log: true, showToolbar: true });
@@ -103,8 +106,33 @@ function App() {
     showBindInFolderConfirm,
     setShowBindInFolderConfirm,
     executeDelete,
+    handleBatchTagImages: handleBatchTagImagesBase,
   } = useImageOperations();
 
+  const handleBatchTagImages = async (imageIds: string[], tagNames: string[]) => {
+    await handleBatchTagImagesBase(imageIds, tagNames, categories);
+    setSelectedImages(new Set());
+  };
+
+  const selectedImagesList = useMemo(() =>
+    mediaList.filter(img => selectedImages.has(img.id)),
+    [mediaList, selectedImages]);
+
+  const {
+    isTagPopupOpen,
+    isConfirmDialogOpen,
+    batchTagNames,
+    setBatchTagNames,
+    openTagPopup,
+    closeTagPopup,
+    openConfirmDialog,
+    closeConfirmDialog,
+    handleBatchTag,
+  } = useBatchTag({
+    selectedImages: selectedImagesList,
+    t,
+    handleBatchTagImages: handleBatchTagImages,
+  });
   // 使用 category hook
   const {
     categories,
@@ -221,7 +249,7 @@ function App() {
     }
   };
 
-  const handleAddTags = async () => {
+  const handleAddTags = useCallback(async () => {
     if (selectedCategory === FilterType.Videos) {
       setMessageBox({
         isOpen: true,
@@ -231,7 +259,6 @@ function App() {
       return;
     }
     // 获取选中的图片
-    let selectedImagesList = mediaList.filter(img => selectedImages.has(img.id));
     const { updatedImages, success } = await addTagsToImages(
       selectedImagesList,
       mediaList,
@@ -244,7 +271,7 @@ function App() {
       setMediaList(updatedImages);
       setSelectedImages(new Set());
     }
-  };
+  }, [selectedImagesList, mediaList, categories, settings.modelName, setImportState]);
 
   const bulkActions = [
     {
@@ -263,6 +290,11 @@ function App() {
       icon: <Tags size={20} />,
       label: t('addTags'),
       onClick: handleAddTags
+    },
+    {
+      icon: <Tag size={20} />,
+      label: t('batchTag'),
+      onClick: openTagPopup
     }
   ];
   const messageBoxClose = () => {
@@ -424,7 +456,7 @@ function App() {
           setImportState,
           currentSelectedCategory
         );
-        updatedImages= await addImagesToCategory(updatedImages, categories, currentSelectedCategory);
+        updatedImages = await addImagesToCategory(updatedImages, categories, currentSelectedCategory);
         setMediaList([...mediaList, ...updatedImages]);
         setMessageBox({
           isOpen: true,
@@ -636,6 +668,27 @@ function App() {
         onClose={() => setIsSettingsOpen(false)}
         setMessageBox={setMessageBox}
         messageBox={messageBox}
+      />
+
+      <BatchTagDialog
+        isOpen={isTagPopupOpen}
+        onClose={() => {
+          closeTagPopup();
+          setSelectedImages(new Set());
+        }}
+        onConfirm={(tags) => {
+          setBatchTagNames(tags);
+          openConfirmDialog();
+        }}
+        numImages={selectedImages.size}
+      />
+
+      <ConfirmTagDialog
+        isOpen={isConfirmDialogOpen}
+        onClose={closeConfirmDialog}
+        onConfirm={handleBatchTag}
+        tagNames={batchTagNames}
+        numImages={selectedImages.size}
       />
 
       {/* Progress Bars */}
