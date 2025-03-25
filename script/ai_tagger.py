@@ -3,7 +3,7 @@ import csv
 import numpy as np
 import onnxruntime as ort
 from PIL import Image
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 import sys
 
 class AITagger:
@@ -180,5 +180,20 @@ def main():
     tags, tags_text = tagger.tag_image(image_path, model_name=model_name)
     print(tags_text)
 
+
+def test_tag_image(image_path):
+    tagger = AITagger('models')
+    tags, tags_text = tagger.tag_image(image_path, "wd-v1-4-moat-tagger-v2")
+    print(tags_text)
+
+def multi_tag_image():
+    dir_path = r"K:\dataset2\animesfw"
+    files = [os.path.join(dir_path, file) for file in os.listdir(dir_path)[:100] if file.endswith(".jpg") or file.endswith(".png")]
+    
+    from multiprocessing import Pool
+    with Pool(processes=10) as pool:
+        pool.map(test_tag_image, files)
+
 if __name__ == "__main__":
+    # multi_tag_image()
     main()

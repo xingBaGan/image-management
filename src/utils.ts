@@ -195,8 +195,9 @@ export const handleDrop = async (
   existingImages: LocalImageData[],
   categories: Category[],
   setImportState: (importState: ImportStatus) => void,
-  currentSelectedCategory?: Category
+  currentSelectedCategory?: Category | string
 ) => {
+  if (typeof currentSelectedCategory === 'string')  return;
   e.preventDefault();
   const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'));
   const dirPaths = Array.from(e.dataTransfer.files).filter(files => files.type === "");
