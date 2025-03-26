@@ -115,6 +115,8 @@ export const translations = {
     batchTagImages: 'Batch Tag {{count}} images',
     confirmTagTitle: 'Confirm Tag',
     confirmTagMessage: 'Are you sure you want to add the same tags to these {{count}} images?',
+    copyTagsSuccess: 'Tags copied to clipboard',
+    pasteTagsSuccess: 'Tags pasted',
 
     // Colors
     percentage: 'Percentage: {{value}}%',
@@ -252,6 +254,8 @@ export const translations = {
     batchTagImages: '添加标签{{count}}张图片',
     confirmTagTitle: '确认添加标签',
     confirmTagMessage: '确定要这{{count}}张图片添加相同的标签吗？',
+    copyTagsSuccess: '标签已复制到剪贴板',
+    pasteTagsSuccess: '标签已粘贴',
 
     // 搜索
     searchImages: '搜索图片...',

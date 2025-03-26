@@ -386,3 +386,7 @@ export const isSimilarColor = (color1: string, color2: string, precision: number
   // 根据精度判断是否相似
   return similarity >= precision;
 }; 
+
+export const isArrayOfString = (arr: any[]): boolean => {
+  return Array.isArray(arr) && arr.every((item) => typeof item === 'string');
+};

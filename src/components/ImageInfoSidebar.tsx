@@ -133,6 +133,7 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
                             tags={image.tags || []}
                             mediaId={image.id}
                             onTagsUpdate={onTagsUpdate}
+                            showCopyButton={true}
                         />
                     </div>
                 </div>

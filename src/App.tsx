@@ -5,7 +5,7 @@ import Sidebar from './components/Sidebar';
 import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ImportFile, FilterType, SortType, SortDirection, FolderContentChangeType } from './types/index.ts';
 import { Trash2, FolderPlus, Tags, Tag } from 'lucide-react';
 import { addTagsToImages } from './services/tagService';
-import { processMedia, addImagesToCategory } from './utils';
+import { processMedia, addImagesToCategory, isArrayOfString } from './utils';
 import Settings from './components/Settings';
 import DeleteConfirmDialog from './components/DeleteConfirmDialog';
 import MessageBox from './components/MessageBox';
@@ -23,7 +23,7 @@ import { filterAndSortImages } from './services/imageOperations';
 import useBatchTag from './hooks/useBatchTag';
 import BatchTagDialog from './components/BatchTagDialog.tsx';
 import ConfirmTagDialog from './components/ConfirmTagDialog.tsx';
-
+import { ToastContainer } from 'react-toastify';
 const isDev = import.meta.env.DEV;
 if (isDev) {
   scan({ enabled: true, log: true, showToolbar: true });
@@ -393,7 +393,10 @@ function App() {
 
       e.preventDefault();
       const clipboardText = e.clipboardData?.getData('text') || '';
-
+      const parsedTags = JSON.parse(clipboardText);
+      if (isArrayOfString(parsedTags)) {
+        return;
+      }
       // if (!clipboardText) return;
 
       // 检查是否为 URL
@@ -674,7 +677,6 @@ function App() {
         isOpen={isTagPopupOpen}
         onClose={() => {
           closeTagPopup();
-          setSelectedImages(new Set());
         }}
         onConfirm={(tags) => {
           setBatchTagNames(tags);
@@ -711,6 +713,7 @@ function App() {
           offset={0}
         />
       )}
+      <ToastContainer />
     </div>
   );
 }

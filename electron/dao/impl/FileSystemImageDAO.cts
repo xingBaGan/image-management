@@ -159,7 +159,6 @@ export default class FileSystemImageDAO implements ImageDAO {
       img.id === mediaId ? { ...img, tags: newTags } : img
     );
     const ids = updatedImages.map(img => img.id);
-    console.log('updatedImages', updatedImages, mediaId, ids);
     if (ids.includes(mediaId)) {
       await saveImagesAndCategories(updatedImages, categories);
     }
