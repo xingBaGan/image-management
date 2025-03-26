@@ -2,7 +2,7 @@ import os
 import sys
 from PIL import Image
 import numpy as np
-
+import time
 try:
     import cupy as cp
     from cupy.cuda import runtime
@@ -41,7 +41,7 @@ def get_dominant_colors_kmeans(image_path, num_colors=5):
         pixels_gpu = cp.asarray(pixels, dtype=cp.float32)
         
         # 随机初始化聚类中心
-        centroids = pixels_gpu[cp.random.choice(len(pixels_gpu), num_colors, replace=False)]
+        centroids = kmeans_plusplus_init(pixels_gpu, num_colors)
         
         # KMeans迭代
         for _ in range(20):  # 最大迭代次数
@@ -66,7 +66,7 @@ def get_dominant_colors_kmeans(image_path, num_colors=5):
         labels = cp.asnumpy(labels)
     else:
         # CPU模式
-        kmeans = KMeans(n_clusters=num_colors, random_state=0)
+        kmeans = KMeans(n_clusters=num_colors, init='k-means++')
         kmeans.fit(pixels)
         colors = kmeans.cluster_centers_
         labels = kmeans.labels_
@@ -99,6 +99,17 @@ def get_dominant_colors_kmeans(image_path, num_colors=5):
     
     return result
 
+def kmeans_plusplus_init(pixels, num_colors):
+    centroids = cp.zeros((num_colors, 3), dtype=cp.float32)
+    centroids[0] = pixels[cp.random.choice(len(pixels), size=1)]
+    
+    for i in range(1, num_colors):
+        distances = cp.min(cp.sum((pixels[:, cp.newaxis] - centroids[:i]) ** 2, axis=2), axis=1)
+        probabilities = distances / cp.sum(distances)
+        centroids[i] = pixels[cp.random.choice(len(pixels), size=1, p=probabilities)]
+        
+    return centroids
+
 def main():
     try:
         if len(sys.argv) < 2:
@@ -118,8 +129,26 @@ def main():
         print(f"error:{str(e)}")
         sys.exit(1)
 
+def test_get_main_color(image_path):
+    colors = get_dominant_colors_kmeans(image_path, 10)
+    print(colors)
+
+def multi_get_main_color():
+    dir_path = r"K:\dataset2\animesfw"
+    files = [os.path.join(dir_path, file) for file in os.listdir(dir_path)[:50] if file.endswith(".jpg") or file.endswith(".png")]
+    
+    from multiprocessing import Pool
+    with Pool(processes=10) as pool:
+        pool.map(test_get_main_color, files)
+
+
 if __name__ == "__main__":
     main()
+    # 计算时间
+    # start_time = time.time()
+    # multi_get_main_color()
+    # end_time = time.time()
+    # print(f"运行时间: {end_time - start_time} 秒")
 
 # colors = get_dominant_colors_kmeans("C:\\Users\\jzj\\Pictures\\姿势\\甘雨.png")
 # print(colors)

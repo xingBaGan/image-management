@@ -69,6 +69,9 @@ export interface Category {
   count: number;
   isImportFromFolder?: boolean;
   folderPath?: string;
+  children?: Category[]; 
+  father?: Category | null; // 新增父分类属性
+  order?: number;
 }
 
 // =============== 设置相关类型 ===============

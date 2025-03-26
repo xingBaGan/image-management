@@ -32,7 +32,9 @@ export interface Category {
   folderPath?: string;
   isImportFromFolder?: boolean;
   order?: number;
-}
+  children?: Category[];
+  father?: Category | null; // 新增父分类属性
+  }
 
 export interface QueryOptions {
   limit?: number;
