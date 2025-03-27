@@ -87,17 +87,28 @@ class TaskQueue extends EventEmitter {
   getQueueLength(): number {
     return this.queue.length;
   }
-
+  
+  getTotalLength(): number {
+    return this.total;
+  }
+  
+  getCompletedLength(): number {
+    return this.completed;
+  }
   getRunningTasks(): string[] {
     return Array.from(this.running);
   }
 
+  getRunningLength(): number {
+    return this.running.size;
+  }
+
   getProgress(): QueueProgress {
     return {
-      total: this.total,
-      completed: this.completed,
-      percentage: this.total > 0 ? Math.round((this.completed / this.total) * 100) : 0,
-      running: this.running.size
+      total: this.getTotalLength(),
+      completed: this.getCompletedLength(),
+      percentage: this.getTotalLength() > 0 ? Math.round((this.getCompletedLength() / this.getTotalLength()) * 100) : 0,
+      running: this.getRunningLength()
     };
   }
 
@@ -105,6 +116,14 @@ class TaskQueue extends EventEmitter {
     this.total = 0;
     this.completed = 0;
     this._emitProgress();
+  }
+
+  cancelAllTasks(): void {
+    this.queue.end();
+    this.running.clear();
+    setTimeout(() => {
+      this.reset();
+    }, 1000);
   }
 }
 

@@ -86,7 +86,7 @@ export const processMedia = async (
   existingImages: LocalImageData[], 
   categories: Category[],
   setImportState?: (importState: ImportStatus) => void,
-  currentSelectedCategory?: Category,
+  currentSelectedCategory?: Category | string,
   shouldSaveToLocal: boolean = true,
 ): Promise<LocalImageData[]> => {
   const existingIds = new Set((existingImages || []).map(img => img.id));
@@ -195,7 +195,7 @@ export const handleDrop = async (
   existingImages: LocalImageData[],
   categories: Category[],
   setImportState: (importState: ImportStatus) => void,
-  currentSelectedCategory?: Category
+  currentSelectedCategory?: Category | string
 ) => {
   e.preventDefault();
   const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'));
@@ -203,7 +203,9 @@ export const handleDrop = async (
   let images: LocalImageData[] = [];
   if (files.length > 0) {
     let newImages = await processMedia(files as ImportFile[], existingImages, categories, setImportState, currentSelectedCategory, false);
-    newImages = await addImagesToCategory(newImages, categories, currentSelectedCategory);
+    if (typeof currentSelectedCategory !== 'string') {
+      newImages = await addImagesToCategory(newImages, categories, currentSelectedCategory);
+    }
     images.push(...newImages);
   }
 
@@ -212,7 +214,7 @@ export const handleDrop = async (
       if ('path' in file) {
         setImportState(ImportStatus.Importing);
         const firstFile = file.path as string;
-        let [newImages, category] = await window.electron.processDirectoryFiles(firstFile, currentSelectedCategory);
+        let [newImages, category] = await window.electron.processDirectoryFiles(firstFile, currentSelectedCategory as Category);
         newImages = await addImagesToCategory(newImages, categories, category);
         images.push(...newImages);
       }
@@ -384,3 +386,7 @@ export const isSimilarColor = (color1: string, color2: string, precision: number
   // 根据精度判断是否相似
   return similarity >= precision;
 }; 
+
+export const isArrayOfString = (arr: any[]): boolean => {
+  return Array.isArray(arr) && arr.every((item) => typeof item === 'string');
+};

@@ -17,6 +17,7 @@ import {
 import { promises as fsPromises } from 'fs';
 import { app } from 'electron';
 import * as path from 'path';
+import { lockFile, unlockFile } from '../../utils/fileLock.cjs';
 const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result ? {
@@ -159,7 +160,6 @@ export default class FileSystemImageDAO implements ImageDAO {
       img.id === mediaId ? { ...img, tags: newTags } : img
     );
     const ids = updatedImages.map(img => img.id);
-    console.log('updatedImages', updatedImages, mediaId, ids);
     if (ids.includes(mediaId)) {
       await saveImagesAndCategories(updatedImages, categories);
     }
@@ -294,19 +294,28 @@ export default class FileSystemImageDAO implements ImageDAO {
       delete img.isDirty;
     });
     const jsonData = JSON.stringify({ images, categories }, null, 2);
-    await fsPromises.writeFile(tempPath, jsonData, 'utf-8');
-  
-    // 验证临时文件的完整性
+
     try {
+      await lockFile(jsonPath);
+
+      // 先写入临时文件
+      await fsPromises.writeFile(tempPath, jsonData, 'utf-8');
+
+      // 验证临时文件完整性
       const tempContent = await fsPromises.readFile(tempPath, 'utf-8');
       JSON.parse(tempContent); // 验证 JSON 格式是否正确
+
+      // 原子性地替换原文件
+      await fsPromises.rename(tempPath, jsonPath);
+
+      await unlockFile(jsonPath);
+
     } catch (error) {
-      throw new Error('临时文件写入验证失败');
+      // 处理写入异常,必要时重试
+      console.error('写入文件时发生异常:', error);
+      throw error; 
     }
-  
-    // 如果验证成功，替换原文件
-    await fsPromises.rename(tempPath, jsonPath);
-  
+
     return true;
   }
 }

@@ -56,7 +56,7 @@ const MediaItem = memo(({
   }, [currentViewIndex, index]);
 
   return (
-    <div ref={ref}>
+    <div ref={ref} className="waterfall-item">
       <div ref={triggerRef}></div>
       {(inCache && !shouldDestroy) && (
         <div className={`relative ${media.isBindInFolder ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}`}>

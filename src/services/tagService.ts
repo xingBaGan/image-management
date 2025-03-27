@@ -46,10 +46,10 @@ export async function addTagsToImages(
   updatedImages: LocalImageData[],
   success: boolean
 }> {
+  let finalImages: LocalImageData[] = allImages;
   try {
     setImportState(ImportStatus.Tagging);
     // 对每个选中的图片调用 tagger API
-    let finalImages: LocalImageData[] = allImages;
     const tagsImages: LocalImageData[] = [];
     await Promise.all(
       selectedImages.map(async (image, index) => {
@@ -91,10 +91,6 @@ export async function addTagsToImages(
       success: true
     };
   } catch (error) {
-    console.error('批量添加标签失败:', error);
-    return {
-      updatedImages: allImages,
-      success: false
-    };
+    throw error;
   }
 }

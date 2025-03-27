@@ -58,6 +58,16 @@ if not exist "venv" (
     echo Dependencies updated successfully!
 )
 
+echo Checking for NVIDIA GPU...
+where nvidia-smi >nul 2>nul
+if %errorlevel% equ 0 (
+    echo NVIDIA GPU detected.
+    call venv\Scripts\activate
+    pip install cupy-cuda12x
+) else (
+    echo Skipping CuPy installation as no NVIDIA GPU is detected.
+)
+
 echo.
 echo Downloading AI model...
 python script\download_models.py

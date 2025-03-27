@@ -32,7 +32,6 @@ export async function downloadImage(imageUrl: string): Promise<string> {
     const fileName = imageUrl.split('/').pop() || 'image.jpg';
     // 从Content-Type: 中获取文件后缀
     const contentType = response.headers.get('Content-Type');
-    console.log('contentType', contentType);
     const ext = contentType?.split('/').pop() || fileName.split('.').pop() || 'jpg';
 
     // 将 blob 转换为 Uint8Array

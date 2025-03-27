@@ -3,7 +3,7 @@ import csv
 import numpy as np
 import onnxruntime as ort
 from PIL import Image
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 import sys
 
 class AITagger:
@@ -164,21 +164,41 @@ class AITagger:
     
 def main():
     if len(sys.argv) < 2:
-        print("请提供图片路径")
+        print("error:请提供图片路径")
         sys.exit(1)
         
     image_path = sys.argv[1]
     model_name = sys.argv[2] if len(sys.argv) > 2 else "wd-v1-4-moat-tagger-v2"
     model_dir_path = sys.argv[3] if len(sys.argv) > 3 else "models"
-    tagger = AITagger(model_dir_path)
-    # 确保图片路径存在
-    if not os.path.exists(image_path):
-        print(f"图片不存在: {image_path}")
+    
+    try:
+        tagger = AITagger(model_dir_path)
+        # 确保图片路径存在
+        if not os.path.exists(image_path):
+            print(f"error:图片不存在: {image_path}")
+            sys.exit(1)
+            
+        print(f"处理图片: {image_path}")
+        tags, tags_text = tagger.tag_image(image_path, model_name=model_name)
+        print(tags_text)
+    except Exception as e:
+        print(f"error:{str(e)}")
         sys.exit(1)
-        
-    print(f"处理图片: {image_path}")
-    tags, tags_text = tagger.tag_image(image_path, model_name=model_name)
+
+
+def test_tag_image(image_path):
+    tagger = AITagger('models')
+    tags, tags_text = tagger.tag_image(image_path, "wd-v1-4-moat-tagger-v2")
     print(tags_text)
 
+def multi_tag_image():
+    dir_path = r"K:\dataset2\animesfw"
+    files = [os.path.join(dir_path, file) for file in os.listdir(dir_path)[:100] if file.endswith(".jpg") or file.endswith(".png")]
+    
+    from multiprocessing import Pool
+    with Pool(processes=10) as pool:
+        pool.map(test_tag_image, files)
+
 if __name__ == "__main__":
+    # multi_tag_image()
     main()

@@ -69,6 +69,9 @@ export interface Category {
   count: number;
   isImportFromFolder?: boolean;
   folderPath?: string;
+  children?: Category[]; 
+  father?: Category | null; // 新增父分类属性
+  order?: number;
 }
 
 // =============== 设置相关类型 ===============
@@ -97,6 +100,12 @@ export enum ImportStatus {
   Imported = 'imported',
   Failed = 'failed',
   Loading = 'loading',
+}
+
+export enum TaskStatus {
+  Running = 'running',
+  Initialized = 'initialized',
+  Canceled = 'canceled',
 }
 
 // =============== 插件系统相关类型 ===============
@@ -304,6 +313,9 @@ export interface ElectronAPI {
   deleteFile: (filePath: string) => Promise<boolean>;
   categoryAPI: ipcCategoryAPI;
   imageAPI: IPCImageService;
+  cancelTagging: () => Promise<boolean>;
+  cancelColor: () => Promise<boolean>;
+  isReadFromDB: () => Promise<boolean>;
 }
 
 // =============== 类型守卫函数 ===============

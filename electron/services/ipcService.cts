@@ -302,6 +302,32 @@ const init = (): void => {
     return isRemoteComfyUI();
   });
 
+  ipcMain.handle('cancel-tagging', async () => {
+    try {
+      // 取消所有正在运行的打标任务
+      tagQueue.cancelAllTasks();
+      return { success: true };
+    } catch (error) {
+      logger.error('取消打标失败:', { error } as LogMeta);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  ipcMain.handle('is-read-from-db', async () => {
+    return isReadFromDB();
+  });
+
+  ipcMain.handle('cancel-color', async () => {
+    try {
+      // 取消所有正在运行的配色任务
+      colorQueue.cancelAllTasks();
+      return { success: true };
+    } catch (error) {
+      logger.error('取消配色失败:', { error } as LogMeta);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
   // 初始化插件系统
   const pluginService = require('./pluginService.cjs');
   pluginService.initializeAndSetupIPC(ipcMain);

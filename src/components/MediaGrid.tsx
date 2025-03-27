@@ -93,14 +93,15 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
   const handleMouseUp = (e: React.MouseEvent) => {
     const currentTime = Date.now();
     const timeDiff = currentTime - mouseDownTime;
-
+    const isInListItem = (e.target as HTMLElement).closest('.image-item');
+    const isInGridItem = (e.target as HTMLElement).closest('.waterfall-item');
     if (isSelecting) {
       // 如果正在框选，处理框选逻辑
       const selectedIds = getImagesInSelection();
       if (selectedIds.length > 0) {
         selectedIds.forEach(id => onSelectImage(id, true));
       }
-    } else if (timeDiff < 200 && mouseDownPos) {
+    } else if (timeDiff < 200 && mouseDownPos && (!isInListItem && !isInGridItem)) {
       // 如果是快速点击（小于200ms）且没有明显移动，视为点击事件
       onSelectImage('', false); // 清除选择
     }

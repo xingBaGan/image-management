@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Tag, X, Plus } from 'lucide-react';
+import { X, Copy } from 'lucide-react';
 import { useLocale } from '../contexts/LanguageContext';
+import { toast } from 'react-toastify';
+import { isArrayOfString } from '../utils';
 
 interface MediaTagsProps {
   tags: string[];
   mediaId: string;
   onTagsUpdate: (mediaId: string, newTags: string[]) => void;
+  showCopyButton?: boolean;
 }
 
 const MediaTags: React.FC<MediaTagsProps> = ({
   tags,
   mediaId,
   onTagsUpdate,
+  showCopyButton = false,
 }) => {
   const { t } = useLocale();
   const [selectedTags, setSelectedTags] = useState<string[]>(tags);
@@ -49,9 +53,22 @@ const MediaTags: React.FC<MediaTagsProps> = ({
     onTagsUpdate(mediaId, newTags);
   };
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    try {
+      const parsedTags = JSON.parse(pastedText);
+      if (isArrayOfString(parsedTags)) {
+        setSelectedTags(parsedTags);
+        onTagsUpdate(mediaId, parsedTags);
+        toast.success(t('pasteTagsSuccess'));
+      }
+    } catch (error) {
+      // Invalid JSON, do nothing
+    }
+  }
   return (
-    <div className="w-full p-2 bg-gray-50 dark:bg-gray-800 rounded-lg min-h-[8rem] bg-white/30 backdrop-blur-md dark:bg-gray-800/30 dark:border-gray-700">
-      <div className="flex overflow-y-auto flex-wrap gap-2 mb-2 h-40">
+    <div className="w-full p-2 bg-gray-50 dark:bg-gray-800 rounded-lg min-h-[8rem] bg-white/30 backdrop-blur-md dark:bg-gray-800/30 dark:border-gray-700" onPaste={handlePaste}>
+      <div className="flex overflow-y-auto relative flex-wrap gap-2 mb-2 h-40 tags-container">
         {selectedTags.map((tag, index) => (
           <div
             key={index}
@@ -67,6 +84,18 @@ const MediaTags: React.FC<MediaTagsProps> = ({
             </button>
           </div>
         ))}
+        {showCopyButton && (
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(JSON.stringify(selectedTags));
+              toast.success(t('copyTagsSuccess'));
+            }}
+          className="fixed right-1 bottom-1 p-1 text-gray-500 hover:text-gray-700 focus:outline-none"
+          aria-label={t('copyTags')}
+        >
+          <Copy size={16} />
+          </button>
+        )}
       </div>
       <input
         type="text"

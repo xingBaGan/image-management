@@ -1,6 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { Category, LocalImageData } from './dao/type.cjs';
-
 const parseArgs = (args: any[]): any[] => {
   return [...args].map(arg => JSON.parse(arg));
 }
@@ -23,6 +22,7 @@ contextBridge.exposeInMainWorld('electron', {
   deleteFile: (filePath: string) => ipcRenderer.invoke('delete-file', filePath),
   showInFolder: (filePath: string) => ipcRenderer.invoke('show-in-folder', filePath),
   openInEditor: (filePath: string) => ipcRenderer.invoke('open-in-photoshop', filePath),
+  isReadFromDB: () => ipcRenderer.invoke('is-read-from-db'),
 
   // =============== 图片数据管理相关 ===============
   loadImagesFromJson: () => ipcRenderer.invoke('load-images-from-json'),
@@ -87,6 +87,8 @@ contextBridge.exposeInMainWorld('electron', {
   removeQueueUpdateListener: (callback: (status: any) => void) => {
     ipcRenderer.removeListener('queue-progress-update', callback);
   },
+  cancelTagging: () => ipcRenderer.invoke('cancel-tagging'),
+  cancelColor: () => ipcRenderer.invoke('cancel-color'),
 
   // =============== 文件夹监听相关 ===============
   openFolderDialog: () => ipcRenderer.invoke('open-folder-dialog'),
@@ -118,7 +120,7 @@ contextBridge.exposeInMainWorld('electron', {
     if (channel === 'initialize-plugin') {
       ipcRenderer.removeListener(channel, callback);
     }
-  }
+  },
 });
 
 // =============== 插件系统相关 API ===============
