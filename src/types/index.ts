@@ -102,6 +102,12 @@ export enum ImportStatus {
   Loading = 'loading',
 }
 
+export enum TaskStatus {
+  Running = 'running',
+  Initialized = 'initialized',
+  Canceled = 'canceled',
+}
+
 // =============== 插件系统相关类型 ===============
 export interface Plugin {
   id: string;
@@ -307,6 +313,9 @@ export interface ElectronAPI {
   deleteFile: (filePath: string) => Promise<boolean>;
   categoryAPI: ipcCategoryAPI;
   imageAPI: IPCImageService;
+  cancelTagging: () => Promise<boolean>;
+  cancelColor: () => Promise<boolean>;
+  isReadFromDB: () => Promise<boolean>;
 }
 
 // =============== 类型守卫函数 ===============

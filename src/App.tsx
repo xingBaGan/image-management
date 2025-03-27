@@ -1,8 +1,20 @@
-import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef, Dispatch, SetStateAction } from 'react';
 import { TitleBar } from './components/TitleBar';
 import { MainContent } from './components/MainContent';
 import Sidebar from './components/Sidebar';
-import { Category, ViewMode, LocalImageData, ImportStatus, FilterOptions, ImportFile, FilterType, SortType, SortDirection, FolderContentChangeType } from './types/index.ts';
+import {
+  Category,
+  ViewMode,
+  LocalImageData,
+  ImportStatus,
+  FilterOptions,
+  ImportFile,
+  FilterType,
+  SortType,
+  SortDirection,
+  FolderContentChangeType,
+  TaskStatus
+} from './types/index.ts';
 import { Trash2, FolderPlus, Tags, Tag } from 'lucide-react';
 import { addTagsToImages } from './services/tagService';
 import { processMedia, addImagesToCategory, isArrayOfString } from './utils';
@@ -24,6 +36,7 @@ import useBatchTag from './hooks/useBatchTag';
 import BatchTagDialog from './components/BatchTagDialog.tsx';
 import ConfirmTagDialog from './components/ConfirmTagDialog.tsx';
 import { ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 const isDev = import.meta.env.DEV;
 if (isDev) {
   scan({ enabled: true, log: true, showToolbar: true });
@@ -69,6 +82,13 @@ function App() {
   }>({
     tag: { total: 0, completed: 0, percentage: 0, running: 0 },
     color: { total: 0, completed: 0, percentage: 0, running: 0 }
+  });
+  const [tasksStatus, setTasksStatus] = useState<{
+    tag: TaskStatus;
+    color: TaskStatus;
+  }>({
+    tag: TaskStatus.Initialized,
+    color: TaskStatus.Initialized
   });
 
   // 添加最大化状态监听
@@ -259,6 +279,7 @@ function App() {
       return;
     }
     // 获取选中的图片
+   try {
     const { updatedImages, success } = await addTagsToImages(
       selectedImagesList,
       mediaList,
@@ -271,6 +292,10 @@ function App() {
       setMediaList(updatedImages);
       setSelectedImages(new Set());
     }
+   } catch (error) {
+    console.error(error);
+    toast.error(t('tagCanceled'));
+   }
   }, [selectedImagesList, mediaList, categories, settings.modelName, setImportState]);
 
   const bulkActions = [
@@ -488,21 +513,28 @@ function App() {
   }, []);
 
   useEffect(() => {
-    setImportState(ImportStatus.Loading);
-    filterAndSortImages(mediaList, {
-      filter,
-      selectedCategory,
-      categories,
-      searchTags,
-      filterColors,
-      multiFilter,
-      sortBy,
-      sortDirection
-    }).then(images => {
-      setFilteredAndSortedImages(images);
-    }).finally(() => {
-      setImportState(ImportStatus.Imported);
-    });
+    const fetchData = async () => {
+      if (await window.electron.isReadFromDB()) {
+        setImportState(ImportStatus.Loading);
+      }
+      filterAndSortImages(mediaList, {
+        filter,
+        selectedCategory,
+        categories,
+        searchTags,
+        filterColors,
+        multiFilter,
+        sortBy,
+        sortDirection
+      }).then(images => {
+        setFilteredAndSortedImages(images);
+      }).finally(async () => {
+        if (await window.electron.isReadFromDB()) {
+          setImportState(ImportStatus.Imported);
+        }
+      });
+    };
+    fetchData();
   }, [
     mediaList,
     sortBy,
@@ -561,6 +593,36 @@ function App() {
       };
     }
   }, [shouldListenFolders]); // 只依赖 shouldListenFolders
+
+  const handleCancelTagging = async (setShouldShow: Dispatch<SetStateAction<boolean>>) => {
+    // 实现取消打标的逻辑，例如清空队列，重置进度等
+    setShouldShow(false);
+    setQueueProgress({
+      tag: { total: 0, completed: 0, percentage: 0, running: 0 },
+      color: { total: 0, completed: 0, percentage: 0, running: 0 }
+    });
+    await window.electron.cancelTagging();
+  };
+
+  const handleCancelColor = async (setShouldShow: Dispatch<SetStateAction<boolean>>) => {
+    // 实现取消配色的逻辑，例如清空队列，重置进度等
+    setShouldShow(false);
+    setQueueProgress({
+      tag: { total: 0, completed: 0, percentage: 0, running: 0 },
+      color: { total: 0, completed: 0, percentage: 0, running: 0 }
+    });
+    await window.electron.cancelColor();
+  };
+
+  useEffect(() => {
+    console.log(tasksStatus);
+    const s1 = tasksStatus.tag === TaskStatus.Canceled && tasksStatus.color !== TaskStatus.Running;
+    const s2 = tasksStatus.color === TaskStatus.Canceled && tasksStatus.tag !== TaskStatus.Running;
+    if (s1 || s2) {
+      setImportState(ImportStatus.Imported);
+      setSelectedImages(new Set());
+    }
+  }, [tasksStatus]);
 
   return (
     <div className="flex flex-col h-screen backdrop-blur-md dark:bg-gray-900"
@@ -701,6 +763,8 @@ function App() {
           total={queueProgress.tag.total}
           completed={queueProgress.tag.completed}
           offset={queueProgress.color.total > 0 ? 80 : 0}
+          onCancel={handleCancelTagging}
+          setTasksStatus={setTasksStatus}
         />
       )}
 
@@ -711,6 +775,8 @@ function App() {
           total={queueProgress.color.total}
           completed={queueProgress.color.completed}
           offset={0}
+          onCancel={handleCancelColor}
+          setTasksStatus={setTasksStatus}
         />
       )}
       <ToastContainer />

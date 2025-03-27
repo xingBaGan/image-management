@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocale } from '../contexts/LanguageContext';
+import { TaskStatus } from '../types/index.ts';
 
 interface ProgressBarProps {
   progress: number;
@@ -8,11 +9,41 @@ interface ProgressBarProps {
   total: number;
   completed: number;
   offset?: number;
+  onCancel?: (setShouldShow: Dispatch<SetStateAction<boolean>>) => void;
+  setTasksStatus: Dispatch<SetStateAction<{ tag: TaskStatus; color: TaskStatus; }>>;
 }
 
-const ProgressBar: React.FC<ProgressBarProps> = ({ progress, type, total, completed, offset = 0 }) => {
+const ProgressBar: React.FC<ProgressBarProps> = ({
+  progress,
+  type,
+  total,
+  completed,
+  offset = 0,
+  onCancel,
+  setTasksStatus,
+}) => {
   const [shouldShow, setShouldShow] = useState(false);
   const { t } = useLocale();
+
+  useEffect(() => {
+    setTasksStatus((prev: {
+      tag: TaskStatus;
+      color: TaskStatus;
+    }) => ({
+      ...prev,
+      [type]: TaskStatus.Running
+    }));
+
+    return () => {
+      setTasksStatus((prev: {
+        tag: TaskStatus;
+        color: TaskStatus;
+      }) => ({
+        ...prev,
+        [type]: TaskStatus.Initialized
+      }));
+    };
+  }, []);
 
   useEffect(() => {
     if (total > 0) {
@@ -28,17 +59,17 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ progress, type, total, comple
     >
       {shouldShow && (
         <motion.div
-          initial={{ 
+          initial={{
             x: 300,
             opacity: 0,
             scale: 0.3
           }}
-          animate={{ 
+          animate={{
             x: 0,
             opacity: 1,
             scale: 1
           }}
-          exit={{ 
+          exit={{
             x: 100,
             opacity: 0,
             scale: 1.5,
@@ -55,7 +86,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ progress, type, total, comple
             bottom: `${offset + 16}px`
           }}
         >
-          <motion.div 
+          <motion.div
             className="flex justify-between mb-1"
             initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -69,16 +100,16 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ progress, type, total, comple
             </span>
           </motion.div>
           <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 overflow-hidden">
-            <motion.div 
+            <motion.div
               className="bg-blue-600 h-2.5 rounded-full"
               initial={{ width: 0 }}
-              animate={{ 
+              animate={{
                 width: `${progress}%`,
-                background: progress === 100 ? 
-                  "linear-gradient(90deg, #4ade80, #3b82f6)" : 
+                background: progress === 100 ?
+                  "linear-gradient(90deg, #4ade80, #3b82f6)" :
                   "linear-gradient(90deg, #60a5fa, #3b82f6)"
               }}
-              transition={{ 
+              transition={{
                 duration: 0.5,
                 ease: "easeOut"
               }}
@@ -106,21 +137,43 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ progress, type, total, comple
               animate={{ scale: 1 }}
               className="absolute -top-2 -right-2 p-1 bg-green-500 rounded-full"
             >
-              <svg 
-                className="w-4 h-4 text-white" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                className="w-4 h-4 text-white"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M5 13l4 4L19 7" 
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
                 />
               </svg>
             </motion.div>
           )}
+          {/* {onCancel && (
+            <motion.button
+              onClick={() => {
+                setTasksStatus((prev: {
+                  tag: TaskStatus;
+                  color: TaskStatus;
+                }) => ({
+                  ...prev,
+                  [type]: TaskStatus.Canceled
+                }));
+                onCancel(setShouldShow)
+              }}
+              className="absolute bottom-[-15px] right-[0px] p-1 text-white bg-red-500 rounded-full transform -translate-y-1/2 hover:bg-red-600 focus:outline-none"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </motion.button>
+          )} */}
         </motion.div>
       )}
     </AnimatePresence>
