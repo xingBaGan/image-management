@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Copy } from 'lucide-react';
+import { X, Copy, Trash } from 'lucide-react';
 import { useLocale } from '../contexts/LanguageContext';
 import { toast } from 'react-toastify';
 import { isArrayOfString } from '../utils';
@@ -9,6 +9,7 @@ interface MediaTagsProps {
   mediaId: string;
   onTagsUpdate: (mediaId: string, newTags: string[]) => void;
   showCopyButton?: boolean;
+  showClearButton?: boolean;
 }
 
 const MediaTags: React.FC<MediaTagsProps> = ({
@@ -16,6 +17,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
   mediaId,
   onTagsUpdate,
   showCopyButton = false,
+  showClearButton = false,
 }) => {
   const { t } = useLocale();
   const [selectedTags, setSelectedTags] = useState<string[]>(tags);
@@ -34,9 +36,9 @@ const MediaTags: React.FC<MediaTagsProps> = ({
       e.preventDefault();
       const newTag = inputValue.trim();
       if (!selectedTags.includes(newTag)) {
-        const newTags = [...selectedTags, newTag];
-        setSelectedTags(newTags);
-        onTagsUpdate(mediaId, newTags);
+        const newTags = new Set([...selectedTags, newTag]);
+        setSelectedTags(Array.from(newTags));
+        onTagsUpdate(mediaId, Array.from(newTags));
       }
       setInputValue('');
     } else if (e.key === 'Backspace' && !inputValue && selectedTags.length > 0) {
@@ -58,8 +60,9 @@ const MediaTags: React.FC<MediaTagsProps> = ({
     try {
       const parsedTags = JSON.parse(pastedText);
       if (isArrayOfString(parsedTags)) {
-        setSelectedTags(parsedTags);
-        onTagsUpdate(mediaId, parsedTags);
+        const newTags = new Set([...selectedTags, ...parsedTags]);
+        setSelectedTags(Array.from(newTags));
+        onTagsUpdate(mediaId, Array.from(newTags));
         toast.success(t('pasteTagsSuccess'));
       }
     } catch (error) {
@@ -92,8 +95,22 @@ const MediaTags: React.FC<MediaTagsProps> = ({
             }}
           className="fixed right-1 bottom-1 p-1 text-gray-500 hover:text-gray-700 focus:outline-none"
           aria-label={t('copyTags')}
+          title={t('copyTags')}
         >
           <Copy size={16} />
+          </button>
+        )}
+        {showClearButton && (
+          <button
+            onClick={() => {
+              setSelectedTags([]);
+              onTagsUpdate(mediaId, []);
+            }}
+            className="fixed right-1 bottom-1 p-1 text-gray-500 hover:text-gray-700 focus:outline-none"
+            aria-label={t('clearTags')}
+            title={t('clearTags')}
+          >
+            <Trash size={16} />
           </button>
         )}
       </div>

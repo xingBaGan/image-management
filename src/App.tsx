@@ -293,8 +293,7 @@ function App() {
       setSelectedImages(new Set());
     }
    } catch (error) {
-    console.error(error);
-    toast.error(t('tagCanceled'));
+    console.error('添加标签失败', error);
    }
   }, [selectedImagesList, mediaList, categories, settings.modelName, setImportState]);
 
@@ -387,6 +386,7 @@ function App() {
 
     return () => {
       window.electron.removeRemoteImagesDownloadedListener(() => { });
+      window.electron.removeQueueUpdateListener(()=>{})
     };
   }, []);
 
@@ -621,6 +621,7 @@ function App() {
     if (s1 || s2) {
       setImportState(ImportStatus.Imported);
       setSelectedImages(new Set());
+      toast.error(t('canceled'));
     }
   }, [tasksStatus]);
 

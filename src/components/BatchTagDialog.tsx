@@ -26,7 +26,6 @@ const BatchTagDialog: React.FC<BatchTagDialogProps> = ({
     }
   };
   const handleClose = () => {
-    setSelectedTags([]);
     onClose();
   };
   if (!isOpen) return null;
@@ -50,6 +49,7 @@ const BatchTagDialog: React.FC<BatchTagDialogProps> = ({
                     tags={selectedTags}
                     mediaId={''}
                     onTagsUpdate={(mediaId, newTags) => setSelectedTags(newTags)}
+                    showClearButton={true}
                   />
                 </div>
               </div>

@@ -36,6 +36,7 @@ class TaskQueue extends EventEmitter {
   private running: Set<string>;
   private total: number;
   private completed: number;
+  private canceled: boolean;
 
   constructor(concurrency = 10) {
     super();
@@ -43,9 +44,11 @@ class TaskQueue extends EventEmitter {
     this.running = new Set();
     this.total = 0;
     this.completed = 0;
+    this.canceled = false;
   }
 
   addTask<T>(taskFn: () => Promise<T>, taskId: string): Promise<T> {
+    this.canceled = false;
     this.total += 1;
     this._emitProgress();
     
@@ -57,12 +60,18 @@ class TaskQueue extends EventEmitter {
         try {
           const result = await taskFn();
           this.running.delete(taskId);
+          if(this.canceled){
+            throw new Error('Task canceled');
+          }
           this.completed += 1;
           this._emitProgress();
           this.emit('taskComplete', { taskId, success: true });
           resolve(result);
           return result;
         } catch (error) {
+          if(this.canceled){
+            return;
+          }
           this.running.delete(taskId);
           this.completed += 1;
           this._emitProgress();
@@ -121,9 +130,8 @@ class TaskQueue extends EventEmitter {
   cancelAllTasks(): void {
     this.queue.end();
     this.running.clear();
-    setTimeout(() => {
-      this.reset();
-    }, 1000);
+    this.canceled = true;
+    this.reset();
   }
 }
 
