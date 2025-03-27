@@ -11,40 +11,6 @@ Could manage 100000+ images and videos with good performance.
 ![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v0.4.1_2.png)
 ## Main Features
 
-### Media Management
-- [x] Image Browsing - Supports grid view and list view
-- [x] Image Favorites - One-click to favorite images
-- [x] Image Classification - Flexible classification management system
-- [x] Media Import - Supports batch import of local images and videos
-   - [x] Folder import
-   - [x] Drag and drop import
-- [x] Media Search - Search by name and tags
-- [x] Video Support 
-  - [x] Video preview and playback
-  - [x] Smart thumbnail generation
-  - [x] Mouse hover preview
-  - [x] Video timeline preview
-- [x] Batch Operations - Supports batch delete, classify, and other operations
-- [x] AI Tags - Supports automatic AI tagging for images
-
-### Classification Features
-- [x] Smart Classification - Built-in Recent, Images, Favorites, Videos, and other smart categories
-- [x] Custom Classification - Support creating, editing, and deleting custom categories
-- [x] Category Management - Support adding media to multiple categories
-- [x] Tag System - Support adding multiple tags to media
-
-### Interface Features
-- [x] Dual View Mode - Switch between grid view and list view
-- [x] Sorting Function - Sort by name, date, size
-- [x] Dark Theme - Auto-adapts to system dark mode
-- [x] Responsive Design - Perfect adaptation to various screen sizes
-- [x] Drag and Drop Support - Support drag and drop media file import
-- [x] Box Selection - Support box selection of multiple media files
-- [x] Custom Background Image
-
-### AI Features
-- [x] AI Auto-tagging - Use deep learning models to automatically identify image content and add tags
-- [] ComfyUI Workflow - Support custom ComfyUI workflows for image processing
 
 ## User Guide
 
