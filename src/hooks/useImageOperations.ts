@@ -80,6 +80,7 @@ export const useImageOperations = () => {
       if (image) {
         const tags = new Set([...image.tags, ...tagNames]);
         image.tags = Array.from(tags);
+        image.isDirty = true;
       }
     });
     setImages([...images]);

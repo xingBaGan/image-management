@@ -615,7 +615,6 @@ function App() {
   };
 
   useEffect(() => {
-    console.log(tasksStatus);
     const s1 = tasksStatus.tag === TaskStatus.Canceled && tasksStatus.color !== TaskStatus.Running;
     const s2 = tasksStatus.color === TaskStatus.Canceled && tasksStatus.tag !== TaskStatus.Running;
     if (s1 || s2) {
