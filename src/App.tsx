@@ -664,13 +664,8 @@ function App() {
   const handleInstallConfirm = async () => {
     try {
       setInstallStatus(InstallStatus.Installing);
-      await window.electron.installEnvironment();
       setShowInstallConfirm(null);
-      setMessageBox({
-        isOpen: true,
-        message: t('installationComplete'),
-        type: 'success'
-      });
+      await window.electron.installEnvironment();
     } catch (error) {
       console.error('Installation failed:', error);
       setMessageBox({
@@ -679,7 +674,21 @@ function App() {
         type: 'error'
       });
     } finally {
-      setImportState(ImportStatus.Imported);
+      setInstallStatus(InstallStatus.Installed);
+      const installResult = await window.electron.checkEnvironment();
+      if (!installResult.needsInstall) {
+        setMessageBox({
+          isOpen: true,
+          message: t('installationComplete'),
+          type: 'success'
+        });
+      } else {
+        setMessageBox({
+          isOpen: true,
+          message: t('restartAgainAndInstall'),
+          type: 'error'
+        });
+      }
     }
   };
 

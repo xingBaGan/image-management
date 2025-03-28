@@ -209,7 +209,8 @@ export const translations = {
     installationComplete: 'Installation complete',
     installationFailed: 'Installation failed: {{error}}',
     installing: 'Installing environment...',
-    install: 'Install'
+    install: 'Install',
+    restartAgainAndInstall: 'Please restart and install again'
   },
   zh: {
     // 工具栏
@@ -422,6 +423,7 @@ export const translations = {
     installationComplete: '安装完成',
     installationFailed: '安装失败：{{error}}',
     installing: '正在安装环境...',
-    install: '安装'
+    install: '安装',
+    restartAgainAndInstall: '请重新启动并重新安装'
   }
 }; 

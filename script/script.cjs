@@ -242,13 +242,13 @@ async function installEnvironment() {
             }
         }
         // 分离子进程，让它在新窗口中独立运行
-        process.unref();
         process.on('error', (err) => {
             reject(new Error(`Failed to start installation process: ${err.message}`));
         });
-        process.on('exit', (code) => {
+        process.on('close', (code) => {
             resolve(true);
         });
+        process.unref();
     });
 }
 module.exports = {
