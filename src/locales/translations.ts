@@ -196,6 +196,20 @@ export const translations = {
     canceled: 'tasks canceled',
     copyTags: 'Copy Tags',
     clearTags: 'Clear Tags',
+
+    // install
+    environmentCheck: 'Environment Check',
+    environmentIncomplete: 'Environment incomplete',
+    notInstalled: 'Not Installed',
+    requiredPackages: 'Required Packages',
+    aiModels: 'AI Models',
+    installConfirmMessage: 'Do you want to install the required components now?',
+    environmentCheckFailed: 'Environment check failed',
+    environmentCheckComplete: 'ai models and environment installed',
+    installationComplete: 'Installation complete',
+    installationFailed: 'Installation failed: {{error}}',
+    installing: 'Installing environment...',
+    install: 'Install'
   },
   zh: {
     // 工具栏
@@ -395,5 +409,19 @@ export const translations = {
     canceled: '任务已取消',
     copyTags: '复制标签',
     clearTags: '清空标签',
+
+    // install
+    environmentCheck: '环境检查',
+    environmentIncomplete: '检测到环境未完全安装',
+    notInstalled: '未安装',
+    requiredPackages: '必需的包',
+    aiModels: 'AI模型',
+    installConfirmMessage: '是否要现在安装必需的组件？',
+    environmentCheckFailed: '环境检查失败',
+    environmentCheckComplete: 'ai 模型和环境安装完毕',
+    installationComplete: '安装完成',
+    installationFailed: '安装失败：{{error}}',
+    installing: '正在安装环境...',
+    install: '安装'
   }
 }; 

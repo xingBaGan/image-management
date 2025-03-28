@@ -102,6 +102,11 @@ export enum ImportStatus {
   Loading = 'loading',
 }
 
+export enum InstallStatus {
+  Installing = 'installing',
+  Installed = 'installed',
+}
+
 export enum TaskStatus {
   Running = 'running',
   Initialized = 'initialized',
@@ -316,6 +321,10 @@ export interface ElectronAPI {
   cancelTagging: () => Promise<boolean>;
   cancelColor: () => Promise<boolean>;
   isReadFromDB: () => Promise<boolean>;
+  checkEnvironment: () => Promise<{
+    needsInstall: boolean;
+  }>;
+  installEnvironment: () => Promise<boolean>;
 }
 
 // =============== 类型守卫函数 ===============

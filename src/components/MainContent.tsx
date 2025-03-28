@@ -11,7 +11,8 @@ import {
   SortType,
   SortDirection,
   FilterType,
-  AppendButtonsProps
+  AppendButtonsProps,
+  InstallStatus
 } from '../types/index.ts';
 
 interface MainContentProps {
@@ -62,6 +63,7 @@ interface MainContentProps {
   // 添加 setSelectedImages
   setSelectedImages: (images: Set<string>) => void;
   currentSelectedCategory?: Category| string;
+  installStatus: InstallStatus;
 }
 
 export const MainContent: React.FC<MainContentProps> = ({
@@ -99,7 +101,8 @@ export const MainContent: React.FC<MainContentProps> = ({
   gridItemAppendButtonsProps,
   onRateChange,
   setSelectedImages,
-  currentSelectedCategory
+  currentSelectedCategory,
+  installStatus
 }) => {
   // 获取当前选中的图片
   const selectedImage = React.useMemo(() => 
@@ -148,6 +151,7 @@ export const MainContent: React.FC<MainContentProps> = ({
             onOpenInEditor={onOpenInEditor}
             gridItemAppendButtonsProps={gridItemAppendButtonsProps}
             currentSelectedCategory={currentSelectedCategory}
+            installStatus={installStatus}
           />
         </div>
         <div className="fixed right-0 bottom-0 top-16">

@@ -13,7 +13,8 @@ import {
   SortType,
   SortDirection,
   FolderContentChangeType,
-  TaskStatus
+  TaskStatus,
+  InstallStatus
 } from './types/index.ts';
 import { Trash2, FolderPlus, Tags, Tag } from 'lucide-react';
 import { addTagsToImages } from './services/tagService';
@@ -37,6 +38,7 @@ import BatchTagDialog from './components/BatchTagDialog.tsx';
 import ConfirmTagDialog from './components/ConfirmTagDialog.tsx';
 import { ToastContainer } from 'react-toastify';
 import { toast } from 'react-toastify';
+import InstallConfirmDialog from './components/InstallConfirmDialog';
 const isDev = import.meta.env.DEV;
 if (isDev) {
   scan({ enabled: true, log: true, showToolbar: true });
@@ -59,6 +61,7 @@ function App() {
   const [searchTags, setSearchTags] = useState<string[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [selectedImageForInfo, setSelectedImageForInfo] = useState<LocalImageData | null>(null);
+  const [installStatus, setInstallStatus] = useState<InstallStatus>(InstallStatus.Installed);
   const [multiFilter, setMultiFilter] = useState<FilterOptions>({
     colors: [],
     ratio: [],
@@ -90,6 +93,10 @@ function App() {
     tag: TaskStatus.Initialized,
     color: TaskStatus.Initialized
   });
+  const [showInstallConfirm, setShowInstallConfirm] = useState<{
+    isOpen: boolean;
+    checkResult: any;
+  } | null>(null);
 
   // 添加最大化状态监听
   useEffect(() => {
@@ -350,8 +357,37 @@ function App() {
 
   // 在组件加载时读取已保存的图片数据
   useEffect(() => {
+    const checkAndPromptInstall = async () => {
+      try {
+        const checkResult = await window.electron.checkEnvironment();
+        if (checkResult.needsInstall) {
+          setShowInstallConfirm({
+            isOpen: true,
+            checkResult
+          });
+          return;
+        }
+        setMessageBox({
+          isOpen: true,
+          message: t('environmentCheckComplete'),
+          type: 'success'
+        });
+      } catch (error) {
+        console.error('Environment check failed:', error);
+        setMessageBox({
+          isOpen: true,
+          message: t('environmentCheckFailed'),
+          type: 'error'
+        });
+      }
+    };
+
     const initializeData = async () => {
       try {
+        // 首先检查环境
+        await checkAndPromptInstall();
+        
+        // 原有的初始化逻辑
         const result = await loadImages();
         if (result) {
           setMediaList(result.images);
@@ -624,6 +660,29 @@ function App() {
     }
   }, [tasksStatus]);
 
+  // 处理安装确认
+  const handleInstallConfirm = async () => {
+    try {
+      setInstallStatus(InstallStatus.Installing);
+      await window.electron.installEnvironment();
+      setShowInstallConfirm(null);
+      setMessageBox({
+        isOpen: true,
+        message: t('installationComplete'),
+        type: 'success'
+      });
+    } catch (error) {
+      console.error('Installation failed:', error);
+      setMessageBox({
+        isOpen: true,
+        message: t('installationFailed', { error: String(error) }),
+        type: 'error'
+      });
+    } finally {
+      setImportState(ImportStatus.Imported);
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen backdrop-blur-md dark:bg-gray-900"
       style={{
@@ -656,6 +715,7 @@ function App() {
         )}
 
         <MainContent
+          installStatus={installStatus}
           viewMode={viewMode}
           sortBy={sortBy}
           sortDirection={sortDirection}
@@ -779,6 +839,16 @@ function App() {
           setTasksStatus={setTasksStatus}
         />
       )}
+
+      {showInstallConfirm && (
+        <InstallConfirmDialog
+          isOpen={showInstallConfirm.isOpen}
+          onCancel={() => setShowInstallConfirm(null)}
+          onConfirm={handleInstallConfirm}
+          checkResult={showInstallConfirm.checkResult}
+        />
+      )}
+
       <ToastContainer />
     </div>
   );

@@ -2,13 +2,15 @@ import React, { useState, useRef, useCallback } from 'react';
 import { handleDrop as handleDropUtil } from '../utils';
 import DragOverlay from './DragOverlay';
 import MediaViewer from './MediaViewer';
-import { ImportStatus, LocalImageData } from '../types/index.ts';
+import { ImportStatus, InstallStatus, LocalImageData } from '../types/index.ts';
 import { ImageGridBaseProps } from './ImageGridBase';
 import GridView from './GridView';
 import ListView from './ListView';
 import { useElectron } from '../hooks/useElectron';
 
-const MediaGrid: React.FC<ImageGridBaseProps> = ({
+const MediaGrid: React.FC<ImageGridBaseProps & {
+  installStatus: InstallStatus;
+}> = ({
   images,
   onFavorite,
   viewMode,
@@ -22,6 +24,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
   setImportState,
   importState,
   currentSelectedCategory,
+  installStatus,
 }) => {
   const [viewingMedia, setViewingMedia] = useState<LocalImageData | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -221,7 +224,7 @@ const MediaGrid: React.FC<ImageGridBaseProps> = ({
         }}
         onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false); }}>
         {isSelecting && <div style={getSelectionStyle()} />}
-        <DragOverlay isDragging={isDragging} importState={importState} />
+        <DragOverlay isDragging={isDragging} importState={importState} installStatus={installStatus}/>
         {viewMode === 'list' ? (
           <ListView {...{
             images,
