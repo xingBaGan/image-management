@@ -16,8 +16,8 @@ def get_country_code() -> str:
         response = requests.get('https://ipapi.co/country/', timeout=5)
         return response.text.strip()
     except:
-        # 如果请求失败，默认返回非中国
-        return 'UNKNOWN'
+        # 如果请求失败，默认返回中国
+        return 'CN'
 
 def get_base_url(country_code: str) -> str:
     """

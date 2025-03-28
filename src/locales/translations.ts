@@ -210,7 +210,8 @@ export const translations = {
     installationFailed: 'Installation failed: {{error}}',
     installing: 'Installing environment...',
     install: 'Install',
-    restartAgainAndInstall: 'Please restart and install again'
+    restartAgainAndInstall: 'Please restart and install again',
+    checkEnvironmentVariable: 'Please check if the environment variable is correct'
   },
   zh: {
     // 工具栏
@@ -424,6 +425,7 @@ export const translations = {
     installationFailed: '安装失败：{{error}}',
     installing: '正在安装环境...',
     install: '安装',
-    restartAgainAndInstall: '请重新启动并重新安装'
+    restartAgainAndInstall: '请重新启动并重新安装',
+    checkEnvironmentVariable: '请检测环境变量是否正确'
   }
 }; 

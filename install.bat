@@ -11,9 +11,9 @@ if %errorlevel% neq 0 (
 )
 
 REM 检查 Python 版本
-python -c "import sys; sys.exit(0) if sys.version_info >= (3,7) else sys.exit(1)"
+python -c "import sys; sys.exit(0) if sys.version_info >= (3,10) else sys.exit(1)"
 if %errorlevel% neq 0 (
-    echo 请安装 Python 3.7 或更高版本
+    echo 请安装 Python 3.10 或更高版本
     pause
     exit /b 1
 )
@@ -21,15 +21,9 @@ if %errorlevel% neq 0 (
 REM 检查是否安装了 pip
 where pip >nul 2>nul
 if %errorlevel% neq 0 (
-    echo pip 未安装，正在安装...
-    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-    python get-pip.py
-    del get-pip.py
-    if %errorlevel% neq 0 (
-        echo pip 安装失败！
-        pause
-        exit /b 1
-    )
+    echo pip 未安装，请检测环境变量是否正确...
+    pause
+    exit /b 1
 )
 
 REM 检查是否可以创建虚拟环境
