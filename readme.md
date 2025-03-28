@@ -13,6 +13,8 @@ Could manage 100000+ images and videos with good performance.
 
 
 ## User Guide
+python 3.10+ is required.
+node 20+ is required.
 
 For installation instructions, see [install.en.md](install.en.md)
 

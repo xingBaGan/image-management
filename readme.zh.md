@@ -12,6 +12,8 @@
 
 ## 使用指南
 
+python 3.10+ is required.
+node 20+ is required.
 安装查看 [install.md](install.md)
 
 ### 基础操作
