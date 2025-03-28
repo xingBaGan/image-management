@@ -121,6 +121,10 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.removeListener(channel, callback);
     }
   },
+
+  // =============== 环境检查相关 ===============
+  checkEnvironment: () => ipcRenderer.invoke('check-environment'),
+  installEnvironment: () => ipcRenderer.invoke('install-environment'),
 });
 
 // =============== 插件系统相关 API ===============

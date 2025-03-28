@@ -18,7 +18,7 @@ import {
   generateVideoThumbnail,
   processDirectoryFiles 
 } from './mediaService.cjs';
-import { tagImage, getMainColor } from '../../script/script.cjs';
+import { tagImage, getMainColor, checkEnvironment, installEnvironment } from '../../script/script.cjs';
 import { tagQueue, colorQueue } from './queueService.cjs';
 import { logger } from './logService.cjs';
 import { MAX_IMAGE_COUNT } from '../services/checkImageCount.cjs';
@@ -218,6 +218,13 @@ const init = (): void => {
     }
   });
 
+  ipcMain.handle('check-environment', async () => {
+    return await checkEnvironment();
+  });
+
+  ipcMain.handle('install-environment', async () => {
+    return await installEnvironment();
+  });
   // =============== 队列 ===============
   ipcMain.handle('get-queue-status', async () => {
     return {

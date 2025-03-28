@@ -1,15 +1,23 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
-import { ImportStatus } from '../types/index.ts';
+import { ImportStatus, InstallStatus } from '../types/index.ts';
 import { useLocale } from '../contexts/LanguageContext';
 
 interface DragOverlayProps {
   isDragging: boolean;
   importState: ImportStatus;
+  installStatus: InstallStatus;
 }
 
-const DragOverlay: React.FC<DragOverlayProps> = ({ isDragging, importState }) => {
-  const { t } = useLocale();
+const DragOverlay: React.FC<DragOverlayProps> = ({ isDragging, importState, installStatus }) => {
+  const { t } = useLocale();  
+  if (installStatus === InstallStatus.Installing) {
+    return (
+      <div className="flex fixed inset-0 z-10 justify-center items-center w-full h-full bg-black bg-opacity-30 backdrop-blur-sm">
+        <span className="text-lg text-white">{t('installing')}</span>
+      </div>
+    );
+  }
 
   if (!isDragging && importState === ImportStatus.Imported) return null;
   const isImporting = importState === ImportStatus.Importing || importState === ImportStatus.Tagging;

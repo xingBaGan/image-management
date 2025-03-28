@@ -69,7 +69,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   }, []);
   return (
     <>
-      <div className="flex relative z-20 justify-between items-center px-6 h-16 bg-white bg-opacity-30 border-b backdrop-blur-sm dark:bg-gray-800 dark:bg-opacity-30 dark:border-gray-700">
+      <div className="flex relative z-10 justify-between items-center px-6 h-16 bg-white bg-opacity-30 border-b backdrop-blur-sm dark:bg-gray-800 dark:bg-opacity-30 dark:border-gray-700">
         <div className="flex items-center space-x-4">
           <button
             onClick={onToggleSidebar}
