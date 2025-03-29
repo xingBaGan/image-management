@@ -356,6 +356,8 @@ export class ImageDatabase {
             'data.path',
             'data.name',
             'data.tags',
+            'data.thumbnail',
+            'data.duration',
             'data.favorite',
             'data.categories',
             'data.colors',

@@ -1,5 +1,5 @@
 import { ImageDAO } from '../ImageDAO.cjs';
-import { LocalImageData, Category, FilterType, FilterOptions, SortType, SortDirection } from '../type.cjs';
+import { LocalImageData, Category, FilterType, FilterOptions, SortType, SortDirection, VideoData } from '../type.cjs';
 import { ImageDatabase, Image } from '../../pouchDB/Database.cjs';
 import {
   deletePhysicalFile,
@@ -70,7 +70,7 @@ const convertToLocalImageData = (image: Image): LocalImageData => {
 
 // 转换 LocalImageData 到 PouchDB Image
 const convertToPouchDBImage = (image: LocalImageData): Image => {
-  return {
+  const subImage = {
     ...image,
     id: image.id,
     path: image.path,
@@ -90,6 +90,11 @@ const convertToPouchDBImage = (image: LocalImageData): Image => {
     rating: image.rating || 0,
     colors: image.colors || [],
   };
+  if (image.type === 'video') {
+    (subImage as VideoData).duration = image.duration || 0;
+    (subImage as VideoData).thumbnail = image.thumbnail || '';
+  }
+  return subImage;
 };
 
 export default class DBImageDAO implements ImageDAO {
