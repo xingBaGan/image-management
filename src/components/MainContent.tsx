@@ -64,6 +64,8 @@ interface MainContentProps {
   setSelectedImages: (images: Set<string>) => void;
   currentSelectedCategory?: Category| string;
   installStatus: InstallStatus;
+  searchTags: string[];
+  setSearchTags: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 export const MainContent: React.FC<MainContentProps> = ({
@@ -102,7 +104,9 @@ export const MainContent: React.FC<MainContentProps> = ({
   onRateChange,
   setSelectedImages,
   currentSelectedCategory,
-  installStatus
+  installStatus,
+  searchTags,
+  setSearchTags
 }) => {
   // 获取当前选中的图片
   const selectedImage = React.useMemo(() => 
@@ -133,6 +137,8 @@ export const MainContent: React.FC<MainContentProps> = ({
         selectedImages={selectedImages}
         multiFilter={multiFilter}
         setMultiFilter={setMultiFilter}
+        searchTags={searchTags}
+        setSearchTags={setSearchTags}
       />
       <div className="flex overflow-y-auto flex-1">
         <div className={`flex-1 ${isSidebarOpen ? 'mr-0' : 'mr-60'}`}>

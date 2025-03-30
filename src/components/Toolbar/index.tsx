@@ -34,6 +34,8 @@ interface ToolbarProps {
   selectedImages: Set<string>;
   multiFilter: FilterOptions;
   setMultiFilter: (filters: FilterOptions | ((prev: FilterOptions) => FilterOptions)) => void;
+  searchTags: string[];
+  setSearchTags: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -57,6 +59,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
   selectedImages,
   multiFilter,
   setMultiFilter,
+  searchTags,
+  setSearchTags,
 }) => {
   const { t } = useLocale();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -102,6 +106,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
               <SearchBar
                 onSearch={onSearch}
                 searchButtonRef={searchButtonRef}
+                tags={searchTags}
+                setTags={setSearchTags}
               />
 
               <ViewModeToggle

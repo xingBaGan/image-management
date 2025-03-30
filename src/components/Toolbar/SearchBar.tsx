@@ -2,21 +2,22 @@ import React, { useRef, useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { useLocale } from '../../contexts/LanguageContext';
 
-interface SearchTag {
-  id: string;
-  text: string;
-}
-
 interface SearchBarProps {
   onSearch: (tags: string[]) => void;
   searchButtonRef: React.RefObject<HTMLElement>;
+  tags: string[];
+  setTags: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ onSearch, searchButtonRef }) => {
+const SearchBar: React.FC<SearchBarProps> = ({
+  onSearch,
+  searchButtonRef,
+  tags,
+  setTags,
+}) => {
   const { t } = useLocale();
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false || tags.length > 0);
   const [inputValue, setInputValue] = useState('');
-  const [tags, setTags] = useState<SearchTag[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -27,14 +28,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, searchButtonRef }) => {
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && inputValue.trim()) {
-      const newTag = {
-        id: Date.now().toString(),
-        text: inputValue.trim()
-      };
-      const newTags = [...tags, newTag];
-      setTags(newTags);
+      const newTag = inputValue.trim();
+      const newTags = new Set([...tags, newTag]);
+      setTags(Array.from(newTags));
       setInputValue('');
-      onSearch(newTags.map(tag => tag.text));
+      onSearch(Array.from(newTags));
     } else if (e.key === 'Escape') {
       setIsSearchOpen(false);
       setInputValue('');
@@ -43,10 +41,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, searchButtonRef }) => {
     }
   };
 
-  const removeTag = (tagId: string) => {
-    const newTags = tags.filter(tag => tag.id !== tagId);
+  const removeTag = (tag: string) => {
+    const newTags = tags.filter(t => t !== tag);
     setTags(newTags);
-    onSearch(newTags.map(tag => tag.text));
+    onSearch(newTags);
   };
 
   return (
@@ -56,13 +54,13 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, searchButtonRef }) => {
           <div className="flex flex-wrap flex-1 gap-2">
             {tags.map((tag) => (
               <span
-                key={tag.id}
+                key={tag}
                 className="inline-flex items-center px-2 py-1 text-sm text-blue-800 bg-blue-100 rounded-md dark:bg-blue-900 dark:text-blue-200"
               >
-                {tag.text}
+                {tag}
                 <button
                   title={t('removeTag')}
-                  onClick={() => removeTag(tag.id)}
+                  onClick={() => removeTag(tag)}
                   className="ml-1 hover:text-blue-600 dark:hover:text-blue-400"
                 >
                   <X size={14} />
@@ -80,7 +78,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, searchButtonRef }) => {
             />
             <div className="flex items-center">
               <span className="mr-2 text-xs text-gray-400 dark:text-gray-500">{t('escapeToExit')}</span>
-              <Search className="flex-shrink-0 text-gray-400" size={20}/>
+              <Search className="flex-shrink-0 text-gray-400" size={20} />
             </div>
           </div>
         </div>
