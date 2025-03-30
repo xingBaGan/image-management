@@ -205,7 +205,7 @@ const imageCountManager = {
     const data = await loadImagesData(isReadFromDB());
     this.count = data.images.length;
     const dbCount = await this.db.getImagesLength();
-    if(this.count >= MAX_IMAGE_COUNT && this.count !== dbCount){
+    if(this.count >= MAX_IMAGE_COUNT && this.count !== dbCount && this.oldCount !== 0){
       this.syncDatabaseFromLocalJson();
     }
   },
@@ -229,7 +229,7 @@ const imageCountManager = {
     this.count = newCount;
     if (this.oldCount >= MAX_IMAGE_COUNT && this.count < MAX_IMAGE_COUNT) {
       this.exportDatabaseToLocalJson();
-    } else if (this.count >= MAX_IMAGE_COUNT && this.oldCount < MAX_IMAGE_COUNT) {
+    } else if (this.count >= MAX_IMAGE_COUNT && this.oldCount < MAX_IMAGE_COUNT && this.oldCount !== 0) {
       console.log('---delete---')
       this.syncDatabaseFromLocalJson();
     }

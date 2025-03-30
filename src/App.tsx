@@ -760,6 +760,8 @@ function App() {
           onRateChange={handleRateChange}
           setSelectedImages={setSelectedImages}
           currentSelectedCategory={currentSelectedCategory || selectedCategory}
+          searchTags={searchTags}
+          setSearchTags={setSearchTags}
         />
       </div>
 
