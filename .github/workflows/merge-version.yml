@@ -24,12 +24,16 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: 10
+
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
           cache: 'pnpm'
-      
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Configure Git
         run: |
           git config --global user.name 'github-actions[bot]'
@@ -37,7 +41,7 @@ jobs:
       
       - name: Bump version
         run: |
-          pnpm version patch -m "chore: bump version to %s [skip ci]"
+          pnpm version patch -m "chore: bump version to %s"
       
       - name: Push changes
         run: git push && git push --tags
