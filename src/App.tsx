@@ -456,9 +456,11 @@ function App() {
 
       e.preventDefault();
       const clipboardText = e.clipboardData?.getData('text') || '';
-      const parsedTags = JSON.parse(clipboardText);
-      if (isArrayOfString(parsedTags)) {
-        return;
+      if (clipboardText && !/^\[.*\]/.test(clipboardText)) {
+        const parsedTags = JSON.parse(clipboardText);
+        if (isArrayOfString(parsedTags)) {
+          return;
+        }
       }
       // if (!clipboardText) return;
 
