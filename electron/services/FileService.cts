@@ -228,9 +228,10 @@ const imageCountManager = {
     this.oldCount = this.count;
     this.count = newCount;
     if (this.oldCount >= MAX_IMAGE_COUNT && this.count < MAX_IMAGE_COUNT) {
+      logger.info('---export database to local json---')
       this.exportDatabaseToLocalJson();
     } else if (this.count >= MAX_IMAGE_COUNT && this.oldCount < MAX_IMAGE_COUNT && this.oldCount !== 0) {
-      console.log('---delete---')
+      logger.info('---sync database from local json---')
       this.syncDatabaseFromLocalJson();
     }
   },
