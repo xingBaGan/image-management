@@ -10,7 +10,7 @@ PouchDB.plugin(PouchDBFind);
 export interface ColorInfo {
     color: string;
     percentage: number;
-  }
+}
 // Types
 export interface Image {
     _id?: string;          // PouchDB 主键
@@ -34,9 +34,9 @@ export interface Image {
     isBindInFolder: boolean;
     rating: number;
     colors: ColorInfo[];
-  }
-  
-  export interface Category {
+}
+
+export interface Category {
     _id?: string;          // PouchDB 主键
     rev?: string;         // PouchDB 版本号
     id: string;            // 业务ID
@@ -45,19 +45,55 @@ export interface Image {
     count: number;
     folderPath?: string;
     isImportFromFolder?: boolean;
-    children?: Category[]; 
+    children?: Category[];
     father?: Category | null; // 新增父分类属性
     order?: number;
-  }
+}
 
-  function compare(oriImage: Image | Category, newImage: Image | Category) {
+function compare(oriImage: Image | Category, newImage: Image | Category) {
     return lodash.isEqual(oriImage, newImage);
-  }
+}
+
+const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+};
+
+const isSimilarColor = (color1: string, color2: string, precision: number = 0.8): boolean => {
+    // 确保精度在有效范围内
+    precision = Math.max(0.1, Math.min(1, precision));
+
+    // 转换为RGB
+    const rgb1 = hexToRgb(color1);
+    const rgb2 = hexToRgb(color2);
+
+    if (!rgb1 || !rgb2) return false;
+
+    // 计算欧几里得距离
+    const distance = Math.sqrt(
+        Math.pow(rgb1.r - rgb2.r, 2) +
+        Math.pow(rgb1.g - rgb2.g, 2) +
+        Math.pow(rgb1.b - rgb2.b, 2)
+    );
+
+    // 最大可能距离是 sqrt(255^2 + 255^2 + 255^2) ≈ 441.67
+    const maxDistance = Math.sqrt(3 * Math.pow(255, 2));
+
+    // 计算相似度（0到1之间）
+    const similarity = 1 - (distance / maxDistance);
+
+    // 根据精度判断是否相似
+    return similarity >= precision;
+};
 
 export class ImageDatabase {
     private db: PouchDB.Database;
     private static instance: ImageDatabase;
-    
+
     private constructor() {
         this.db = new PouchDB('images-db');
         this.initSchema();
@@ -237,8 +273,8 @@ export class ImageDatabase {
             const imageCategories = new Set(image.categories || []);
             const categoryImages = new Set(category.images || []);
 
-            imageCategories.add(categoryId);
-            categoryImages.add(imageId);
+            await imageCategories.add(categoryId);
+            await categoryImages.add(imageId);
 
             await this.updateImage(imageId, { categories: Array.from(imageCategories) });
             await this.updateCategory(categoryId, { images: Array.from(categoryImages) });
@@ -254,14 +290,14 @@ export class ImageDatabase {
         try {
             const image = await this.getImage(imageId);
             const category = await this.getCategory(categoryId);
-            
+
             if (!image || !category) return false;
 
             const imageCategories = new Set(image.categories || []);
             const categoryImages = new Set(category.images || []);
 
-            imageCategories.delete(categoryId);
-            categoryImages.delete(imageId);
+            await imageCategories.delete(categoryId);
+            await categoryImages.delete(imageId);
 
             await this.updateImage(imageId, { categories: Array.from(imageCategories) });
             await this.updateCategory(categoryId, { images: Array.from(categoryImages) });
@@ -341,7 +377,7 @@ export class ImageDatabase {
         multiFilter,
         sortBy,
         sortDirection
-      }: {
+    }: {
         filter: FilterType;
         selectedCategory: FilterType | string;
         categories: Category[];
@@ -350,103 +386,108 @@ export class ImageDatabase {
         multiFilter: FilterOptions;
         sortBy: SortType;
         sortDirection: SortDirection;
-      }): Promise<LocalImageData[]> {
+    }): Promise<LocalImageData[]> {
         try {
-        const fields = [
-            'data.path',
-            'data.name',
-            'data.tags',
-            'data.thumbnail',
-            'data.duration',
-            'data.favorite',
-            'data.categories',
-            'data.colors',
-            'data.ratio',
-            'data.rating',
-            'data.dateModified',
-            'data.extension',
-            'data.type',
-            'data.size',
-            'data.id',
-            'data.width',
-            'data.height',
-            '_id',
-            '_rev'
-        ];
-          // Create an index if not already created
-          await this.db.createIndex({
-            index: {
-              fields: fields,
+            const fields = [
+                'data.path',
+                'data.name',
+                'data.tags',
+                'data.thumbnail',
+                'data.duration',
+                'data.favorite',
+                'data.categories',
+                'data.colors',
+                'data.ratio',
+                'data.rating',
+                'data.dateModified',
+                'data.extension',
+                'data.type',
+                'data.size',
+                'data.id',
+                'data.width',
+                'data.height',
+                '_id',
+                '_rev'
+            ];
+            // Create an index if not already created
+            await this.db.createIndex({
+                index: {
+                    fields: fields,
+                }
+            });
+
+            // Build the selector for the query
+            const selector: any = {};
+
+            if (searchTags.length > 0) {
+                selector['data.tags'] = { $all: searchTags };
             }
-          });
-    
-          // Build the selector for the query
-          const selector: any = {};
-    
-          if (searchTags.length > 0) {
-            selector['data.tags'] = { $all: searchTags };
-          }
-          selector['data.type'] = 'image';
-          if (selectedCategory === FilterType.Videos) {
-            selector['data.type'] = { $eq: 'video' };
-          } else if (filter === FilterType.Favorites) {
-            selector['data.favorite'] = { $eq: true };
-          } else if (filter === FilterType.Recent) {
-            const sevenDaysAgo = new Date();
-            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-            selector['data.dateModified'] = { $gte: sevenDaysAgo.toISOString() };
-          } else if (selectedCategory !== FilterType.Photos) {
-            const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
-            if (selectedCategoryData) {
-              selector['data.categories'] = { $in: [selectedCategory] };
+            selector['data.type'] = 'image';
+            if (selectedCategory === FilterType.Videos) {
+                selector['data.type'] = { $eq: 'video' };
+            } else if (filter === FilterType.Favorites) {
+                selector['data.favorite'] = { $eq: true };
+            } else if (filter === FilterType.Recent) {
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                selector['data.dateModified'] = { $gte: sevenDaysAgo.toISOString() };
+            } else if (selectedCategory !== FilterType.Photos) {
+                const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
+                if (selectedCategoryData) {
+                    selector['data.categories'] = { $in: [selectedCategory] };
+                }
             }
-          }
 
-          if (filterColors.length > 0) {
-            selector['data.colors'] = { $elemMatch: { $in: filterColors } };
-          }
-    
-          if (multiFilter.ratio.length > 0) {
-            selector['data.ratio'] = { $in: multiFilter.ratio };
-          }
-          if (typeof multiFilter.rating === 'number') {
-            selector['data.rating'] = multiFilter.rating;
-          }
-          if (multiFilter.formats.length > 0) {
-            selector['data.extension'] = { $in: multiFilter.formats.map((format: string) => format.toLowerCase()) };
-          }
-          
-          const allImages = await this.getAllImages();
+            if (multiFilter.ratio.length > 0) {
+                selector['data.ratio'] = { $in: multiFilter.ratio };
+            }
+            if (typeof multiFilter.rating === 'number') {
+                selector['data.rating'] = multiFilter.rating;
+            }
+            if (multiFilter.formats.length > 0) {
+                selector['data.extension'] = { $in: multiFilter.formats.map((format: string) => format.toLowerCase()) };
+            }
 
-        //   // Perform the query
-          const result = await this.db.find({
-            fields: fields,
-            selector,
-            limit: allImages.length
-          });
+            const allImages = await this.getAllImages();
 
-          const images = result.docs.map((doc: any) => {
-            const id = doc._id.split('_')[2];
-            return {
-                ...doc.data,
-                id,
-                dateModified: doc.data.dateModified || doc.data.dateCreated
-              } as LocalImageData;
-          });
-          let sortedImages = images;
-          // 内存里排序
-          if (sortBy === SortType.Date) {
-            sortedImages = images.sort((a: LocalImageData, b: LocalImageData) => new Date(a.dateModified).getTime() - new Date(b.dateModified).getTime());
-          } else if (sortBy === SortType.Name) {
-            sortedImages = images.sort((a: LocalImageData, b: LocalImageData) => a.name.localeCompare(b.name));
-          } else if (sortBy === SortType.Size) {
-            sortedImages = images.sort((a: LocalImageData, b: LocalImageData) => a.size - b.size);
-          }
-          return sortDirection === 'asc' ? sortedImages : sortedImages.reverse();
+            //   // Perform the query
+            const result = await this.db.find({
+                fields: fields,
+                selector,
+                limit: allImages.length
+            });
+
+            const images = result.docs.map((doc: any) => {
+                const id = doc._id.split('_')[2];
+                return {
+                    ...doc.data,
+                    id,
+                    dateModified: doc.data.dateModified || doc.data.dateCreated
+                } as LocalImageData;
+            });
+            let sortedImages = images;
+
+            if (filterColors.length > 0) {
+                sortedImages = sortedImages.filter(img =>
+                    (img.colors || []).some((c: string | ColorInfo) => {
+                        const imgColor = typeof c === 'string' ? c : c.color;
+                        return isSimilarColor(imgColor, filterColors[0], multiFilter.precision);
+                    })
+                );
+            }
+            // 内存里排序
+            if (sortBy === SortType.Date) {
+                sortedImages = sortedImages.sort((a: LocalImageData, b: LocalImageData) => new Date(a.dateModified).getTime() - new Date(b.dateModified).getTime());
+            } else if (sortBy === SortType.Name) {
+                sortedImages = sortedImages.sort((a: LocalImageData, b: LocalImageData) => a.name.localeCompare(b.name));
+            } else if (sortBy === SortType.Size) {
+                sortedImages = sortedImages.sort((a: LocalImageData, b: LocalImageData) => a.size - b.size);
+            }
+            return sortDirection === 'asc' ? sortedImages : sortedImages.reverse();
         } catch (error) {
-          console.error('Error querying images from DB:', error);
-          return [];
+            console.error('Error querying images from DB:', error);
+            return [];
         }
-      }
-    
+    }
+
 } 
