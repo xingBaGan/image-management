@@ -12,6 +12,7 @@ interface ToolbarButtonsProps {
   filterOptions: FilterOptions;
   filterButtonRef: React.RefObject<HTMLElement>;
   filterRef: React.RefObject<HTMLDivElement>;
+  filterColors: string[];
 }
 
 const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
@@ -23,6 +24,7 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
   filterOptions,
   filterButtonRef,
   filterRef,
+  filterColors,
 }) => {
   const { t } = useLocale();
   useEffect(() => {
@@ -41,7 +43,7 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
   }, [setIsFilterOpen, filterButtonRef]);
 
   const getFilterCount = () => {
-    return filterOptions?.colors.length +
+    return filterColors.length +
       filterOptions?.ratio.length +
       filterOptions?.formats.length +
       (filterOptions?.rating !== null ? 1 : 0);

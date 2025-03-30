@@ -300,9 +300,11 @@ function App() {
       setSelectedImages(new Set());
     }
    } catch (error) {
+    setImportState(ImportStatus.Imported);
+    setSelectedImages(new Set());
     console.error('添加标签失败', error);
    }
-  }, [selectedImagesList, mediaList, categories, settings.modelName, setImportState]);
+  }, [selectedImagesList, mediaList, categories, settings.modelName, setImportState, setSelectedImages]);
 
   const bulkActions = [
     {

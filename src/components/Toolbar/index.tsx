@@ -139,6 +139,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                   filterOptions={multiFilter}
                   filterButtonRef={filterButtonRef}
                   filterRef={filterRef}
+                  filterColors={filterColors}
                 />
 
                 {isFilterOpen && (
