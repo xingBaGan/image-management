@@ -8,6 +8,8 @@ import { Category, FilterType, ImportStatus, LocalImageData } from '../types/ind
 import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from './StrictModeDroppable';
 import { useLocale } from '../contexts/LanguageContext';
+import ThemeToggle from './ThemeToggle.tsx';
+import LanguageToggle from './LanguageToggle.tsx';
 
 interface SidebarProps {
   selectedCategory: FilterType | string;
@@ -113,8 +115,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div className="z-10 w-48 h-full bg-white bg-opacity-30 border-r border-gray-200 backdrop-blur-sm dark:bg-gray-800 dark:bg-opacity-30 dark:border-gray-700">
-      <div className="p-4">
+    <div className="z-10 w-48 h-full bg-gray-200 bg-opacity-10 border-r border-gray-200 shadow-lg backdrop-blur-lg dark:bg-gray-800 dark:bg-opacity-10 ">
+      <div className='flex justify-between items-center px-1 h-14'>
+        <LanguageToggle />
+        <ThemeToggle />
+      </div>
+      <div className="p-2">
         <div className="space-y-2">
           {[
             { id: 'photos', icon: Image, label: t('photos') },
@@ -125,11 +131,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             <button
               key={id}
               onClick={() => onSelectCategory(id as FilterType)}
-              className={`flex w-full items-center px-1 py-2 rounded-lg text-gray-700 dark:text-white hover:bg-gray-100 hover:bg-opacity-80 dark:hover:bg-gray-700 dark:hover:bg-opacity-80 ${
+              className={`text-base flex w-full items-center py-1 px-2 rounded-lg text-gray-700 dark:text-white hover:bg-gray-100 hover:bg-opacity-80 dark:hover:bg-gray-700 dark:hover:bg-opacity-80 ${
                 selectedCategory === id ? 'bg-gray-100 dark:bg-gray-700' : ''
               }`}
             >
-              <Icon size={20} className="mr-2" />
+              <Icon size={16} className="mr-2" />
               <span>{label}</span>
             </button>
           ))}
@@ -137,7 +143,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         <div className="mt-6">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-rose-400">{t('categories')}</h3>
+            <h3 className="pl-1 text-sm font-medium text-gray-500 dark:text-blue-300">{t('categories')}</h3>
             <div className="flex gap-1">
               <button
                 onClick={async () => {
@@ -145,14 +151,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                   await onImportFolder?.();
                   setImportState(ImportStatus.Imported);
                 }}
-                className="p-1 text-gray-500 hover:text-gray-700 dark:text-white dark:hover:text-rose-400"
+                className="p-1 text-gray-500 hover:text-gray-700 dark:text-white dark:hover:text-blue-300"
                 title={t('importFolder')}
               >
                 <FolderInput size={16} />
               </button>
               <button
                 onClick={() => setIsAddingCategory(true)}
-                className="p-1 text-gray-500 hover:text-gray-700 dark:text-white dark:hover:text-rose-400"
+                className="p-1 text-gray-500 hover:text-gray-700 dark:text-white dark:hover:text-blue-300"
                 title={t('addCategory')}
               >
                 <FolderPlus size={16} />
@@ -210,7 +216,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                           <div className="flex items-center py-2">
                             <div
                               {...provided.dragHandleProps}
-                              className="p-[0.3rem] mr-1 rounded cursor-grab hover:bg-gray-200 dark:hover:bg-gray-600"
+                              className="p-[0.1rem] mr-1 rounded cursor-grab hover:bg-gray-200 dark:hover:bg-gray-600"
                               style={{
                                 cursor: snapshot.isDragging ? 'grabbing' : 'grab'
                               }}
@@ -245,11 +251,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                                     e.stopPropagation();
                                     onSelectCategory(category.id as FilterType);
                                   }}
-                                  className={`flex-1 text-left text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-white ${category.isImportFromFolder ? 'text-blue-500 dark:text-blue-400' : ''}`}
+                                  className={`flex-1 text-left text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-white ${category.isImportFromFolder ? 'text-blue-400 dark:text-blue-400' : ''}`}
                                 >
                                   {category.name}
                                 </button>
-                                <span className={`mr-2 text-xs ${category.isImportFromFolder ? 'text-blue-500 dark:text-blue-400' : ''}`}>
+                                <span className={`mr-2 text-xs ${category.isImportFromFolder ? 'text-blue-400 dark:text-blue-400' : ''}`}>
                                   {category.count || 0}
                                 </span>
                               </>

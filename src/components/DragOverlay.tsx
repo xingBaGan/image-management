@@ -13,7 +13,7 @@ const DragOverlay: React.FC<DragOverlayProps> = ({ isDragging, importState, inst
   const { t } = useLocale();  
   if (installStatus === InstallStatus.Installing) {
     return (
-      <div className="flex fixed inset-0 z-10 justify-center items-center w-full h-full bg-black bg-opacity-30 backdrop-blur-sm">
+      <div className="flex fixed inset-0 z-10 justify-center items-center w-full h-full bg-black bg-opacity-10 backdrop-blur-sm">
         <span className="text-lg text-white">{t('installing')}</span>
       </div>
     );
@@ -25,7 +25,7 @@ const DragOverlay: React.FC<DragOverlayProps> = ({ isDragging, importState, inst
   
   if (isLoading) {
     return (
-      <div className="flex fixed inset-0 z-10 justify-center items-center w-full h-full bg-black bg-opacity-30 backdrop-blur-sm">
+      <div className="flex fixed inset-0 z-10 justify-center items-center w-full h-full bg-black bg-opacity-10 backdrop-blur-sm">
         <Loader2 className="mr-2 text-white animate-spin" size={24} />
         <span className="text-lg text-white">{t('loading')}</span>
       </div>
@@ -33,7 +33,7 @@ const DragOverlay: React.FC<DragOverlayProps> = ({ isDragging, importState, inst
   }
 
   return (
-    <div className="flex fixed inset-0 z-10 justify-center items-center w-full h-full bg-black bg-opacity-30 backdrop-blur-sm">
+    <div className="flex fixed inset-0 z-10 justify-center items-center w-full h-full bg-black bg-opacity-10 backdrop-blur-sm">
       { isImporting ? <Loader2 className="mr-2 text-white animate-spin" size={24} /> : <div className="w-4 h-4 bg-white rounded-full animate-ping"></div>}
       {importState === ImportStatus.Tagging ? 
         <span className="text-lg text-white">{t('tagging')}</span> : 

@@ -68,7 +68,7 @@ const ImageItem: React.FC<ImageItemProps> = memo(({
           decoding="async"
         />
         <div
-          className={`absolute inset-0 bg-black will-change-opacity transition-opacity duration-300 ease-in-out rounded-lg ${isSelected ? 'bg-opacity-30' : 'bg-opacity-0 group-hover:bg-opacity-30'
+          className={`absolute inset-0 bg-black will-change-opacity transition-opacity duration-300 ease-in-out rounded-lg ${isSelected ? 'bg-opacity-10' : 'bg-opacity-0 group-hover:bg-opacity-10'
             }`}
         />
         {isSelected && (

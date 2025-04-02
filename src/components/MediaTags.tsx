@@ -70,7 +70,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
     }
   }
   return (
-    <div className="w-full p-2 bg-gray-50 dark:bg-gray-800 rounded-lg min-h-[8rem] bg-white/30 backdrop-blur-md dark:bg-gray-800/30 dark:border-gray-700" onPaste={handlePaste}>
+    <div className="w-full p-2 bg-gray-50 dark:bg-gray-800 rounded-lg min-h-[8rem] bg-white/30 backdrop-blur-md dark:bg-gray-800/30 " onPaste={handlePaste}>
       <div className="flex overflow-y-auto relative flex-wrap gap-2 mb-2 h-40 tags-container">
         {selectedTags.map((tag, index) => (
           <div
@@ -120,7 +120,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
         onChange={handleInputChange}
         onKeyDown={handleInputKeyDown}
         placeholder={t('tagInput')}
-        className="p-1 mt-2 w-full text-sm placeholder-gray-500 text-gray-700 bg-transparent outline-none border-t-1dark:text-rose-300 dark:placeholder-gray-400"
+        className="p-1 mt-2 w-full text-sm placeholder-gray-500 text-gray-700 bg-transparent outline-none border-t-1dark:text-blue-300 dark:placeholder-gray-400"
       />
     </div>
   );

@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Menu, Import } from 'lucide-react';
 import { ViewMode, SortType, FilterOptions, AppendButtonsProps } from '../../types/index.ts';
-import ThemeToggle from '../ThemeToggle';
-import LanguageToggle from '../LanguageToggle';
 import { useLocale } from '../../contexts/LanguageContext';
 import FilterPopup from '../FilterPopup';
 import ShortcutsHelp from '../ShortcutsHelp';
@@ -73,7 +71,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   }, []);
   return (
     <>
-      <div className="flex relative z-10 justify-between items-center px-6 h-16 bg-white bg-opacity-30 border-b backdrop-blur-sm dark:bg-gray-800 dark:bg-opacity-30 dark:border-gray-700">
+      <div className="flex relative z-10 justify-between items-center px-6 h-14 bg-white bg-opacity-10 border-b shadow-lg backdrop-blur-lg dark:bg-gray-800 dark:bg-opacity-10">
         <div className="flex items-center space-x-4">
           <button
             onClick={onToggleSidebar}
@@ -90,9 +88,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
           >
             <Import size={20} />
           </button>
-
-          <LanguageToggle />
-          <ThemeToggle />
 
           {selectedCount > 0 ? (
             <BulkActions
@@ -115,7 +110,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 onViewModeChange={onViewModeChange}
               />
 
-              <div className="flex items-center pl-4 space-x-2 border-l dark:border-gray-700">
+              <div className="flex items-center pl-4 space-x-2 border-l">
                 <SortDropdown
                   sortBy={sortBy}
                   sortDirection={sortDirection}

@@ -55,10 +55,10 @@ const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onClose }) => {
 
   return (
     <div className="flex fixed inset-0 z-50 justify-center items-center backdrop-blur-sm transition-all duration-200 bg-black/60">
-      <div className="relative w-[900px] max-h-[85vh] bg-white/95 dark:bg-gray-800/95 rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700 transform transition-all duration-200">
-        <div className="flex justify-between items-center px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b dark:from-gray-800 dark:to-gray-750 dark:border-gray-700">
+      <div className="relative w-[900px] max-h-[85vh] bg-white/95 dark:bg-gray-800/95 rounded-2xl shadow-2xl overflow-hidden border border-gray-200  transform transition-all duration-200">
+        <div className="flex justify-between items-center px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b dark:from-gray-800 dark:to-gray-750 ">
           <div className="flex items-center space-x-3">
-            <Keyboard className="w-6 h-6 text-blue-500 dark:text-blue-400" />
+            <Keyboard className="w-6 h-6 text-blue-400 dark:text-blue-400" />
             <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
               {t('shortcuts.title')}
             </h2>

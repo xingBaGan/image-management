@@ -53,7 +53,7 @@ const Row = memo(({ data, index, style }: {
                     ? 'var(--selected-bg-color, rgba(59, 130, 246, 0.1))' 
                     : undefined
             }}
-            className={`grid gap-4 items-center p-4 transition-colors cursor-pointer grid-cols-[auto_1fr_auto_auto_auto] hover:bg-gray-50 dark:hover:bg-gray-700 image-item
+            className={`grid gap-4 items-center dark:hover:bg-opacity-60 rounded-md p-4 transition-colors cursor-pointer grid-cols-[auto_1fr_auto_auto_auto] hover:bg-gray-50 dark:hover:bg-blue-800  image-item
                 ${image.isBindInFolder ? 'border-l-4 border-blue-400' : ''}`}
             data-image-id={image.id}
             onContextMenu={handleContextMenu}
@@ -68,7 +68,7 @@ const Row = memo(({ data, index, style }: {
                 <span className="text-gray-700 dark:text-white">
                     {image.name}
                     {image.isBindInFolder && (
-                        <span className="ml-2 text-xs text-blue-500 bg-blue-100 px-2 py-0.5 rounded">
+                        <span className="ml-2 text-xs text-blue-400 bg-blue-100 px-2 py-0.5 rounded">
                             已绑定
                         </span>
                     )}
@@ -171,8 +171,8 @@ const ListView: React.FC<ImageGridBaseProps> = ({
     };
 
     return (
-        <div className="h-full bg-white bg-opacity-60 rounded-lg shadow dark:bg-gray-800 dark:bg-opacity-60">
-            <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 border-b dark:border-gray-700 font-medium text-gray-500 dark:text-rose-400">
+        <div className="h-full bg-white bg-opacity-10 rounded-lg shadow dark:bg-gray-800 dark:bg-opacity-10">
+            <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 border-b  font-medium text-gray-500 dark:text-blue-300">
                 <div className="w-12"></div>
                 <div>{t('listName')}</div>
                 <div>{t('listSize')}</div>
