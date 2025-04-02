@@ -160,7 +160,7 @@ export const MainContent: React.FC<MainContentProps> = ({
             installStatus={installStatus}
           />
         </div>
-        <div className="fixed right-0 bottom-0 top-[3.5rem]">
+        <div className="fixed right-0 bottom-0 top-[3rem]">
           {!isSidebarOpen && (
             <ImageInfoSidebar
               image={selectedImage as LocalImageData}

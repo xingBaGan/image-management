@@ -115,7 +115,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div className="z-10 w-48 h-full bg-gray-200 bg-opacity-10 border-r border-gray-200 shadow-lg backdrop-blur-lg dark:bg-gray-800 dark:bg-opacity-10 ">
+    <div className="z-10 w-48 h-full bg-gray-200 bg-opacity-10 border-r border-gray-200 shadow-lg backdrop-blur-lg dark:bg-gray-800 dark:bg-opacity-60 ">
       <div className='flex justify-between items-center px-1 h-14'>
         <LanguageToggle />
         <ThemeToggle />

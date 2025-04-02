@@ -171,7 +171,7 @@ const ListView: React.FC<ImageGridBaseProps> = ({
     };
 
     return (
-        <div className="h-full bg-white bg-opacity-10 rounded-lg shadow dark:bg-gray-800 dark:bg-opacity-10">
+        <div className="h-full bg-white bg-opacity-10 rounded-lg shadow dark:bg-gray-800 dark:bg-opacity-60">
             <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 border-b  font-medium text-gray-500 dark:text-blue-300">
                 <div className="w-12"></div>
                 <div>{t('listName')}</div>

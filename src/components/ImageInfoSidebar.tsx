@@ -32,7 +32,7 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
     if (!image) return (
         <div className="overflow-y-auto p-4 w-60 border-l border-gray-200 backdrop-blur-lg bg-white/30 dark:bg-gray-800/30 video-info-sidebar"
             style={{
-                height: 'calc(100vh - 5.5rem)',
+                height: 'calc(100vh - 5rem)',
             }}
         >
             {type === 'video' ? (
@@ -60,7 +60,7 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
     return (
         <div className="overflow-y-auto overflow-x-hidden p-2 w-60 border-l border-gray-200 backdrop-blur-lg bg-white/30 dark:bg-gray-800/30 image-info-sidebar"
             style={{
-                height: 'calc(100vh - 5.5rem)',
+                height: 'calc(100vh - 5rem)',
             }}
         >
             <div className="flex justify-between items-center mb-4">
