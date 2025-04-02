@@ -59,8 +59,26 @@ body {
   overflow: hidden;
 }
 
-.image-info-sidebar,
-.video-info-sidebar {
-  
+.dark .markdown-preview h1,
+.dark .markdown-preview h2,
+.dark .markdown-preview h3,
+.dark .markdown-preview h4,
+.dark .markdown-preview h5,
+.dark .markdown-preview h6 {
+  color: white;
 }
 
+.dark .markdown-preview table {
+  background-color: gray;
+  color: white;
+}
+
+.dark .markdown-preview table th {
+  background-color: #333;
+  color: white;
+}
+
+.dark .markdown-preview table td {
+  background-color: #444;
+  color: white;
+}

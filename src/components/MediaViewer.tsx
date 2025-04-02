@@ -38,7 +38,7 @@ const MediaViewer: React.FC<MediaViewerProps> = ({
 
   return (
     <div
-      className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-10"
+      className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-70"
     >
       <button
         onClick={onClose}
