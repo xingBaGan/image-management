@@ -7,8 +7,8 @@ const ThemeToggle = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-      title={isDark ? '切换到亮色模式' : '切换到暗色模式'}
+      className="p-2 text-gray-700 rounded-lg dark:text-blue-300 dark:hover:bg-gray-700"
+      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
       {isDark ? <Sun size={20} /> : <Moon size={20} />}
     </button>

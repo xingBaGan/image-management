@@ -1,6 +1,7 @@
 import React from 'react';
 import { Minus, Square, CopyIcon, X } from 'lucide-react';
 import { useLocale } from '../contexts/LanguageContext';
+import logo from '../assets/icon.png';
 
 interface TitleBarProps {
   isMaximized: boolean;
@@ -31,7 +32,9 @@ export const TitleBar: React.FC<TitleBarProps> = ({
       onDoubleClick={onMaximize}
       style={dragStyle}
     >
-      <div className="text-gray-700 text-bold">atujii</div>
+      <div className="text-gray-700 text-bold">
+        <img src={logo} alt="logo" className="w-5 h-5" />
+      </div>
       <div className="flex items-center space-x-2" style={noDragStyle}>
         <button
           onClick={onMinimize}

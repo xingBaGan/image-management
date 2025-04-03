@@ -12,7 +12,7 @@ const ViewModeToggle: React.FC<ViewModeToggleProps> = ({ viewMode, onViewModeCha
   const { t } = useLocale();
 
   return (
-    <div className="flex items-center pl-4 space-x-2 border-l dark:border-gray-700">
+    <div className="flex items-center pl-4 space-x-2 border-l ">
       <button
         onClick={() => onViewModeChange('grid')}
         className={`p-2 rounded-lg ${

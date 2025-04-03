@@ -80,7 +80,7 @@ const Settings: React.FC<SettingsProps> = ({
           
           <div className="space-y-4">
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700dark:text-rose-300">
+              <label className="block mb-1 text-sm font-medium text-gray-700dark:text-blue-300">
                 {t('comfyServerUrl')}
               </label>
               <input
@@ -93,7 +93,7 @@ const Settings: React.FC<SettingsProps> = ({
             </div>
 
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700dark:text-rose-300">
+              <label className="block mb-1 text-sm font-medium text-gray-700dark:text-blue-300">
                 {t('backgroundImageUrl')}
               </label>
               <input
@@ -106,7 +106,7 @@ const Settings: React.FC<SettingsProps> = ({
             </div>
 
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700dark:text-rose-300">
+              <label className="block mb-1 text-sm font-medium text-gray-700dark:text-blue-300">
                 {t('autoTagging')}
               </label>
               <input
@@ -118,7 +118,7 @@ const Settings: React.FC<SettingsProps> = ({
               />
             </div>
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700dark:text-rose-300">
+              <label className="block mb-1 text-sm font-medium text-gray-700dark:text-blue-300">
                 {t('autoColor')}
               </label>
               <input
@@ -130,7 +130,7 @@ const Settings: React.FC<SettingsProps> = ({
               />
             </div>
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700dark:text-rose-300">
+              <label className="block mb-1 text-sm font-medium text-gray-700dark:text-blue-300">
                 {t('modelName')}
               </label>
               <select
@@ -147,7 +147,7 @@ const Settings: React.FC<SettingsProps> = ({
             <div className="flex justify-end mt-6 space-x-3">
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-700dark:text-rose-300 dark:hover:bg-gray-600"
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-700dark:text-blue-300 dark:hover:bg-gray-600"
               >
                 {t('cancel')}
               </button>

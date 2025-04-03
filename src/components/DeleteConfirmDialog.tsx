@@ -20,7 +20,7 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
         <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
           {t('deleteConfirmTitle')}
         </h3>
-        <p className="mb-6 text-gray-600dark:text-rose-300">
+        <p className="mb-6 text-gray-600dark:text-blue-300">
           {t('deleteConfirmMessage')}
           {currentSelectedCategory?.isImportFromFolder ? t('deleteBindInFolder') :''}
         </p>

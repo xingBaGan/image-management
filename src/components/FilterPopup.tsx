@@ -40,7 +40,7 @@ const FilterPopup: React.FC<FilterPopupProps> = ({
   };
 
   return (
-    <div className="absolute left-0 top-[calc(100%+8px)] z-50 p-4 w-80 bg-white rounded-lg border shadow-lg dark:bg-gray-800 dark:border-gray-700">
+    <div className="absolute left-0 top-[calc(100%+8px)] z-50 p-4 w-80 bg-white rounded-lg border shadow-lg dark:text-white dark:bg-gray-800 ">
       <div className="space-y-4">
         {filters.map(filter => {
           if (filter.type === 'colors') {

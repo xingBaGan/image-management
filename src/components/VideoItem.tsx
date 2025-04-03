@@ -168,7 +168,7 @@ const VideoItem: React.FC<VideoItemProps> = memo(({
           </div>
         )}
         {isHovering && video.duration && (
-          <div className="absolute right-0 bottom-0 left-0 h-1 bg-gray-200 bg-opacity-30">
+          <div className="absolute right-0 bottom-0 left-0 h-1 bg-gray-200 bg-opacity-10">
             <div
               className="absolute top-0 bottom-0 left-0 bg-white transition-all duration-75"
               style={{
@@ -180,7 +180,7 @@ const VideoItem: React.FC<VideoItemProps> = memo(({
       </div>
       <div
         className={`absolute inset-0 bg-black will-change-opacity transition-opacity duration-300 ease-in-out rounded-lg ${
-          isSelected ? 'bg-opacity-30' : 'bg-opacity-0 group-hover:bg-opacity-30'
+          isSelected ? 'bg-opacity-10' : 'bg-opacity-0 group-hover:bg-opacity-10'
         }`}
       />
       {isSelected && (

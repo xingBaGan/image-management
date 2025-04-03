@@ -30,26 +30,26 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
     const { t } = useLocale();
 
     if (!image) return (
-        <div className="overflow-y-auto p-4 w-60 border-l border-gray-200 backdrop-blur-md bg-white/30 dark:bg-gray-800/30 dark:border-gray-700"
+        <div className="overflow-y-auto p-4 w-60 border-l border-gray-200 backdrop-blur-lg bg-white/30 dark:bg-gray-800/30 video-info-sidebar"
             style={{
-                height: 'calc(100vh - 6rem)',
+                height: 'calc(100vh - 5rem)',
             }}
         >
             {type === 'video' ? (
                 <>
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold dark:text-white">{t('videoInfo')}</h3>
+                        <h3 className="text-lg font-semibold text-gray-600 dark:text-white">{t('videoInfo')}</h3>
                     </div>
-                    <div className="text-sm text-gray-500 dark:text-white">
+                    <div className="text-xs text-gray-500 dark:text-white">
                         {t('totalVideos', { count: totalVideos })}
                     </div>
                 </>
             ) : (
                 <>
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold dark:text-white">{t('basicInfo')}</h3>
+                        <h3 className="text-lg font-semibold text-gray-600 dark:text-white">{t('basicInfo')}</h3>
                     </div>
-                    <div className="text-sm text-gray-500 dark:text-white">
+                    <div className="text-xs text-gray-500 dark:text-white">
                         {t('totalImages', { count: totalImages })}
                     </div>
                 </>
@@ -58,13 +58,13 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
     );
 
     return (
-        <div className="overflow-y-auto overflow-x-hidden p-2 w-60 border-l border-gray-200 backdrop-blur-md bg-white/30 dark:bg-gray-800/30 dark:border-gray-700"
+        <div className="overflow-y-auto overflow-x-hidden p-2 w-60 border-l border-gray-200 backdrop-blur-lg bg-white/30 dark:bg-gray-800/30 image-info-sidebar"
             style={{
-                height: 'calc(100vh - 6rem)',
+                height: 'calc(100vh - 5rem)',
             }}
         >
             <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold dark:text-white">{t('basicInfo')}</h3>
+                <h3 className="text-lg font-semibold text-gray-600 dark:text-white">{t('basicInfo')}</h3>
             </div>
             <div className="space-y-4">
                 <div className="relative">
@@ -73,7 +73,7 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
                         alt={image.name}
                         className="object-cover w-full rounded-lg h-30"
                     />
-                    <div className="inline-block absolute top-1 right-2 text-sm text-gray-700 backdrop-blur-md bg-white/30 dark:text-white">{image.extension}</div>
+                    <div className="inline-block absolute top-1 right-2 text-xs text-gray-700 backdrop-blur-lg bg-white/30 dark:text-white">{image.extension}</div>
                 </div>
 
                 <div className="space-y-2">
@@ -85,7 +85,7 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
                         />
                     )}
                     <div>
-                        <label className="text-sm text-gray-500 dark:text-rose-400">{t('fileName')}</label>
+                        <label className="text-xs text-gray-500 dark:text-blue-300">{t('fileName')}</label>
                         {image.name && image.name.length > 10 ? (
                             <div className="relative group">
                                 <p className="text-gray-900 truncate dark:text-white max-w-44">{image.name}</p>
@@ -98,35 +98,35 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
                         )}
                     </div>
                     <div>
-                        <label className="text-sm text-gray-500 dark:text-rose-400">{t('dimensions')}</label>
+                        <label className="text-xs text-gray-500 dark:text-blue-300">{t('dimensions')}</label>
                         <p className="text-gray-900 dark:text-white">{image.width} x {image.height}</p>
                     </div>
 
                     <div>
-                        <label className="text-sm text-gray-500 dark:text-rose-400">{t('fileSize')}</label>
+                        <label className="text-xs text-gray-500 dark:text-blue-300">{t('fileSize')}</label>
                         <p className="text-gray-900 dark:text-white">{image.size ? formatFileSize(image.size) : ''}</p>
                     </div>
 
                     <div>
-                        <label className="text-sm text-gray-500 dark:text-rose-400">{t('dateCreated')}</label>
+                        <label className="text-xs text-gray-500 dark:text-blue-300">{t('dateCreated')}</label>
                         <p className="text-gray-900 dark:text-white">{image.dateCreated ? formatDate(image.dateCreated) : ''}</p>
                     </div>
 
                     <div>
-                        <label className="text-sm text-gray-500 dark:text-rose-400">{t('dateModified')}</label>
+                        <label className="text-xs text-gray-500 dark:text-blue-300">{t('dateModified')}</label>
                         <p className="text-gray-900 dark:text-white">{image.dateModified ? formatDate(image.dateModified) : ''}</p>
                     </div>
 
                     <div>
-                        <label className="text-sm text-gray-500 dark:text-rose-400">{t('rating')}</label>
+                        <label className="text-xs text-gray-500 dark:text-blue-300">{t('rating')}</label>
                         <Rating
                             value={image.rating || 0}
                             onChange={(value) => onRateChange(image.id, value)}
                         />
                     </div>
                     <div>
-                        <span className="p-1 mb-2 text-sm text-gray-500 dark:text-rose-400">{t('tags')}</span>
-                        <span className="text-xs text-gray-500 dark:text-rose-400">
+                        <span className="p-1 mb-2 text-xs text-gray-500 dark:text-blue-300">{t('tags')}</span>
+                        <span className="text-xs text-gray-500 dark:text-blue-300">
                             {t('tagsHint')}
                         </span>
                         <MediaTags

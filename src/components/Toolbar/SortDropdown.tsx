@@ -49,10 +49,10 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
       </button>
 
       {isDropdownOpen && (
-        <div className="absolute left-0 top-[calc(100%-5px)] z-50 py-1 mt-1 w-48 bg-white rounded-lg border shadow-lg dark:text-white dark:bg-gray-800 dark:border-gray-700">
+        <div className="absolute left-0 top-[calc(100%-5px)] z-50 py-1 mt-1 w-48 bg-white rounded-lg border shadow-lg dark:text-white dark:bg-gray-800 ">
           <button
             onClick={() => onSortChange(SortType.Name)}
-            className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:text-red-300 dark:hover:bg-gray-700 ${
+            className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:text-blue-300 dark:hover:bg-gray-700 ${
               sortBy === SortType.Name ? 'text-blue-600 dark:text-blue-300' : ''
             }`}
           >
@@ -61,7 +61,7 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
 
           <button
             onClick={() => onSortChange(SortType.Date)}
-            className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:text-red-300 dark:hover:bg-gray-700 ${
+            className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:text-blue-300 dark:hover:bg-gray-700 ${
               sortBy === SortType.Date ? 'text-blue-600 dark:text-blue-300' : ''
             }`}
           >
@@ -69,7 +69,7 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
           </button>
           <button
             onClick={() => onSortChange(SortType.Size)}
-            className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:text-red-300 dark:hover:bg-gray-700 ${
+            className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:text-blue-300 dark:hover:bg-gray-700 ${
               sortBy === SortType.Size ? 'text-blue-600 dark:text-blue-300' : ''
             }`}
           >

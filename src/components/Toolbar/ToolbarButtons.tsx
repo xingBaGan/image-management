@@ -53,7 +53,7 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
     <div ref={filterRef} className="flex items-center space-x-2">
       <button
         onClick={onOpenConfig}
-        className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-blue-500"
+        className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-sky-500"
         title={t('openConfig')}
         aria-label={t('openConfig')}
       >
@@ -62,7 +62,7 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
       
       <button
         onClick={() => setIsSettingsOpen(true)}
-        className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-blue-500"
+        className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-sky-500"
         title={t('settings')}
       >
         <SettingsIcon size={20} />
@@ -71,10 +71,10 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
       <div className="relative">
         <button
           ref={filterButtonRef as React.RefObject<HTMLButtonElement>}
-          className={`p-2 rounded-lg ${
+          className={`p-2 rounded-lg text-gray-600 ${
             isFilterOpen || getFilterCount() > 0
-              ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-500'
-              : 'hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-blue-500'
+              ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-sky-500'
+              : 'hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-sky-500'
           }`}
           title={`${t('filter')} (Ctrl+R)`}
           onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -92,7 +92,7 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
 
       <button 
         onClick={() => setIsShortcutsHelpOpen(true)}
-        className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-blue-500"
+        className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-sky-500"
         title={t('shortcuts.show')}
       >
         <Keyboard size={20} />

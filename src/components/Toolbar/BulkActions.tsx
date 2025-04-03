@@ -30,7 +30,7 @@ const BulkActions: React.FC<BulkActionsProps> = ({
 
   return (
     <>
-      <span className="text-sm text-gray-600 dark:text-rose-300">
+      <span className="text-sm text-gray-600 dark:text-blue-300">
         {t('selected', { count: selectedCount })}
       </span>
       <div className="h-6 border-l dark:border-gray-600" />
@@ -40,7 +40,7 @@ const BulkActions: React.FC<BulkActionsProps> = ({
             {'categories' in action && action.categories ? (
               <div className="relative">
                 <button
-                  className="flex items-center px-3 py-2 space-x-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-rose-300"
+                  className="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-blue-400"
                   onClick={() => {
                     const dropdown = document.getElementById(`category-dropdown-${index}`);
                     if (dropdown) {
@@ -50,12 +50,11 @@ const BulkActions: React.FC<BulkActionsProps> = ({
                   title={t(action.label.toLowerCase())}
                 >
                   {action.icon}
-                  <span>{t(action.label.toLowerCase())}</span>
                 </button>
 
                 <div
                   id={`category-dropdown-${index}`}
-                  className="hidden absolute left-0 top-full z-50 mt-1 w-48 bg-white rounded-lg border shadow-lg dark:bg-gray-800 dark:border-gray-700"
+                  className="hidden absolute left-0 top-full z-50 mt-1 w-48 bg-white rounded-lg border shadow-lg dark:bg-gray-800"
                 >
                   {action.categories.map(category => (
                     <label
@@ -77,7 +76,7 @@ const BulkActions: React.FC<BulkActionsProps> = ({
                       <span>{category.name}</span>
                     </label>
                   ))}
-                  <div className="px-4 py-2 border-t dark:border-gray-700">
+                  <div className="px-4 py-2 border-t">
                     <button
                       className="px-3 py-1 w-full text-white bg-blue-500 rounded-lg hover:bg-blue-600"
                       onClick={() => {
@@ -105,13 +104,12 @@ const BulkActions: React.FC<BulkActionsProps> = ({
                     action.onClick()
                   }
                 }}
-                className="flex items-center px-3 py-2 space-x-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-rose-300"
                 title={t(action.label.toLowerCase())}
+                className="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-blue-400"
               >
                 {!('eventId' in action) ? action.icon : (
                    <DynamicIcon name={(action.icon || 'camera')} />
                 )}
-                <span>{t(action.label.toLowerCase())}</span>
               </button>
             )}
           </div>

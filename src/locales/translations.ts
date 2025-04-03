@@ -41,8 +41,8 @@ export const translations = {
     showSidebar: 'Show Sidebar',
 
     // Image Info
-    basicInfo: 'Basic Info',
-    videoInfo: 'Video Info',
+    basicInfo: 'basic information',
+    videoInfo: 'video information',
     fileName: 'File Name',
     fileSize: 'File Size',
     dimensions: 'Dimensions',
@@ -239,7 +239,7 @@ export const translations = {
     favorites: '收藏',
     recent: '最近',
     all: '全部',
-    categories: '分类',
+    categories: '自定义分类',
     addCategory: '添加分类',
     categoryName: '分类名称',
     moreActions: '更多操作',
