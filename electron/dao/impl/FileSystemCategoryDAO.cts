@@ -61,7 +61,21 @@ export default class FileSystemCategoryDAO implements CategoryDAO {
           }
         });
       }
-      const updatedCategories = categories.filter(category => category.id !== categoryId);
+      let updatedCategories = categories.filter(category => category.id !== categoryId);      
+      // delete it's children
+      if (deletedCategory?.children) {
+        for (const child of deletedCategory.children) {
+          const { updatedCategories: updatedCategories2, updatedImages } = await this.deleteCategory(child, images, updatedCategories);
+          updatedCategories = updatedCategories2;
+          images = updatedImages;
+        }
+      }
+
+      // remove it from parent's children
+      const parentCategory = updatedCategories.find(category => category.father === categoryId);
+      if (parentCategory) {
+        parentCategory.children = parentCategory.children?.filter(child => child !== categoryId) || [];
+      }
       await saveImagesAndCategories(images, updatedCategories);
       const { images: updatedImages } = await loadImagesData();
       return {

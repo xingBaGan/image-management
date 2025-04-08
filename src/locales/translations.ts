@@ -28,6 +28,7 @@ export const translations = {
     addCategory: 'Add Category',
     categoryName: 'Category Name',
     moreActions: 'More Actions',
+    addSubcategory: 'Add Subcategory',
 
     // Actions
     delete: 'Delete',
@@ -243,6 +244,7 @@ export const translations = {
     addCategory: '添加分类',
     categoryName: '分类名称',
     moreActions: '更多操作',
+    addSubcategory: '添加子分类',
 
     // 操作
     delete: '删除',
