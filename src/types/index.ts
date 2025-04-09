@@ -113,6 +113,11 @@ export enum TaskStatus {
   Canceled = 'canceled',
 }
 
+export enum DeleteType {
+  DeleteFromCategory = 'deleteFromCategory',
+  Delete = 'delete',
+  DeleteFromFolder = 'deleteFromFolder',
+}
 // =============== 插件系统相关类型 ===============
 export interface Plugin {
   id: string;
@@ -245,6 +250,14 @@ export interface IPCImageService {
   ): Promise<{
     updatedImages: LocalImageData[];
     updatedCategories?: Category[];
+  }>;
+  bulkDeleteFromCategory(
+    selectedImages: Set<string>,
+    categories: Category[],
+    currentSelectedCategory?: Category
+  ): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories: Category[];
   }>;
   updateTags(
     mediaId: string,

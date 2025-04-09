@@ -125,4 +125,9 @@ export const filterAndSortImages = async (
   }
 ): Promise<LocalImageData[]> => {
   return await window.electron.imageAPI.filterAndSortImages(mediaList, { filter, selectedCategory, categories, searchTags, filterColors, multiFilter, sortBy, sortDirection });
-}; 
+};
+
+export const bulkDeleteFromCategory = async (selectedImages: Set<string>, categories: Category[], currentSelectedCategory?: Category) => {
+  return await window.electron.imageAPI.bulkDeleteFromCategory(selectedImages, categories, currentSelectedCategory);
+};
+

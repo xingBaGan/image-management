@@ -24,6 +24,14 @@ export interface IPCImageService {
     updatedImages: LocalImageData[];
     updatedCategories?: Category[];
   }>;
+  bulkDeleteFromCategory(
+    selectedImages: Set<string>,
+    categories: Category[],
+    currentSelectedCategory?: Category
+  ): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories: Category[];
+  }>;
   updateTags(
     mediaId: string,
     newTags: string[],

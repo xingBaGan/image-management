@@ -286,6 +286,40 @@ export default class DBImageDAO implements ImageDAO {
     }
   }
 
+
+  async bulkDeleteFromCategory(
+    selectedImages: Set<string>,
+    categories: Category[],
+    currentSelectedCategory?: Category
+  ): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories: Category[];
+  }> {
+    const { images } = await this.getImagesAndCategories();
+    for (const imgId of selectedImages) {
+      const image = images.find(img => img.id === imgId);
+      if (image) {
+        image.categories = image.categories?.filter((categoryId: string) => categoryId !== currentSelectedCategory?.id);
+        image.isDirty = true;
+      }
+    }
+    categories = categories.filter((category: Category) => category.id !== currentSelectedCategory?.id);
+    if (currentSelectedCategory) {
+      currentSelectedCategory.images = currentSelectedCategory.images?.filter((id: string) => !selectedImages.has(id));
+    }
+    if (currentSelectedCategory) {
+      categories.push(currentSelectedCategory);
+    }
+
+    await this.saveImagesAndCategories(images, categories);
+
+    return {
+      updatedImages: images,
+      updatedCategories: categories
+    };
+  }
+
+
   async updateRating(
     mediaId: string,
     rate: number,

@@ -66,6 +66,8 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.invoke('bulk-delete-soft', selectedImages, images, categories),
     bulkDeleteHard: (selectedImages: Set<string>, images: LocalImageData[], categories: Category[]) => 
       ipcRenderer.invoke('bulk-delete-hard', selectedImages, images, categories),
+    bulkDeleteFromCategory: (selectedImages: Set<string>, categories: Category[], currentSelectedCategory: Category) => 
+      ipcRenderer.invoke('bulk-delete-from-category', selectedImages, categories, currentSelectedCategory),
     updateTags: (mediaId: string, newTags: string[], images: LocalImageData[], categories: Category[]) => 
       ipcRenderer.invoke('update-tags', mediaId, newTags, images, categories),
     updateRating: (mediaId: string, rate: number, images: LocalImageData[], categories: Category[]) => 

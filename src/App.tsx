@@ -14,9 +14,10 @@ import {
   SortDirection,
   FolderContentChangeType,
   TaskStatus,
-  InstallStatus
+  InstallStatus,
+  DeleteType
 } from './types/index.ts';
-import { Trash2, FolderPlus, Tags, Tag } from 'lucide-react';
+import { Trash2, FolderPlus, Tags, Tag, FolderX } from 'lucide-react';
 import { addTagsToImages } from './services/tagService';
 import { processMedia, addImagesToCategory, isArrayOfString } from './utils';
 import Settings from './components/Settings';
@@ -275,6 +276,14 @@ function App() {
       setSelectedImages(new Set());
     }
   };
+  
+  const handleBulkDeleteFromCategory = async () => {
+    const newCategories = await handleBulkDeleteBase(selectedImages, categories, currentSelectedCategory, DeleteType.DeleteFromCategory);
+    if (newCategories) {
+      setCategories(newCategories);
+      setSelectedImages(new Set());
+    }
+  };
 
   const handleAddTags = useCallback(async () => {
     if (selectedCategory === FilterType.Videos) {
@@ -306,37 +315,55 @@ function App() {
    }
   }, [selectedImagesList, mediaList, categories, settings.modelName, setImportState, setSelectedImages]);
 
-  const bulkActions = [
-    {
-      icon: <Trash2 size={20} />,
-      label: t('delete'),
-      onClick: handleBulkDelete
-    },
-    {
-      icon: <FolderPlus size={20} />,
-      label: t('addToCategory'),
-      onClick: () => { },
-      categories: categories,
-      onSelectCategories: handleAddToCategory
-    },
-    {
-      icon: <Tags size={20} />,
-      label: t('addTags'),
-      onClick: handleAddTags
-    },
-    {
-      icon: <Tag size={20} />,
-      label: t('batchTag'),
-      onClick: openTagPopup
-    }
-  ];
-  const messageBoxClose = () => {
-    setMessageBox(prev => ({ ...prev, isOpen: false }));
-  };
-
   const currentSelectedCategory = useMemo(() => {
     return categories.find(cat => cat.id === selectedCategory);
   }, [categories, selectedCategory]);
+  
+  const bulkActions = useMemo(() => {
+    const actions = [
+      {
+        icon: <Trash2 size={20} />,
+        label: t('delete'),
+        onClick: handleBulkDelete
+      },
+      {
+        icon: <FolderPlus size={20} />,
+        label: t('addToCategory'),
+        onClick: () => { },
+        categories: categories,
+        onSelectCategories: handleAddToCategory
+      },
+      {
+        icon: <Tags size={20} />,
+        label: t('addTags'),
+        onClick: handleAddTags
+      },
+      {
+        icon: <Tag size={20} />,
+        label: t('batchTag'),
+        onClick: openTagPopup
+      }
+    ]
+    if (currentSelectedCategory) {
+      actions.splice(1, 0, {
+        icon: <FolderX size={20} />,
+        label: t('deleteFromCategory'),
+        onClick: handleBulkDeleteFromCategory
+      })
+    }
+    return actions;
+  }, [
+    t, 
+    handleBulkDelete, 
+    handleBulkDeleteFromCategory, 
+    handleAddToCategory, 
+    openTagPopup,
+    categories,
+    currentSelectedCategory
+  ]);
+  const messageBoxClose = () => {
+    setMessageBox(prev => ({ ...prev, isOpen: false }));
+  };
 
   const handleImportImages = async () => {
     await handleImportImagesBase(categories, currentSelectedCategory);

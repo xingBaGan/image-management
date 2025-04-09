@@ -149,6 +149,38 @@ export default class FileSystemImageDAO implements ImageDAO {
       updatedCategories
     };
   }
+  
+  async bulkDeleteFromCategory(
+    selectedImages: Set<string>,
+    categories: Category[],
+    currentSelectedCategory?: Category
+  ): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories: Category[];
+  }> {
+    const { images } = await this.getImagesAndCategories();
+    for (const imgId of selectedImages) {
+      const image: LocalImageData | undefined = images.find(img => img.id === imgId);
+      if (image) {
+        image.categories = image.categories?.filter((categoryId: string) => categoryId !== currentSelectedCategory?.id);
+      }
+    }
+    categories = categories.filter((category: Category) => category.id !== currentSelectedCategory?.id);
+    if (currentSelectedCategory) {
+      currentSelectedCategory.images = currentSelectedCategory.images?.filter((id: string) => !selectedImages.has(id));
+      currentSelectedCategory.count = currentSelectedCategory.images?.length || 0;
+    }
+    if (currentSelectedCategory) {
+      categories.push(currentSelectedCategory);
+    }
+
+    await saveImagesAndCategories(images, categories);
+
+    return {
+      updatedImages: images,
+      updatedCategories: categories
+    };
+  }
 
   async updateTags(
     mediaId: string,
