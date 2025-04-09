@@ -61,7 +61,7 @@ export default class FileSystemCategoryDAO implements CategoryDAO {
           }
         });
       }
-      let updatedCategories = categories.filter(category => category.id !== categoryId);      
+      let updatedCategories = categories.filter(category => category.id !== categoryId);
       // delete it's children
       if (deletedCategory?.children) {
         for (const child of deletedCategory.children) {
@@ -88,11 +88,78 @@ export default class FileSystemCategoryDAO implements CategoryDAO {
     }
   }
 
+  async removeFromGrandParentCategory(selectedImages: Set<string>, selectedCategories: string[], images: LocalImageData[], categories: Category[]): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories: Category[];
+  }> {
+    let grandParentCategories = new Set<string>();
+    // 遍历selectedCategories 的父级以上的categories, 删除selectedImages
+    for (const categoryId of selectedCategories) {
+      let currentCategory = categories.find(category => category.id === categoryId);
+      while (currentCategory && currentCategory?.father) {
+        currentCategory = categories.find(category => category.id === currentCategory!.father);
+        if (currentCategory) {
+          currentCategory.images = currentCategory.images?.filter(image => !selectedImages.has(image)) || [];
+          currentCategory.count = currentCategory.images?.length || 0;
+          // 找到images中对应的image, 删除
+          grandParentCategories.add(currentCategory.id);
+        }
+      }
+    }
+    // 遍历selectedImages, 删除categories中对应的 parentCategory
+    for (const imageId of selectedImages) {
+      const image = images.find(image => image.id === imageId);
+      if (image) {
+        image.categories = image.categories?.filter(categoryId => !grandParentCategories.has(categoryId)) || [];
+      }
+    }
+    return { updatedImages: images, updatedCategories: categories };
+  }
+
+  collectChildren(categoryId: string, categories: Category[]): string[] {
+    const children: string[] = [];
+    const current = categories?.find(cat => cat.id === categoryId);
+    if (!current?.children) return children;
+    for (const childId of current.children) {
+      // 收集儿子
+      children.push(childId);
+      const child = categories?.find(cat => cat.id === childId);
+      if (child?.children) {
+        children.push(...this.collectChildren(childId, categories));
+      }
+    }
+    return children;
+  };
+  async removeFromChildrenCategory(selectedImages: Set<string>, selectedCategories: string[], images: LocalImageData[], categories: Category[]): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories: Category[];
+  }> {
+    const allChildrenId: string[] = [];
+    for (const selectedId of selectedCategories) {
+      allChildrenId.push(...this.collectChildren(selectedId, categories));
+    }
+    for (const categoryId of allChildrenId) {
+      const category = categories.find(cat => cat.id === categoryId);
+      if (category) {
+        category.images = category.images?.filter(imageId => !selectedImages.has(imageId)) || [];
+        category.count = category.images?.length || 0;
+      }
+    }
+    for (const imageId of selectedImages) {
+      const image = images.find(image => image.id === imageId);
+      if (image) {
+        image.categories = image.categories?.filter(categoryId => !allChildrenId.includes(categoryId)) || [];
+      }
+    }
+    return { updatedImages: images, updatedCategories: categories };
+  }
+
   async addToCategory(selectedImages: Set<string>, selectedCategories: string[], images: LocalImageData[], categories: Category[]): Promise<{
     updatedImages: LocalImageData[];
     updatedCategories: Category[];
   }> {
     try {
+      // 更新images 的分类
       const updatedImages = images.map(img => {
         if (selectedImages.has(img.id)) {
           return {
@@ -103,6 +170,7 @@ export default class FileSystemCategoryDAO implements CategoryDAO {
         return img;
       });
 
+      // 更新categories 的图片
       const updatedCategories = categories.map(category => {
         if (selectedCategories.includes(category.id)) {
           const existingImages = category.images || [];
@@ -117,9 +185,16 @@ export default class FileSystemCategoryDAO implements CategoryDAO {
         }
         return category;
       });
-      await saveImagesAndCategories(updatedImages, updatedCategories);
-
-      return { updatedImages, updatedCategories };
+      const {
+        updatedImages: updatedImages2,
+        updatedCategories: updatedCategories2
+      } = await this.removeFromGrandParentCategory(selectedImages, selectedCategories, updatedImages, updatedCategories);
+      const {
+        updatedImages: updatedImages3,
+        updatedCategories: updatedCategories3
+      } = await this.removeFromChildrenCategory(selectedImages, selectedCategories, updatedImages2, updatedCategories2);
+      await saveImagesAndCategories(updatedImages3, updatedCategories3);
+      return { updatedImages: updatedImages3, updatedCategories: updatedCategories3 };
     } catch (error) {
       console.error('Error in add-to-category:', error);
       throw error;
@@ -137,12 +212,12 @@ export default class FileSystemCategoryDAO implements CategoryDAO {
         ...img,
         isBindInFolder: true
       }));
-      
+
       const updatedCategories = [...categories, category];
       const filteredImages = [...images.filter(img => !newImages.some(newImg => newImg.id === img.id)), ...newImages];
-      
+
       await saveImagesAndCategories([...images, ...newImages] as LocalImageData[], updatedCategories);
-      
+
       return {
         newImages: filteredImages as LocalImageData[],
         updatedCategories,
