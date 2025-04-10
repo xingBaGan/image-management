@@ -24,6 +24,14 @@ export interface IPCImageService {
     updatedImages: LocalImageData[];
     updatedCategories?: Category[];
   }>;
+  bulkDeleteFromCategory(
+    selectedImages: Set<string>,
+    categories: Category[],
+    currentSelectedCategory?: Category
+  ): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories: Category[];
+  }>;
   updateTags(
     mediaId: string,
     newTags: string[],
@@ -53,6 +61,7 @@ export interface IPCImageService {
       sortDirection: SortDirection;
     }
   ): Promise<LocalImageData[]>;
+  getImageById(imageId: string): Promise<LocalImageData>;
 }
 export interface ImageDAO extends IPCImageService {
   getImagesAndCategories(): Promise<{ images: LocalImageData[], categories: Category[] }>;

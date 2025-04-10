@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { LocalImageData, Category, ImportStatus } from '../types/index.ts';
 import { useLocale } from '../contexts/LanguageContext';
 import * as imageOperations from '../services/imageOperations';
+import { DeleteType } from '../types/index.ts';
 
 export const useImageOperations = () => {
   const { t } = useLocale();
@@ -40,8 +41,14 @@ export const useImageOperations = () => {
     setImages(updatedImages);
   };
 
-  const handleBulkDelete = async (selectedImages: Set<string>, categories: Category[]) => {
+  const handleBulkDelete = async (selectedImages: Set<string>, categories: Category[], currentSelectedCategory?: Category, deleteType: DeleteType = DeleteType.Delete) => {
     try {
+      if (currentSelectedCategory && deleteType === DeleteType.DeleteFromCategory) {
+        const { updatedImages, updatedCategories } = await imageOperations.bulkDeleteFromCategory(selectedImages, categories, currentSelectedCategory);
+        setImages(updatedImages);
+        return updatedCategories;
+      }
+      
       const bindInFolderImages = images.filter(img => selectedImages.has(img.id) && img.isBindInFolder);
 
       if (bindInFolderImages.length > 0) {

@@ -103,7 +103,13 @@ export default class DBImageDAO implements ImageDAO {
   constructor() {
     this.db = ImageDatabase.getInstance();
   }
-
+  async getImageById(imageId: string): Promise<LocalImageData> {
+    const image = await this.db.getImage(imageId);
+    if (!image) {
+      throw new Error('Image not found');
+    }
+    return convertToLocalImageData(image);
+  }
   async getImagesAndCategories(): Promise<{ images: LocalImageData[], categories: Category[] }> {
     try {
       const dbImages = await this.db.getAllImages();
@@ -117,7 +123,9 @@ export default class DBImageDAO implements ImageDAO {
         count: cat.count || 0,
         folderPath: cat.folderPath,
         isImportFromFolder: cat.isImportFromFolder,
-        order: cat.order
+        order: cat.order,
+        father: cat.father,
+        children: cat.children
       }));
 
       return { images, categories };
@@ -285,6 +293,40 @@ export default class DBImageDAO implements ImageDAO {
       return images;
     }
   }
+
+
+  async bulkDeleteFromCategory(
+    selectedImages: Set<string>,
+    categories: Category[],
+    currentSelectedCategory?: Category
+  ): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories: Category[];
+  }> {
+    const { images } = await this.getImagesAndCategories();
+    for (const imgId of selectedImages) {
+      const image = images.find(img => img.id === imgId);
+      if (image) {
+        image.categories = image.categories?.filter((categoryId: string) => categoryId !== currentSelectedCategory?.id);
+        image.isDirty = true;
+      }
+    }
+    categories = categories.filter((category: Category) => category.id !== currentSelectedCategory?.id);
+    if (currentSelectedCategory) {
+      currentSelectedCategory.images = currentSelectedCategory.images?.filter((id: string) => !selectedImages.has(id));
+    }
+    if (currentSelectedCategory) {
+      categories.push(currentSelectedCategory);
+    }
+
+    await this.saveImagesAndCategories(images, categories);
+
+    return {
+      updatedImages: images,
+      updatedCategories: categories
+    };
+  }
+
 
   async updateRating(
     mediaId: string,

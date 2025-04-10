@@ -54,8 +54,8 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
       <button
         onClick={onOpenConfig}
         className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-sky-500"
-        title={t('openConfig')}
-        aria-label={t('openConfig')}
+        title={t('openData')}
+        aria-label={t('openData')}
       >
         <FileJson className="w-4 h-4" />
       </button>

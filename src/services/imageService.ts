@@ -69,3 +69,8 @@ export const compressImage = async (
     }
   });
 };
+
+export async function getImageById(imageId: string) {
+  const image = await window.electron?.imageAPI.getImageById(imageId);
+  return image;
+}

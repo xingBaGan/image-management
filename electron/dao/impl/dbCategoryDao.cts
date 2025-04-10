@@ -4,6 +4,7 @@ import { ImageDatabase } from '../../pouchDB/Database.cjs';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs';
+import { DAOFactory } from '../DAOFactory.cjs';
 
 export default class DBCategoryDAO implements CategoryDAO {
   private db: ImageDatabase;
@@ -46,7 +47,9 @@ export default class DBCategoryDAO implements CategoryDAO {
         count: cat.count || 0,
         folderPath: cat.folderPath,
         isImportFromFolder: cat.isImportFromFolder,
-        order: cat.order
+        order: cat.order,
+        father: cat.father,
+        children: cat.children
       }));
 
       return { images, categories };
@@ -65,7 +68,7 @@ export default class DBCategoryDAO implements CategoryDAO {
       };
 
       await this.db.createCategory(categoryWithImages);
-      
+
       return [...categories, categoryWithImages];
     } catch (error) {
       console.error('Error in add-category:', error);
@@ -76,7 +79,7 @@ export default class DBCategoryDAO implements CategoryDAO {
   async renameCategory(categoryId: string, newName: string, categories: Category[]): Promise<Category[]> {
     try {
       await this.db.updateCategory(categoryId, { name: newName });
-      
+
       return categories.map(category =>
         category.id === categoryId
           ? { ...category, name: newName }
@@ -94,16 +97,16 @@ export default class DBCategoryDAO implements CategoryDAO {
   }> {
     try {
       const deletedCategory = categories.find(category => category.id === categoryId);
-      let updatedImages = [...images];
-      
+      let tempImages = [...images];
+
       if (deletedCategory?.isImportFromFolder) {
-        updatedImages = images.map(img => {
+        tempImages = images.map(img => {
           if (deletedCategory.images?.includes(img.id)) {
             return { ...img, isBindInFolder: false };
           }
           return img;
         });
-        
+
         // 更新图片在数据库中的状态
         for (const imageId of deletedCategory.images || []) {
           // find the image in the original images
@@ -111,16 +114,28 @@ export default class DBCategoryDAO implements CategoryDAO {
           if (originalImage) {
             const originalCategories = originalImage.categories || [];
             const newCategories = originalCategories.filter(categoryId => categoryId !== categoryId);
-            await this.db.updateImage(imageId, { isBindInFolder: false ,categories: newCategories });
+            await this.db.updateImage(imageId, { isBindInFolder: false, categories: newCategories });
           }
         }
       }
-      
+
+      // 删除分类的子分类
+      await Promise.all(deletedCategory?.children?.map(async childId => {
+        await this.deleteCategory(childId, images, categories);
+      }) || []);
+
+      // 从父分类中删除该分类
+      if (deletedCategory?.father) {
+        const fatherCategory = categories.find(category => category.id === deletedCategory.father);
+        if (fatherCategory) {
+          await this.db.updateCategory(fatherCategory.id, { children: fatherCategory.children?.filter(childId => childId !== categoryId) });
+        }
+      }
+
       // 删除分类
       await this.db.deleteCategory(categoryId);
-      
-      const updatedCategories = categories.filter(category => category.id !== categoryId);
-      
+
+      const { categories: updatedCategories, images: updatedImages } = await this.getImagesAndCategories();
       return {
         updatedCategories,
         updatedImages
@@ -129,6 +144,36 @@ export default class DBCategoryDAO implements CategoryDAO {
       console.error('Error in delete-category:', error);
       throw error;
     }
+  }
+
+  async removeFromGrandParentCategory(selectedImages: Set<string>, selectedCategories: string[], images: LocalImageData[], categories: Category[]): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories: Category[];
+  }> {
+    let grandParentCategories = new Set<string>();
+    // 遍历selectedCategories 的父级以上的categories, 删除selectedImages
+    for (const categoryId of selectedCategories) {
+      let currentCategory = categories.find(category => category.id === categoryId);
+      while (currentCategory && currentCategory?.father) {
+        currentCategory = categories.find(category => category.id === currentCategory!.father);
+        if (currentCategory) {
+          currentCategory.images = currentCategory.images?.filter(image => !selectedImages.has(image)) || [];
+          currentCategory.count = currentCategory.images?.length || 0;
+          // 找到images中对应的image, 删除
+          grandParentCategories.add(currentCategory.id);
+        }
+      }
+    }
+    // 遍历selectedImages, 删除categories中对应的 parentCategory
+    for (const imageId of selectedImages) {
+      const image = images.find(image => image.id === imageId);
+      if (image) {
+        image.categories = image.categories?.filter(categoryId => !grandParentCategories.has(categoryId)) || [];
+      }
+    }
+    const imageDAO = DAOFactory.getImageDAO();
+    await imageDAO.saveImagesAndCategories(images, categories);
+    return { updatedImages: images, updatedCategories: categories };
   }
 
   async addToCategory(
@@ -143,13 +188,13 @@ export default class DBCategoryDAO implements CategoryDAO {
     try {
       const updatedImages = [...images];
       const updatedCategories = [...categories];
-      
+
       // 为每个选中的图片添加分类
       for (const imageId of selectedImages) {
         for (const categoryId of selectedCategories) {
           await this.db.addImageToCategory(imageId, categoryId);
         }
-        
+
         // 更新内存中的图片对象
         const imgIndex = updatedImages.findIndex(img => img.id === imageId);
         if (imgIndex !== -1) {
@@ -162,14 +207,14 @@ export default class DBCategoryDAO implements CategoryDAO {
           };
         }
       }
-      
-      // 更新内存中的分类对象
+
+      // 更新内存中的分类对象的images和count
       for (let i = 0; i < updatedCategories.length; i++) {
         if (selectedCategories.includes(updatedCategories[i].id)) {
           const existingImages = updatedCategories[i].images || [];
           const newImages = Array.from(selectedImages);
           const allImages = Array.from(new Set([...existingImages, ...newImages]));
-          
+
           updatedCategories[i] = {
             ...updatedCategories[i],
             images: allImages,
@@ -178,8 +223,8 @@ export default class DBCategoryDAO implements CategoryDAO {
           await this.db.updateCategory(updatedCategories[i].id, updatedCategories[i]);
         }
       }
-      
-      return { updatedImages, updatedCategories };
+      const { updatedImages: updatedImages2, updatedCategories: updatedCategories2 } = await this.removeFromGrandParentCategory(selectedImages, selectedCategories, updatedImages, updatedCategories);
+      return { updatedImages: updatedImages2, updatedCategories: updatedCategories2 };
     } catch (error) {
       console.error('Error in add-to-category:', error);
       throw error;
@@ -207,7 +252,7 @@ export default class DBCategoryDAO implements CategoryDAO {
         folderPath: folderPath,
         isImportFromFolder: true
       };
-      
+
       // 读取文件夹中的图片
       const files = fs.readdirSync(folderPath);
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
@@ -215,18 +260,18 @@ export default class DBCategoryDAO implements CategoryDAO {
         const ext = path.extname(file).toLowerCase();
         return imageExtensions.includes(ext);
       });
-      
+
       // 创建新图片对象
       const newImages: LocalImageData[] = [];
       const imageIds: string[] = [];
-      
+
       for (const file of imageFiles) {
         const filePath = path.join(folderPath, file);
         const stats = fs.statSync(filePath);
-        
+
         const imageId = uuidv4();
         imageIds.push(imageId);
-        
+
         const newImage: LocalImageData = {
           id: imageId,
           path: `local-image://${filePath}`,
@@ -246,9 +291,9 @@ export default class DBCategoryDAO implements CategoryDAO {
           rating: 0,
           colors: []
         };
-        
+
         newImages.push(newImage);
-        
+
         // 将图片保存到数据库
         await this.db.createImage({
           id: newImage.id || '',
@@ -270,17 +315,17 @@ export default class DBCategoryDAO implements CategoryDAO {
           colors: newImage.colors || []
         });
       }
-      
+
       // 更新分类
       category.images = imageIds;
       category.count = imageIds.length;
-      
+
       // 保存分类到数据库
       await this.db.createCategory(category);
-      
+
       // 过滤掉重复的图片
       const filteredImages = [...images.filter(img => !newImages.some(newImg => newImg.id === img.id)), ...newImages];
-      
+
       return {
         newImages: filteredImages,
         updatedCategories: [...categories, category],

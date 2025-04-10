@@ -45,8 +45,8 @@ export interface Category {
     count: number;
     folderPath?: string;
     isImportFromFolder?: boolean;
-    children?: Category[];
-    father?: Category | null; // 新增父分类属性
+    children?: Category['id'][];
+    father?: Category['id'] | null; // 新增父分类属性
     order?: number;
 }
 

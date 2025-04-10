@@ -36,6 +36,10 @@ export const bulkDeleteSoft = async (
   return { updatedImages, updatedCategories };
 };
 
+export const bulkDeleteFromCategory = async (selectedImages: Set<string>, categories: Category[], currentSelectedCategory?: Category) => {
+  return await imageDAO.bulkDeleteFromCategory(selectedImages, categories, currentSelectedCategory);
+};
+
 export const bulkDeleteHard = async (
   selectedImages: Set<string>,
   images: LocalImageData[],
@@ -85,3 +89,8 @@ export const filterAndSortImages = (
 ) => {
   return imageDAO.filterAndSortImages(mediaList, options);
 };
+
+export const getImageById = async (imageId: string) => {
+  return await imageDAO.getImageById(imageId);
+};
+

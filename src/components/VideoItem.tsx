@@ -8,7 +8,7 @@ interface VideoItemProps {
   video: LocalImageData & { type: 'video'; duration?: number; thumbnail?: string };
   isSelected: boolean;
   onSelect: (e: React.MouseEvent) => void;
-  onDoubleClick: (e: React.MouseEvent) => void;
+  onDoubleClick?: (e: React.MouseEvent) => void;
   onFavorite: (id: string) => void;
   viewMode: 'grid' | 'list';
 }

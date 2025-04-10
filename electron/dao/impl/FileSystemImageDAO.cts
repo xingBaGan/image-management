@@ -55,6 +55,10 @@ export const isSimilarColor = (color1: string, color2: string, precision: number
 }; 
 
 export default class FileSystemImageDAO implements ImageDAO {
+  async getImageById(imageId: string): Promise<LocalImageData> {
+    const data = await loadImagesData();
+    return data.images.find(img => img.id === imageId) || null;
+  } 
   async getImagesAndCategories() {
     const data = await loadImagesData();
     return data;
@@ -149,6 +153,38 @@ export default class FileSystemImageDAO implements ImageDAO {
       updatedCategories
     };
   }
+  
+  async bulkDeleteFromCategory(
+    selectedImages: Set<string>,
+    categories: Category[],
+    currentSelectedCategory?: Category
+  ): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories: Category[];
+  }> {
+    const { images } = await this.getImagesAndCategories();
+    for (const imgId of selectedImages) {
+      const image: LocalImageData | undefined = images.find(img => img.id === imgId);
+      if (image) {
+        image.categories = image.categories?.filter((categoryId: string) => categoryId !== currentSelectedCategory?.id);
+      }
+    }
+    categories = categories.filter((category: Category) => category.id !== currentSelectedCategory?.id);
+    if (currentSelectedCategory) {
+      currentSelectedCategory.images = currentSelectedCategory.images?.filter((id: string) => !selectedImages.has(id));
+      currentSelectedCategory.count = currentSelectedCategory.images?.length || 0;
+    }
+    if (currentSelectedCategory) {
+      categories.push(currentSelectedCategory);
+    }
+
+    await saveImagesAndCategories(images, categories);
+
+    return {
+      updatedImages: images,
+      updatedCategories: categories
+    };
+  }
 
   async updateTags(
     mediaId: string,
@@ -216,16 +252,6 @@ export default class FileSystemImageDAO implements ImageDAO {
   ): Promise<LocalImageData[]> {
     let filtered = mediaList.filter(img => img.type !== 'video') as LocalImageData[];
 
-    if (searchTags.length > 0) {
-      filtered = filtered.filter(img =>
-        searchTags.every(tag =>
-          img.tags?.some((imgTag: string) =>
-            imgTag.toLowerCase().includes(tag.toLowerCase())
-          )
-        )
-      );
-    }
-
     if (selectedCategory === FilterType.Videos) {
       filtered = mediaList.filter(img => img.type === 'video') as LocalImageData[];
     } else if (filter === FilterType.Favorites) {
@@ -266,6 +292,16 @@ export default class FileSystemImageDAO implements ImageDAO {
       }
       return true;
     });
+
+    if (searchTags.length > 0) {
+      filtered = filtered.filter(img =>
+        searchTags.every(tag =>
+          img.tags?.some((imgTag: string) =>
+            imgTag.toLowerCase().includes(tag.toLowerCase())
+          )
+        )
+      );
+    }
 
     return [...filtered].sort((a, b) => {
       let comparison = 0;

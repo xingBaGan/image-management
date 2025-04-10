@@ -28,18 +28,23 @@ export const translations = {
     addCategory: 'Add Category',
     categoryName: 'Category Name',
     moreActions: 'More Actions',
+    addSubcategory: 'Add Subcategory',
 
     // Actions
     delete: 'Delete',
     rename: 'Rename',
     addToCategory: 'Add to Category',
+    deleteFromCategory: 'Delete from Category',
     addTags: 'AI Tag',
     confirm: 'Confirm',
     cancel: 'Cancel',
-    openConfig: 'Open Config File',
+    openData: 'Open data file',
     hideSidebar: 'Hide Sidebar',
     showSidebar: 'Show Sidebar',
-
+    item: 'item',
+    items: 'items',
+    subFolder: 'sub folder',
+    subFolders: 'sub folders',
     // Image Info
     basicInfo: 'basic information',
     videoInfo: 'video information',
@@ -243,17 +248,23 @@ export const translations = {
     addCategory: '添加分类',
     categoryName: '分类名称',
     moreActions: '更多操作',
+    addSubcategory: '添加子分类',
 
     // 操作
     delete: '删除',
     rename: '重命名',
     addToCategory: '添加到分类',
+    deleteFromCategory: '从分类中删除',
     addTags: 'AI 打标',
     confirm: '确认',
     cancel: '取消',
-    openConfig: '打开配置文件',
+    openData: '打开data文件',
     hideSidebar: '隐藏侧边栏',
     showSidebar: '显示侧边栏',
+    item: '项',
+    items: '项',
+    subFolder: '子文件夹',
+    subFolders: '子文件夹',
 
     // 图片信息
     basicInfo: '基本信息',

@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { AppendButtonsProps, Category } from '../../types/index.ts';
 import { useLocale } from '../../contexts/LanguageContext';
 import { DynamicIcon } from 'lucide-react/dynamic';
+import CategoryDropdownMenu from './CategoryDropdownMenu';
 
-
-interface BulkAction {
+export interface BulkAction {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
@@ -52,48 +52,13 @@ const BulkActions: React.FC<BulkActionsProps> = ({
                   {action.icon}
                 </button>
 
-                <div
-                  id={`category-dropdown-${index}`}
-                  className="hidden absolute left-0 top-full z-50 mt-1 w-48 bg-white rounded-lg border shadow-lg dark:bg-gray-800"
-                >
-                  {action.categories.map(category => (
-                    <label
-                      key={category.id}
-                      className="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      <input
-                        type="checkbox"
-                        className="mr-2"
-                        checked={selectedCategories.includes(category.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedCategories(prev => [...prev, category.id]);
-                          } else {
-                            setSelectedCategories(prev => prev.filter(id => id !== category.id));
-                          }
-                        }}
-                      />
-                      <span>{category.name}</span>
-                    </label>
-                  ))}
-                  <div className="px-4 py-2 border-t">
-                    <button
-                      className="px-3 py-1 w-full text-white bg-blue-500 rounded-lg hover:bg-blue-600"
-                      onClick={() => {
-                        if (action.onSelectCategories) {
-                          action.onSelectCategories(selectedCategories);
-                          setSelectedCategories([]);
-                          const dropdown = document.getElementById(`category-dropdown-${index}`);
-                          if (dropdown) {
-                            dropdown.classList.add('hidden');
-                          }
-                        }
-                      }}
-                    >
-                      {t('confirm')}
-                    </button>
-                  </div>
-                </div>
+                <CategoryDropdownMenu
+                  action={action}
+                  index={index}
+                  selectedCategories={selectedCategories}
+                  setSelectedCategories={setSelectedCategories}
+                  t={t}
+                />
               </div>
             ) : (
               <button

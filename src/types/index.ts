@@ -69,8 +69,8 @@ export interface Category {
   count: number;
   isImportFromFolder?: boolean;
   folderPath?: string;
-  children?: Category[]; 
-  father?: Category | null; // 新增父分类属性
+  children?: Category['id'][]; 
+  father?: Category['id'] | null; // 新增父分类属性
   order?: number;
 }
 
@@ -113,6 +113,11 @@ export enum TaskStatus {
   Canceled = 'canceled',
 }
 
+export enum DeleteType {
+  DeleteFromCategory = 'deleteFromCategory',
+  Delete = 'delete',
+  DeleteFromFolder = 'deleteFromFolder',
+}
 // =============== 插件系统相关类型 ===============
 export interface Plugin {
   id: string;
@@ -246,6 +251,14 @@ export interface IPCImageService {
     updatedImages: LocalImageData[];
     updatedCategories?: Category[];
   }>;
+  bulkDeleteFromCategory(
+    selectedImages: Set<string>,
+    categories: Category[],
+    currentSelectedCategory?: Category
+  ): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories: Category[];
+  }>;
   updateTags(
     mediaId: string,
     newTags: string[],
@@ -275,6 +288,7 @@ export interface IPCImageService {
       sortDirection: SortDirection;
     }
   ): LocalImageData[];
+  getImageById(imageId: string): Promise<LocalImageData>;
 }
 
 // =============== Electron API 类型 ===============

@@ -18,6 +18,10 @@ export const registerImageHandlers = () => {
     return await imageService.bulkDeleteHard(selectedImages, images, categories);
   });
 
+  ipcMain.handle('bulk-delete-from-category', async (_, selectedImages: Set<string>, categories: any[], currentSelectedCategory: any) => {
+    return await imageService.bulkDeleteFromCategory(selectedImages, categories, currentSelectedCategory);
+  });
+
   ipcMain.handle('update-tags', async (_, mediaId: string, newTags: string[], images: any[], categories: any[]) => {
     return await imageService.updateTags(mediaId, newTags, images, categories);
   });
@@ -28,5 +32,9 @@ export const registerImageHandlers = () => {
 
   ipcMain.handle('filter-and-sort-images', async (_, mediaList: any[], options: any) => {
     return imageService.filterAndSortImages(mediaList, options);
+  });
+
+  ipcMain.handle('get-image-by-id', async (_, imageId: string) => {
+    return await imageService.getImageById(imageId);
   });
 }; 

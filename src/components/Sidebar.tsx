@@ -1,15 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
-  Image, FolderPlus, Clock, Heart, Trash2, 
-  MoreVertical, Edit2, GripVertical, Video,
-  FolderInput, Folder
+  Image, 
+  FolderPlus, 
+  Clock, 
+  Heart, 
+  Video,
+  FolderInput, 
+  MoreVertical,
+  Edit2,
+  GripVertical,
+  Trash2
 } from 'lucide-react';
 import { Category, FilterType, ImportStatus, LocalImageData } from '../types/index.ts';
-import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
+import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from './StrictModeDroppable';
 import { useLocale } from '../contexts/LanguageContext';
 import ThemeToggle from './ThemeToggle.tsx';
 import LanguageToggle from './LanguageToggle.tsx';
+import CategoryDropdownMenu from './CategoryDropdownMenu.tsx';
+import CategoryItem from './CategoryItem.tsx';
 
 interface SidebarProps {
   selectedCategory: FilterType | string;
@@ -79,6 +88,46 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
+  const handleAddSubcategory = (parentId: string) => {
+    const parentCategory = categories.find(cat => cat.id === parentId);
+    if (parentCategory) {
+      const newSubcategory: Category = {
+        id: `category-${Date.now()}`,
+        name: '',
+        images: [],
+        count: 0,
+        isImportFromFolder: false,
+        father: parentCategory.id,
+        children: [],
+      };
+      
+      // Create a deep copy of the categories array
+      const updatedCategories = JSON.parse(JSON.stringify(categories));
+      
+      // Find the parent category and add the new subcategory to its children
+      const updateCategoryChildren = (categories: Category[]): Category[] => {
+        for (const cat of categories) {
+          // 如果catId是父分类，则将新分类添加到父分类的children中
+          if (cat.id === parentId) {
+            cat.children = [...(cat.children || []), newSubcategory.id];
+          }
+        }
+        return categories;
+      };
+      
+      const result = updateCategoryChildren(updatedCategories);
+      
+      // Update the categories in the parent component
+      if (onUpdateCategories) {
+        onUpdateCategories([...result, newSubcategory]);
+      }
+      
+      // Set the editing state for the new subcategory
+      setEditingCategory(newSubcategory.id);
+      setEditingName(newSubcategory.name);
+    }
+  };
+
   const handleRenameCategory = (id: string) => {
     if (editingName.trim()) {
       onRenameCategory(id, editingName.trim());
@@ -114,8 +163,46 @@ const Sidebar: React.FC<SidebarProps> = ({
     setShowDropdown(null);
   };
 
+
+  const collectChildren = useCallback((categoryId: string): string[] => {
+    const children: string[] = [];
+    const current = categories?.find(cat => cat.id === categoryId);
+    if (!current?.children) return children;
+    for (const childId of current.children) {
+      // 收集儿子
+      children.push(childId);
+      const child = categories?.find(cat => cat.id === childId);
+      if (child?.children) {
+        children.push(...collectChildren(childId));
+      }
+    }
+    return children;
+  }, [categories]);
+
+  const countChildren = useCallback((categoryId: string): number => {
+    const children = collectChildren(categoryId);
+    return children.reduce((acc, curr) => {
+      const child = categories?.find(cat => cat.id === curr);
+      if (child) {
+        return acc + child.count;
+      }
+      return acc;
+    }, 0);
+  }, [collectChildren, categories]);
+
+  const isParentOfSelected = (categoryId: string): boolean => {
+    return [selectedCategory].some(selectedId => {
+      let current = categories?.find(cat => cat.id === selectedId);
+      while (current?.father) {
+        if (current.father === categoryId) return true;
+        current = categories?.find(cat => cat.id === current!.father);
+      }
+      return false;
+    });
+  };
+
   return (
-    <div className="z-10 w-48 h-full bg-gray-200 bg-opacity-10 border-r border-gray-200 shadow-lg backdrop-blur-lg dark:bg-gray-800 dark:bg-opacity-60 ">
+    <div className="z-10 w-48 h-full bg-gray-200 bg-opacity-10 border-r border-gray-200 shadow-lg backdrop-blur-lg dark:bg-gray-800 dark:bg-opacity-60">
       <div className='flex justify-between items-center px-1 h-14'>
         <LanguageToggle />
         <ThemeToggle />
@@ -199,111 +286,26 @@ const Sidebar: React.FC<SidebarProps> = ({
                     overflowY: 'auto',
                   }}
                 >
-                  {categories.map((category, index) => (
-                    <Draggable
+                  {categories.map((category, index) => !category.father && (
+                    <CategoryItem
                       key={category.id}
-                      draggableId={category.id}
+                      category={category}
                       index={index}
-                    >
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          className={`group ${
-                            selectedCategory === category.id ? 'bg-gray-100 dark:bg-gray-700' : ''
-                          } rounded-lg`}
-                        >
-                          <div className="flex items-center py-2">
-                            <div
-                              {...provided.dragHandleProps}
-                              className="p-[0.1rem] mr-1 rounded cursor-grab hover:bg-gray-200 dark:hover:bg-gray-600"
-                              style={{
-                                cursor: snapshot.isDragging ? 'grabbing' : 'grab'
-                              }}
-                            >
-                              <GripVertical size={14} className="text-gray-400" />
-                            </div>
-
-                            {editingCategory === category.id ? (
-                              <input
-                                type="text"
-                                value={editingName}
-                                onChange={(e) => setEditingName(e.target.value)}
-                                onKeyDown={(e) => {
-                                  e.stopPropagation();
-                                  if (e.key === 'Enter') {
-                                    handleRenameCategory(category.id);
-                                  } else if (e.key === 'Escape') {
-                                    setEditingCategory(null);
-                                    setEditingName('');
-                                  }
-                                }}
-                                className="flex-1 px-2 py-1 w-full text-sm bg-transparent rounded border dark:text-white edit-input"
-                                autoFocus
-                                placeholder={t('categoryName')}
-                                title={t('categoryName')}
-                                aria-label={t('categoryName')}
-                              />
-                            ) : (
-                              <>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onSelectCategory(category.id as FilterType);
-                                  }}
-                                  className={`flex-1 text-left text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-white ${category.isImportFromFolder ? 'text-blue-400 dark:text-blue-400' : ''}`}
-                                >
-                                  {category.name}
-                                </button>
-                                <span className={`mr-2 text-xs ${category.isImportFromFolder ? 'text-blue-400 dark:text-blue-400' : ''}`}>
-                                  {category.count || 0}
-                                </span>
-                              </>
-                            )}
-
-                            <div>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setShowDropdown(showDropdown === category.id ? null : category.id);
-                                }}
-                                className="p-1 text-gray-400 opacity-0 group-hover:opacity-100 hover:text-gray-600 dark:hover:text-gray-300 dropdown-button"
-                                title={t('moreActions')}
-                                aria-label={t('moreActions')}
-                              >
-                                <MoreVertical size={14} />
-                              </button>
-
-                              {showDropdown === category.id && (
-                                <div className="absolute right-[-5] z-10 mt-2 w-48 bg-white rounded-md ring-1 ring-black ring-opacity-5 shadow-lg dark:bg-gray-700 dropdown-content">
-                                  <div className="py-1">
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setEditingCategory(category.id);
-                                        setEditingName(category.name);
-                                        setShowDropdown(null);
-                                      }}
-                                      className="flex items-center px-4 py-2 w-full text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
-                                    >
-                                      <Edit2 size={14} className="mr-2" />
-                                      {t('rename')}
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteRequest(category.id)}
-                                      className="flex items-center px-4 py-2 w-full text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-600"
-                                    >
-                                      <Trash2 size={14} className="mr-2" />
-                                      {t('delete')}
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </Draggable>
+                      categories={categories}
+                      selectedCategory={selectedCategory}
+                      editingCategory={editingCategory}
+                      editingName={editingName}
+                      showDropdown={showDropdown}
+                      onSelectCategory={onSelectCategory}
+                      onRenameCategory={onRenameCategory}
+                      handleDeleteRequest={handleDeleteRequest}
+                      onAddChild={handleAddSubcategory}
+                      setEditingCategory={setEditingCategory}
+                      setEditingName={setEditingName}
+                      setShowDropdown={setShowDropdown}
+                      countChildren={countChildren}
+                      isParentOfSelected={isParentOfSelected}
+                    />
                   ))}
                   {provided.placeholder}
                 </div>
