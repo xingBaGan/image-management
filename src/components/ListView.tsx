@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback, memo } from 'react';
+import React, { useRef, useState, useCallback, memo } from 'react';
 import { FileText, Calendar, Heart } from 'lucide-react';
 import { FixedSizeList as List, areEqual } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';

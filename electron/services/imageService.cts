@@ -89,3 +89,8 @@ export const filterAndSortImages = (
 ) => {
   return imageDAO.filterAndSortImages(mediaList, options);
 };
+
+export const getImageById = async (imageId: string) => {
+  return await imageDAO.getImageById(imageId);
+};
+

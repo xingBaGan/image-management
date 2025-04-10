@@ -171,6 +171,7 @@ function App() {
     handleReorderCategories,
     handleAddToCategory: handleAddToCategoryBase,
     handleImportFolder,
+    handleSelectSubfolder
   } = useCategoryOperations({
     setImages: setMediaList,
     images: mediaList,
@@ -755,6 +756,7 @@ function App() {
         )}
 
         <MainContent
+          isZenMode={isZenMode}
           installStatus={installStatus}
           viewMode={viewMode}
           sortBy={sortBy}
@@ -793,6 +795,7 @@ function App() {
           currentSelectedCategory={currentSelectedCategory || selectedCategory}
           searchTags={searchTags}
           setSearchTags={setSearchTags}
+          onSelectSubfolder={handleSelectSubfolder}
         />
       </div>
 

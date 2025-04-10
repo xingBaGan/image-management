@@ -86,6 +86,13 @@ export const useCategoryOperations = ({
     setSelectedCategory(categoryId);
   };
 
+  const handleSelectSubfolder = (subfolderId: string) => {
+    const subfolder = categories.find(category => category.id === subfolderId);
+    if (subfolder) {
+      setSelectedCategory(subfolder.id);
+    }
+  };
+
   return {
     categories,
     setCategories,
@@ -95,5 +102,6 @@ export const useCategoryOperations = ({
     handleReorderCategories,
     handleAddToCategory,
     handleImportFolder,
+    handleSelectSubfolder
   };
 }; 

@@ -41,7 +41,10 @@ export const translations = {
     openConfig: 'Open Config File',
     hideSidebar: 'Hide Sidebar',
     showSidebar: 'Show Sidebar',
-
+    item: 'item',
+    items: 'items',
+    subFolder: 'sub folder',
+    subFolders: 'sub folders',
     // Image Info
     basicInfo: 'basic information',
     videoInfo: 'video information',
@@ -258,6 +261,10 @@ export const translations = {
     openConfig: '打开配置文件',
     hideSidebar: '隐藏侧边栏',
     showSidebar: '显示侧边栏',
+    item: '项',
+    items: '项',
+    subFolder: '子文件夹',
+    subFolders: '子文件夹',
 
     // 图片信息
     basicInfo: '基本信息',

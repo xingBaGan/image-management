@@ -288,6 +288,7 @@ export interface IPCImageService {
       sortDirection: SortDirection;
     }
   ): LocalImageData[];
+  getImageById(imageId: string): Promise<LocalImageData>;
 }
 
 // =============== Electron API 类型 ===============

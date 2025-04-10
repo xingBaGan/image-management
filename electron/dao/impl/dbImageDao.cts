@@ -103,7 +103,13 @@ export default class DBImageDAO implements ImageDAO {
   constructor() {
     this.db = ImageDatabase.getInstance();
   }
-
+  async getImageById(imageId: string): Promise<LocalImageData> {
+    const image = await this.db.getImage(imageId);
+    if (!image) {
+      throw new Error('Image not found');
+    }
+    return convertToLocalImageData(image);
+  }
   async getImagesAndCategories(): Promise<{ images: LocalImageData[], categories: Category[] }> {
     try {
       const dbImages = await this.db.getAllImages();

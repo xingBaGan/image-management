@@ -66,6 +66,8 @@ interface MainContentProps {
   installStatus: InstallStatus;
   searchTags: string[];
   setSearchTags: React.Dispatch<React.SetStateAction<string[]>>;
+  isZenMode: boolean;
+  onSelectSubfolder: (subfolderId: string) => void;
 }
 
 export const MainContent: React.FC<MainContentProps> = ({
@@ -106,7 +108,9 @@ export const MainContent: React.FC<MainContentProps> = ({
   currentSelectedCategory,
   installStatus,
   searchTags,
-  setSearchTags
+  setSearchTags,
+  isZenMode,
+  onSelectSubfolder
 }) => {
   // 获取当前选中的图片
   const selectedImage = React.useMemo(() => 
@@ -158,6 +162,8 @@ export const MainContent: React.FC<MainContentProps> = ({
             gridItemAppendButtonsProps={gridItemAppendButtonsProps}
             currentSelectedCategory={currentSelectedCategory}
             installStatus={installStatus}
+            isZenMode={isZenMode}
+            onSelectSubfolder={onSelectSubfolder}
           />
         </div>
         <div className="fixed right-0 bottom-0 top-[3rem]">

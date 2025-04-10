@@ -1,15 +1,24 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { handleDrop as handleDropUtil } from '../utils';
 import DragOverlay from './DragOverlay';
 import MediaViewer from './MediaViewer';
-import { ImportStatus, InstallStatus, LocalImageData } from '../types/index.ts';
+import SubfolderBar from './SubfolderBar';
+import { Category, ImportStatus, InstallStatus, LocalImageData } from '../types/index.ts';
 import { ImageGridBaseProps } from './ImageGridBase';
 import GridView from './GridView';
 import ListView from './ListView';
 import { useElectron } from '../hooks/useElectron';
+import { getImageById } from '../services/imageService';
 
 const MediaGrid: React.FC<ImageGridBaseProps & {
   installStatus: InstallStatus;
+  subfolders?: {
+    name: string;
+    count: number;
+    thumbnail?: LocalImageData;
+  }[];
+  onSelectSubfolder?: (name: string) => void;
+  isZenMode?: boolean;
 }> = ({
   images,
   onFavorite,
@@ -25,6 +34,8 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
   importState,
   currentSelectedCategory,
   installStatus,
+  onSelectSubfolder,
+  isZenMode
 }) => {
     const [viewingMedia, setViewingMedia] = useState<LocalImageData | null>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -35,6 +46,13 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
     const [mouseDownTime, setMouseDownTime] = useState<number>(0);
     const [mouseDownPos, setMouseDownPos] = useState<{ x: number, y: number } | null>(null);
     const { openInEditor, showInFolder } = useElectron();
+    const [subfolders, setSubfolders] = useState<{
+      id: string;
+      name: string;
+      count: number;
+      thumbnail?: string;
+      children?: string[];
+    }[]>([]);
 
     const handleTagsUpdate = (mediaId: string, newTags: string[]) => {
       updateTagsByMediaId(mediaId, newTags);
@@ -181,6 +199,33 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
       showInFolder(path);
     }, [showInFolder]);
 
+    const fetchSubfolders = useCallback(async (currentSelectedCategory: Category | string | undefined) => {
+      if (typeof currentSelectedCategory === 'string') return [];
+      const subfolders = await Promise.all(currentSelectedCategory?.children?.map(async (childId: Category['id']) => {
+        const childCategory = categories.find(cat => cat.id === childId);
+        let firstImage;
+        if (childCategory?.images && childCategory?.images.length > 0) {
+          firstImage = await getImageById(childCategory?.images[0]);
+        }
+        return {
+          id: childId,
+          name: childCategory?.name || '',
+          count: childCategory?.count || 0,
+          thumbnail: firstImage?.path || '',
+          children: childCategory?.children || []
+        }
+      }) || []);
+      return subfolders;
+    }, [currentSelectedCategory, categories]);
+
+    useEffect(() => {
+      const fetch = async () => {
+        const subfolders = await fetchSubfolders(currentSelectedCategory);
+        setSubfolders(subfolders);
+      }
+      fetch();
+    }, [fetchSubfolders,currentSelectedCategory]);
+
     return (
       <div
         className="relative pr-1 media-grid-container"
@@ -215,7 +260,11 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
             setIsSelecting(false);
             setMouseDownPos(null);
           }}
-          style={{ position: 'relative', overflow: isImporting || isDragging ? 'hidden' : 'auto' }}
+          style={{ 
+            position: 'relative', 
+            overflow: isImporting || isDragging ? 'hidden' : 'auto',
+            height: 'calc(100% - 96px)' // Add space for subfolder bar
+          }}
           onDragEnter={() => setIsDragging(true)}
           onDragOver={(e) => e.preventDefault()}
           onDrop={async (e) => {
@@ -268,7 +317,14 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
             }} />
           )}
         </div>
-      </div>
+        { subfolders && subfolders.length > 0 && (
+          <SubfolderBar 
+            subfolders={subfolders}
+            onSelectSubfolder={onSelectSubfolder}
+            isVisible={!isZenMode}
+          />
+        )}
+      </div>    
     );
   };
 

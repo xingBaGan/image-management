@@ -33,4 +33,8 @@ export const registerImageHandlers = () => {
   ipcMain.handle('filter-and-sort-images', async (_, mediaList: any[], options: any) => {
     return imageService.filterAndSortImages(mediaList, options);
   });
+
+  ipcMain.handle('get-image-by-id', async (_, imageId: string) => {
+    return await imageService.getImageById(imageId);
+  });
 }; 

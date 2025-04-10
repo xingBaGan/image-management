@@ -55,6 +55,10 @@ export const isSimilarColor = (color1: string, color2: string, precision: number
 }; 
 
 export default class FileSystemImageDAO implements ImageDAO {
+  async getImageById(imageId: string): Promise<LocalImageData> {
+    const data = await loadImagesData();
+    return data.images.find(img => img.id === imageId) || null;
+  } 
   async getImagesAndCategories() {
     const data = await loadImagesData();
     return data;

@@ -74,6 +74,7 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.invoke('update-rating', mediaId, rate, images, categories),
     filterAndSortImages: (mediaList: LocalImageData[], options: any) => 
       ipcRenderer.invoke('filter-and-sort-images', mediaList, options),
+    getImageById: (imageId: string) => ipcRenderer.invoke('get-image-by-id', imageId),
   },
   // =============== 设置相关 ===============
   loadSettings: () => ipcRenderer.invoke('load-settings'),
