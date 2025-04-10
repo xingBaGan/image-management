@@ -190,6 +190,17 @@ const Sidebar: React.FC<SidebarProps> = ({
     }, 0);
   }, [collectChildren, categories]);
 
+  const isParentOfSelected = (categoryId: string): boolean => {
+    return [selectedCategory].some(selectedId => {
+      let current = categories?.find(cat => cat.id === selectedId);
+      while (current?.father) {
+        if (current.father === categoryId) return true;
+        current = categories?.find(cat => cat.id === current!.father);
+      }
+      return false;
+    });
+  };
+
   return (
     <div className="z-10 w-48 h-full bg-gray-200 bg-opacity-10 border-r border-gray-200 shadow-lg backdrop-blur-lg dark:bg-gray-800 dark:bg-opacity-60">
       <div className='flex justify-between items-center px-1 h-14'>
@@ -293,6 +304,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       setEditingName={setEditingName}
                       setShowDropdown={setShowDropdown}
                       countChildren={countChildren}
+                      isParentOfSelected={isParentOfSelected}
                     />
                   ))}
                   {provided.placeholder}

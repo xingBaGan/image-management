@@ -262,8 +262,7 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
           }}
           style={{ 
             position: 'relative', 
-            overflow: isImporting || isDragging ? 'hidden' : 'auto',
-            height: 'calc(100% - 96px)' // Add space for subfolder bar
+            overflow: isImporting || isDragging ? 'hidden' : 'auto'
           }}
           onDragEnter={() => setIsDragging(true)}
           onDragOver={(e) => e.preventDefault()}

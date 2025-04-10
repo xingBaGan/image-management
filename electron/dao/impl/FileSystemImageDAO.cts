@@ -252,16 +252,6 @@ export default class FileSystemImageDAO implements ImageDAO {
   ): Promise<LocalImageData[]> {
     let filtered = mediaList.filter(img => img.type !== 'video') as LocalImageData[];
 
-    if (searchTags.length > 0) {
-      filtered = filtered.filter(img =>
-        searchTags.every(tag =>
-          img.tags?.some((imgTag: string) =>
-            imgTag.toLowerCase().includes(tag.toLowerCase())
-          )
-        )
-      );
-    }
-
     if (selectedCategory === FilterType.Videos) {
       filtered = mediaList.filter(img => img.type === 'video') as LocalImageData[];
     } else if (filter === FilterType.Favorites) {
@@ -302,6 +292,16 @@ export default class FileSystemImageDAO implements ImageDAO {
       }
       return true;
     });
+
+    if (searchTags.length > 0) {
+      filtered = filtered.filter(img =>
+        searchTags.every(tag =>
+          img.tags?.some((imgTag: string) =>
+            imgTag.toLowerCase().includes(tag.toLowerCase())
+          )
+        )
+      );
+    }
 
     return [...filtered].sort((a, b) => {
       let comparison = 0;

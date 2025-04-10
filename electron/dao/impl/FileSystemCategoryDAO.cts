@@ -61,7 +61,7 @@ export default class FileSystemCategoryDAO implements CategoryDAO {
           }
         });
       }
-      let updatedCategories = categories.filter(category => category.id !== categoryId);
+      let updatedCategories = categories;
       // delete it's children
       if (deletedCategory?.children) {
         for (const child of deletedCategory.children) {
@@ -70,12 +70,15 @@ export default class FileSystemCategoryDAO implements CategoryDAO {
           images = updatedImages;
         }
       }
-
+      
       // remove it from parent's children
-      const parentCategory = updatedCategories.find(category => category.father === categoryId);
+      const parentCategory = categories.find(category => category.id === deletedCategory?.father);
       if (parentCategory) {
         parentCategory.children = parentCategory.children?.filter(child => child !== categoryId) || [];
       }
+
+      // remove itself from categories
+      updatedCategories = updatedCategories.filter(category => category.id !== categoryId);
       await saveImagesAndCategories(images, updatedCategories);
       const { images: updatedImages } = await loadImagesData();
       return {

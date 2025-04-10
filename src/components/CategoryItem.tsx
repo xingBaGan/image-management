@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MoreVertical, Folder, FolderOpen } from 'lucide-react';
 import { Category, FilterType } from '../types/index.ts';
 import { Draggable } from 'react-beautiful-dnd';
@@ -21,6 +21,7 @@ interface CategoryItemProps {
   setShowDropdown: (categoryId: string | null) => void;
   categories: Category[];
   countChildren: (categoryId: string) => number;
+  isParentOfSelected: (categoryId: string) => boolean;
 }
 
 const CategoryItem: React.FC<CategoryItemProps> = ({
@@ -39,6 +40,7 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
   setShowDropdown,
   categories,
   countChildren,
+  isParentOfSelected
 }) => {
   const { t } = useLocale();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -57,6 +59,17 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
     setIsExpanded(!isExpanded);
   };
 
+  useEffect(() => {
+    if (!selectedCategory.includes('category')) {
+      return;
+    }
+    if (selectedCategory === category.id) {
+      setIsExpanded(true);
+    }
+    if (isParentOfSelected(selectedCategory)) {
+      setIsExpanded(true);
+    }
+  }, [selectedCategory, isParentOfSelected]);
   return (
     <Draggable
       key={category.id}
@@ -183,6 +196,7 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
                       setEditingName={setEditingName}
                       setShowDropdown={setShowDropdown}
                       countChildren={countChildren}
+                      isParentOfSelected={isParentOfSelected}
                     />
                   )
                 )

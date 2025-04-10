@@ -595,6 +595,7 @@ function App() {
         sortBy,
         sortDirection
       }).then(images => {
+        console.log('images', images);
         setFilteredAndSortedImages(images);
       }).finally(async () => {
         if (await window.electron.isReadFromDB()) {

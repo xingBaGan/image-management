@@ -94,10 +94,10 @@ export default class DBCategoryDAO implements CategoryDAO {
   }> {
     try {
       const deletedCategory = categories.find(category => category.id === categoryId);
-      let updatedImages = [...images];
+      let tempImages = [...images];
 
       if (deletedCategory?.isImportFromFolder) {
-        updatedImages = images.map(img => {
+        tempImages = images.map(img => {
           if (deletedCategory.images?.includes(img.id)) {
             return { ...img, isBindInFolder: false };
           }
@@ -117,26 +117,22 @@ export default class DBCategoryDAO implements CategoryDAO {
       }
 
       // 删除分类的子分类
-      await Promise.all(deletedCategory?.children?.map(async child => {
-        const { updatedCategories: updatedCategories2, updatedImages } = await this.deleteCategory(child, images, categories);
-        updatedCategories = updatedCategories2;
-        images = updatedImages;
+      await Promise.all(deletedCategory?.children?.map(async childId => {
+        await this.deleteCategory(childId, images, categories);
       }) || []);
 
       // 从父分类中删除该分类
       if (deletedCategory?.father) {
-        await this.db.updateCategory(deletedCategory.father, { children: deletedCategory.children?.filter(child => child !== categoryId) });
+        const fatherCategory = categories.find(category => category.id === deletedCategory.father);
+        if (fatherCategory) {
+          await this.db.updateCategory(fatherCategory.id, { children: fatherCategory.children?.filter(childId => childId !== categoryId) });
+        }
       }
 
       // 删除分类
       await this.db.deleteCategory(categoryId);
 
-      let updatedCategories = categories.filter(category => category.id !== categoryId);
-      if (deletedCategory?.children) {
-        for (const child of deletedCategory.children) {
-          updatedCategories = updatedCategories.filter(category => category.id !== child);
-        }
-      }
+      const { categories: updatedCategories, images: updatedImages } = await this.getImagesAndCategories();
       return {
         updatedCategories,
         updatedImages
