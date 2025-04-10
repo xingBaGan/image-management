@@ -20,6 +20,7 @@ interface CategoryItemProps {
   setEditingName: (name: string) => void;
   setShowDropdown: (categoryId: string | null) => void;
   categories: Category[];
+  countChildren: (categoryId: string) => number;
 }
 
 const CategoryItem: React.FC<CategoryItemProps> = ({
@@ -37,6 +38,7 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
   setEditingName,
   setShowDropdown,
   categories,
+  countChildren,
 }) => {
   const { t } = useLocale();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -122,7 +124,7 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
                   )}
                 </button>
                 <span className={`mr-2 text-xs ${category.isImportFromFolder ? 'text-blue-400 dark:text-blue-400' : ''}`}>
-                  {category.count || 0}
+                  {(countChildren(category.id) + category.count) || 0}
                 </span>
               </>
             )}
@@ -180,6 +182,7 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
                       setEditingCategory={setEditingCategory}
                       setEditingName={setEditingName}
                       setShowDropdown={setShowDropdown}
+                      countChildren={countChildren}
                     />
                   )
                 )

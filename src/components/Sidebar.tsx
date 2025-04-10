@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Image, 
   FolderPlus, 
@@ -163,6 +163,33 @@ const Sidebar: React.FC<SidebarProps> = ({
     setShowDropdown(null);
   };
 
+
+  const collectChildren = useCallback((categoryId: string): string[] => {
+    const children: string[] = [];
+    const current = categories?.find(cat => cat.id === categoryId);
+    if (!current?.children) return children;
+    for (const childId of current.children) {
+      // 收集儿子
+      children.push(childId);
+      const child = categories?.find(cat => cat.id === childId);
+      if (child?.children) {
+        children.push(...collectChildren(childId));
+      }
+    }
+    return children;
+  }, [categories]);
+
+  const countChildren = useCallback((categoryId: string): number => {
+    const children = collectChildren(categoryId);
+    return children.reduce((acc, curr) => {
+      const child = categories?.find(cat => cat.id === curr);
+      if (child) {
+        return acc + child.count;
+      }
+      return acc;
+    }, 0);
+  }, [collectChildren, categories]);
+
   return (
     <div className="z-10 w-48 h-full bg-gray-200 bg-opacity-10 border-r border-gray-200 shadow-lg backdrop-blur-lg dark:bg-gray-800 dark:bg-opacity-60">
       <div className='flex justify-between items-center px-1 h-14'>
@@ -265,6 +292,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       setEditingCategory={setEditingCategory}
                       setEditingName={setEditingName}
                       setShowDropdown={setShowDropdown}
+                      countChildren={countChildren}
                     />
                   ))}
                   {provided.placeholder}
