@@ -4,6 +4,7 @@ import { ImageDatabase } from '../../pouchDB/Database.cjs';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs';
+import { DAOFactory } from '../DAOFactory.cjs';
 
 export default class DBCategoryDAO implements CategoryDAO {
   private db: ImageDatabase;
@@ -46,7 +47,9 @@ export default class DBCategoryDAO implements CategoryDAO {
         count: cat.count || 0,
         folderPath: cat.folderPath,
         isImportFromFolder: cat.isImportFromFolder,
-        order: cat.order
+        order: cat.order,
+        father: cat.father,
+        children: cat.children
       }));
 
       return { images, categories };
@@ -143,6 +146,36 @@ export default class DBCategoryDAO implements CategoryDAO {
     }
   }
 
+  async removeFromGrandParentCategory(selectedImages: Set<string>, selectedCategories: string[], images: LocalImageData[], categories: Category[]): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories: Category[];
+  }> {
+    let grandParentCategories = new Set<string>();
+    // 遍历selectedCategories 的父级以上的categories, 删除selectedImages
+    for (const categoryId of selectedCategories) {
+      let currentCategory = categories.find(category => category.id === categoryId);
+      while (currentCategory && currentCategory?.father) {
+        currentCategory = categories.find(category => category.id === currentCategory!.father);
+        if (currentCategory) {
+          currentCategory.images = currentCategory.images?.filter(image => !selectedImages.has(image)) || [];
+          currentCategory.count = currentCategory.images?.length || 0;
+          // 找到images中对应的image, 删除
+          grandParentCategories.add(currentCategory.id);
+        }
+      }
+    }
+    // 遍历selectedImages, 删除categories中对应的 parentCategory
+    for (const imageId of selectedImages) {
+      const image = images.find(image => image.id === imageId);
+      if (image) {
+        image.categories = image.categories?.filter(categoryId => !grandParentCategories.has(categoryId)) || [];
+      }
+    }
+    const imageDAO = DAOFactory.getImageDAO();
+    await imageDAO.saveImagesAndCategories(images, categories);
+    return { updatedImages: images, updatedCategories: categories };
+  }
+
   async addToCategory(
     selectedImages: Set<string>,
     selectedCategories: string[],
@@ -175,7 +208,7 @@ export default class DBCategoryDAO implements CategoryDAO {
         }
       }
 
-      // 更新内存中的分类对象
+      // 更新内存中的分类对象的images和count
       for (let i = 0; i < updatedCategories.length; i++) {
         if (selectedCategories.includes(updatedCategories[i].id)) {
           const existingImages = updatedCategories[i].images || [];
@@ -190,8 +223,8 @@ export default class DBCategoryDAO implements CategoryDAO {
           await this.db.updateCategory(updatedCategories[i].id, updatedCategories[i]);
         }
       }
-
-      return { updatedImages, updatedCategories };
+      const { updatedImages: updatedImages2, updatedCategories: updatedCategories2 } = await this.removeFromGrandParentCategory(selectedImages, selectedCategories, updatedImages, updatedCategories);
+      return { updatedImages: updatedImages2, updatedCategories: updatedCategories2 };
     } catch (error) {
       console.error('Error in add-to-category:', error);
       throw error;

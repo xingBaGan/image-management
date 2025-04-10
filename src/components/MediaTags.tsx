@@ -120,7 +120,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
         onChange={handleInputChange}
         onKeyDown={handleInputKeyDown}
         placeholder={t('tagInput')}
-        className="p-1 mt-2 w-full text-sm placeholder-gray-500 text-gray-700 bg-transparent outline-none border-t-1dark:text-blue-300 dark:placeholder-gray-400"
+        className="p-1 mt-2 w-full text-sm placeholder-gray-500 text-gray-700 bg-transparent outline-none border-t-1 dark:text-blue-300 dark:placeholder-gray-400"
       />
     </div>
   );

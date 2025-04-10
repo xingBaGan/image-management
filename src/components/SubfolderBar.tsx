@@ -48,7 +48,7 @@ const SubfolderBar: React.FC<SubfolderBarProps> = ({ subfolders, onSelectSubfold
                 {folder.count} {folder.count === 1 ? t('item') : t('items')}
                 {folder.children && folder.children.length > 0 && (
                   <span className="text-gray-500">
-                    ({folder.children.length} {folder.children.length === 1 ? t('sub folder') : t('sub folders')})
+                    ({folder.children.length} {folder.children.length === 1 ? t('subFolder') : t('subFolders')})
                   </span>
                 )}
               </p>

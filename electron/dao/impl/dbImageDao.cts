@@ -123,7 +123,9 @@ export default class DBImageDAO implements ImageDAO {
         count: cat.count || 0,
         folderPath: cat.folderPath,
         isImportFromFolder: cat.isImportFromFolder,
-        order: cat.order
+        order: cat.order,
+        father: cat.father,
+        children: cat.children
       }));
 
       return { images, categories };
