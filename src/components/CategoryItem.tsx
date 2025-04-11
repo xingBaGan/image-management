@@ -122,14 +122,15 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
             flex items-center py-2 pl-1 
             ${selectedCategory === category.id ? 'bg-gray-100 dark:bg-gray-700' : ''} 
             rounded-lg
-            ${snapshot.isDragging ? 'opacity-50 shadow-lg' : 'opacity-100'}
+            ${snapshot.isDragging ? 'opacity-50 shadow-lg ring-2 ring-blue-500 dark:ring-blue-400' : 'opacity-100'}
             transition-all duration-200
             w-full
             ${snapshot.isDragging ? 'bg-gray-100 dark:bg-gray-700' : ''}
+            hover:bg-gray-100 dark:hover:bg-gray-700
           `}>
             <div
               {...provided.dragHandleProps}
-              className="p-[0.1rem] rounded cursor-grab hover:bg-gray-200 dark:hover:bg-gray-600"
+              className="p-[0.1rem] rounded cursor-grab hover:bg-gray-200 dark:hover:bg-gray-600 active:cursor-grabbing"
               style={{
                 cursor: snapshot.isDragging ? 'grabbing' : 'grab'
               }}
@@ -244,7 +245,11 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
 
           {isExpanded && hasChildren && (
             <div className="pl-2 ml-1 border-l border-gray-200 dark:border-gray-600">
-              {category.children?.map((childId: Category['id'], childIndex: number) => {
+              {category.children?.sort((a: Category['id'], b: Category['id']) => {
+                const categoryA = categories.find((category: Category) => category.id === a);
+                const categoryB = categories.find((category: Category) => category.id === b);
+                return (categoryA?.order || '').localeCompare(categoryB?.order || '');
+              }).map((childId: Category['id'], childIndex: number) => {
                 const child = categories.find((category: Category) => category.id === childId);
                 return child && (
                   <StrictModeDroppable droppableId={childId} type={`level${level + 1}`} key={childId}>
@@ -252,7 +257,7 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
                       <div 
                         ref={provided.innerRef} 
                         {...provided.droppableProps}
-                        className={`relative ${snapshot.isDraggingOver ? 'pt-2 pb-2' : ''}`}
+                        className={`relative ${snapshot.isDraggingOver ? 'pt-1 pb-1' : ''}`}
                       >
                         {snapshot.isDraggingOver && (
                           <div className="absolute inset-0 rounded-lg border-2 border-gray-300 border-dashed dark:border-gray-500" />

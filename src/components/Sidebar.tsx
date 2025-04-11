@@ -143,15 +143,42 @@ const Sidebar: React.FC<SidebarProps> = ({
       setEditingName('');
     }
   };
-  
+
   const reorder = (list: any[], startIndex: number, endIndex: number): any[] => {
     const result = Array.from(list);
     const [removed] = result.splice(startIndex, 1);
     result.splice(endIndex, 0, removed);
-    console.log('result', list,'---->', result, 'startIndex', startIndex, 'endIndex', endIndex);
+    console.log('result', list, '---->', result, 'startIndex', startIndex, 'endIndex', endIndex);
     return result;
   };
-  
+
+  const updateChildrenOrder = (children: Category[], level: number, newOrder: string) => {
+    if (children.length === 0) return;
+    children.forEach((category, index) => {
+      let orders = category.order?.split('-') || [];
+      orders[level - 1] = newOrder;
+      category.order = orders.join('-');
+      if (category.children) {
+        const children = categories.filter(cat => category.children?.includes(cat.id));
+        updateChildrenOrder(children,level, newOrder);
+      }
+    });
+  }
+  const reAssignOrder = (categories: Category[], level: number, parentId?: string) => {
+    if (categories.length === 0) return;
+    let tempCategories = categories.filter(cat => cat.level === level && cat.father === parentId);
+    tempCategories.forEach((category, index) => {
+      let orders = category.order?.split('-') || [];
+      orders[level - 1] = index.toString();
+      category.order = orders.join('-');
+      if (category.children) {
+        const children = categories.filter(cat => category.children?.includes(cat.id));
+        updateChildrenOrder(children, level, index.toString());
+      }
+    });
+  }
+
+
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination || !onUpdateCategories) return;
@@ -165,8 +192,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       return;
     }
     if (result.type === 'level1') {
-      let reorderedCategories = Array.from(categories);
+      let reorderedCategories = categories;
       reorderedCategories = reorder(reorderedCategories, source.index, destination.index);
+      reAssignOrder(reorderedCategories, 1);
       reorderedCategories = reorderedCategories.map((category) => ({
         ...category,
       }));
@@ -176,10 +204,12 @@ const Sidebar: React.FC<SidebarProps> = ({
       const parentCategory = categories.find(cat => cat.id === currentCategory?.father);
       if (parentCategory) {
         const children = parentCategory.children;
+        const level = parentCategory.level ? parentCategory.level + 1 : 1;
         const childrenCategories = categories.filter(cat => children?.includes(cat.id));
         const restCategories = categories.filter(cat => !children?.includes(cat.id));
         if (childrenCategories) {
-          const reorderedChildren = reorder(childrenCategories, source.index, destination.index);
+          let reorderedChildren = reorder(childrenCategories, source.index, destination.index);
+          reAssignOrder(categories, level, parentCategory.id);
           onUpdateCategories([...restCategories, ...reorderedChildren]);
         }
       }
@@ -289,22 +319,17 @@ const Sidebar: React.FC<SidebarProps> = ({
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                   className={`space-y-1 ${snapshot.isDraggingOver ? 'bg-gray-100 dark:bg-gray-700 bg-opacity-50' : ''}`}
-                  style={{
-                    // height: 'calc(88vh - 208px)',
-                    // overflowY: 'scroll',
-                    // overflowX: 'hidden',
-                  }}
                 >
                   {categories.map((category, index) => !category.father && (
                     <StrictModeDroppable droppableId={category.id} type={`level${1}`} key={category.id}>
                       {(provided, snapshot) => (
-                        <div 
-                          ref={provided.innerRef} 
+                        <div
+                          ref={provided.innerRef}
                           {...provided.droppableProps}
-                          className={`relative ${snapshot.isDraggingOver ? 'pt-2 pb-2' : ''}`}
+                          className={`relative ${snapshot.isDraggingOver ? 'pt-1 pb-1' : ''}`}
                         >
                           {snapshot.isDraggingOver && (
-                            <div className="absolute inset-0 rounded-lg border-2 border-gray-300 border-dashed dark:border-gray-500" />
+                            <div className="absolute inset-0 bg-gray-100 bg-opacity-50 rounded-lg border-2 border-gray-300 border-dashed dark:border-gray-500 dark:bg-gray-700" />
                           )}
                           <CategoryItem
                             key={category.id}
