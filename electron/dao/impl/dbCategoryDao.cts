@@ -49,7 +49,8 @@ export default class DBCategoryDAO implements CategoryDAO {
         isImportFromFolder: cat.isImportFromFolder,
         order: cat.order,
         father: cat.father,
-        children: cat.children
+        children: cat.children,
+        level: cat.level
       }));
 
       return { images, categories };

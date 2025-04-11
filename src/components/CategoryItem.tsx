@@ -97,7 +97,6 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
 
   useEffect(() => {
     if (draggingId === category.id && snapshot.isDraggingOver) {
-      console.log('drag start', draggingId);
       setIsExpanded(false);
     }
   }, [draggingId, snapshot]);
@@ -112,8 +111,22 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
+          className="relative"
+          style={{
+            ...provided.draggableProps.style,
+            transform: snapshot.isDragging ? provided.draggableProps.style?.transform : 'none',
+            zIndex: snapshot.isDragging ? 999 : 'auto'
+          }}
         >
-          <div className={`flex items-center py-2 pl-1 ${selectedCategory === category.id ? 'bg-gray-100 dark:bg-gray-700' : ''} rounded-lg`}>
+          <div className={`
+            flex items-center py-2 pl-1 
+            ${selectedCategory === category.id ? 'bg-gray-100 dark:bg-gray-700' : ''} 
+            rounded-lg
+            ${snapshot.isDragging ? 'opacity-50 shadow-lg' : 'opacity-100'}
+            transition-all duration-200
+            w-full
+            ${snapshot.isDragging ? 'bg-gray-100 dark:bg-gray-700' : ''}
+          `}>
             <div
               {...provided.dragHandleProps}
               className="p-[0.1rem] rounded cursor-grab hover:bg-gray-200 dark:hover:bg-gray-600"
@@ -234,41 +247,45 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
               {category.children?.map((childId: Category['id'], childIndex: number) => {
                 const child = categories.find((category: Category) => category.id === childId);
                 return child && (
-                  (
-                    <StrictModeDroppable droppableId={childId} type={`level${level + 1}`} key={childId}>
-                      {(provided, snapshot) => (
-                        <div ref={provided.innerRef} {...provided.droppableProps}>
-                          <CategoryItem
-                            key={childId}
-                            category={child}
-                            categories={categories}
-                            index={childIndex}
-                            selectedCategory={selectedCategory}
-                            editingCategory={editingCategory}
-                            editingName={editingName}
-                            showDropdown={showDropdown}
-                            onSelectCategory={onSelectCategory}
-                            onRenameCategory={onRenameCategory}
-                            handleDeleteRequest={handleDeleteRequest}
-                            onAddChild={onAddChild}
-                            setEditingCategory={setEditingCategory}
-                            setEditingName={setEditingName}
-                            setShowDropdown={setShowDropdown}
-                            countChildren={countChildren}
-                            isParentOfSelected={isParentOfSelected}
-                            addingFatherId={addingFatherId}
-                            setAddingFatherId={setAddingFatherId}
-                            draggingId={draggingId}
-                            isAddingCategory={isAddingCategory}
-                            setIsAddingCategory={setIsAddingCategory}
-                            snapshot={snapshot}
-                            level={level + 1}
-                          />
-                          {provided.placeholder}
-                        </div>
-                      )}
-                    </StrictModeDroppable>
-                  )
+                  <StrictModeDroppable droppableId={childId} type={`level${level + 1}`} key={childId}>
+                    {(provided, snapshot) => (
+                      <div 
+                        ref={provided.innerRef} 
+                        {...provided.droppableProps}
+                        className={`relative ${snapshot.isDraggingOver ? 'pt-2 pb-2' : ''}`}
+                      >
+                        {snapshot.isDraggingOver && (
+                          <div className="absolute inset-0 rounded-lg border-2 border-gray-300 border-dashed dark:border-gray-500" />
+                        )}
+                        <CategoryItem
+                          key={childId}
+                          category={child}
+                          categories={categories}
+                          index={childIndex}
+                          selectedCategory={selectedCategory}
+                          editingCategory={editingCategory}
+                          editingName={editingName}
+                          showDropdown={showDropdown}
+                          onSelectCategory={onSelectCategory}
+                          onRenameCategory={onRenameCategory}
+                          handleDeleteRequest={handleDeleteRequest}
+                          onAddChild={onAddChild}
+                          setEditingCategory={setEditingCategory}
+                          setEditingName={setEditingName}
+                          setShowDropdown={setShowDropdown}
+                          countChildren={countChildren}
+                          isParentOfSelected={isParentOfSelected}
+                          addingFatherId={addingFatherId}
+                          setAddingFatherId={setAddingFatherId}
+                          draggingId={draggingId}
+                          isAddingCategory={isAddingCategory}
+                          setIsAddingCategory={setIsAddingCategory}
+                          snapshot={snapshot}
+                          level={level + 1}
+                        />
+                      </div>
+                    )}
+                  </StrictModeDroppable>
                 )
               })}
             </div>

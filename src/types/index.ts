@@ -72,6 +72,7 @@ export interface Category {
   children?: Category['id'][]; 
   father?: Category['id'] | null; // 新增父分类属性
   order?: string;
+  level?: number;
 }
 
 // =============== 设置相关类型 ===============

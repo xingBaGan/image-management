@@ -28,9 +28,9 @@ interface SidebarProps {
   onImportFolder?: () => Promise<void>;
   setImportState: (state: ImportStatus) => void;
 }
-const getMaxOrder = (categories: Category[]): number => {
+const getMaxOrder = (categories: Category[], level: number): number => {
   if (!categories || categories.length === 0) return 0;
-  return Math.max(...categories.map(cat => parseInt(cat.order || '0'))) + 1;
+  return Math.max(...categories.map(cat => parseInt(cat.order?.split('-')[level - 1] || '0'))) + 1;
 }
 const Sidebar: React.FC<SidebarProps> = ({
   selectedCategory,
@@ -76,14 +76,15 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleAddCategory = () => {
     if (newCategoryName.trim()) {
-      const order = getMaxOrder(categories);
+      const order = getMaxOrder(categories, 1);
       onAddCategory({
         id: `category-${Date.now()}`,
         name: newCategoryName.trim(),
         images: [],
         count: 0,
         isImportFromFolder: false,
-        order: order.toString()
+        order: order.toString(),
+        level: 1
       });
       setNewCategoryName('');
       setIsAddingCategory(false);
@@ -93,7 +94,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   const handleAddSubcategory = (parentId: string, addingName: string) => {
     const parentCategory = categories.find(cat => cat.id === parentId);
     if (parentCategory) {
-      const order = getMaxOrder(categories);
+      const level = parentCategory.level ? parentCategory.level + 1 : 1;
+      const currentLevelCategories = categories.filter(cat => cat.level === (level || 0) && cat.father === parentCategory.id)
+      const order = getMaxOrder(currentLevelCategories, level);
       const newSubcategory: Category = {
         id: `category-${Date.now()}`,
         name: addingName,
@@ -102,7 +105,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         isImportFromFolder: false,
         father: parentCategory.id,
         children: [],
-        order: parentCategory.order + '-' + order.toString()
+        order: parentCategory.order + '-' + order.toString(),
+        level,
       };
 
       // Create a deep copy of the categories array
@@ -139,26 +143,47 @@ const Sidebar: React.FC<SidebarProps> = ({
       setEditingName('');
     }
   };
+  
+  const reorder = (list: any[], startIndex: number, endIndex: number): any[] => {
+    const result = Array.from(list);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+    console.log('result', list,'---->', result, 'startIndex', startIndex, 'endIndex', endIndex);
+    return result;
+  };
+  
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination || !onUpdateCategories) return;
 
     const { source, destination } = result;
-
+    console.log('result', result);
     if (
       destination.droppableId === source.droppableId &&
       destination.index === source.index
     ) {
       return;
     }
-
-    let reorderedCategories = Array.from(categories);
-    const [removed] = reorderedCategories.splice(source.index, 1);
-    reorderedCategories.splice(destination.index, 0, removed);
-    reorderedCategories = reorderedCategories.map((category) => ({
-      ...category,
-    }));
-    onUpdateCategories(reorderedCategories);
+    if (result.type === 'level1') {
+      let reorderedCategories = Array.from(categories);
+      reorderedCategories = reorder(reorderedCategories, source.index, destination.index);
+      reorderedCategories = reorderedCategories.map((category) => ({
+        ...category,
+      }));
+      onUpdateCategories(reorderedCategories);
+    } else {
+      const currentCategory = categories.find(cat => cat.id === result.source.droppableId);
+      const parentCategory = categories.find(cat => cat.id === currentCategory?.father);
+      if (parentCategory) {
+        const children = parentCategory.children;
+        const childrenCategories = categories.filter(cat => children?.includes(cat.id));
+        const restCategories = categories.filter(cat => !children?.includes(cat.id));
+        if (childrenCategories) {
+          const reorderedChildren = reorder(childrenCategories, source.index, destination.index);
+          onUpdateCategories([...restCategories, ...reorderedChildren]);
+        }
+      }
+    }
   };
 
   const handleDeleteRequest = (categoryId: string) => {
@@ -259,20 +284,28 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <DragDropContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
             <StrictModeDroppable droppableId="root" type="root">
-              {(provided) => (
+              {(provided, snapshot) => (
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className="overflow-y-auto space-y-1"
+                  className={`space-y-1 ${snapshot.isDraggingOver ? 'bg-gray-100 dark:bg-gray-700 bg-opacity-50' : ''}`}
                   style={{
-                    maxHeight: 'calc(100vh - 280px)',
-                    overflowY: 'auto',
+                    // height: 'calc(88vh - 208px)',
+                    // overflowY: 'scroll',
+                    // overflowX: 'hidden',
                   }}
                 >
                   {categories.map((category, index) => !category.father && (
                     <StrictModeDroppable droppableId={category.id} type={`level${1}`} key={category.id}>
                       {(provided, snapshot) => (
-                        <div ref={provided.innerRef} {...provided.droppableProps}>
+                        <div 
+                          ref={provided.innerRef} 
+                          {...provided.droppableProps}
+                          className={`relative ${snapshot.isDraggingOver ? 'pt-2 pb-2' : ''}`}
+                        >
+                          {snapshot.isDraggingOver && (
+                            <div className="absolute inset-0 rounded-lg border-2 border-gray-300 border-dashed dark:border-gray-500" />
+                          )}
                           <CategoryItem
                             key={category.id}
                             category={category}

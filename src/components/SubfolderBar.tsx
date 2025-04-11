@@ -19,6 +19,9 @@ const SubfolderBar: React.FC<SubfolderBarProps> = ({ subfolders, onSelectSubfold
       className={`overflow-x-auto fixed bottom-0 left-48 right-60 p-2 px-4 bg-gray-300 bg-opacity-50 border-t border-gray-200 dark:bg-gray-800 dark:border-gray-700 rounded-lg
         transform transition-all duration-300 ease-in-out
         ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full'}`}
+      style={{
+        minHeight: '200px',
+      }}
     >
       <div className="flex space-x-4">
         {subfolders.map((folder) => (

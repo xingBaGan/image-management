@@ -34,6 +34,7 @@ export interface Category {
   order?: string;
   children?: Category['id'][];
   father?: Category['id'] | null; // 新增父分类属性
+  level?: number;
   }
 
 export interface QueryOptions {
