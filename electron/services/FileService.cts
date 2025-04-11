@@ -149,26 +149,32 @@ const saveImagesAndCategories = async (images: LocalImageData[], categories: Cat
     const imageDAO = DAOFactory.getImageDAO();
     const indexedCategories = categories.map((it, index) => ({
       ...it,
-      order: index
     }));
     await imageDAO.saveImagesAndCategories(images, indexedCategories);
     imageCountManager.updateCount(images.length);
     return true;
 }
 
-const readImagesFromFolder = async (folderPath: string)=>{
+const getMaxOrder = (categories: Category[]): number => {
+  if (!categories || categories.length === 0) return 0;
+  return Math.max(...categories.map(cat => parseInt(cat.order || '0'))) + 1;
+}
+
+const readImagesFromFolder = async (folderPath: string, categories: Category[])=>{
   try {
     const [files, _category] = await processDirectoryFiles(folderPath);
 
     // 创建新的分类对象
     const categoryName = path.basename(folderPath);
+    const order = getMaxOrder(categories);
     const category = {
       id: `category-${Date.now()}`,
       name: categoryName,
       images: files.map(file => file.id),
       count: files.length,
       folderPath: folderPath,
-      isImportFromFolder: true
+      isImportFromFolder: true,
+      order: order.toString()
     };
 
     imageCountManager.updateCount(imageCountManager.getCount() + files.length);
@@ -187,12 +193,8 @@ const saveCategories = async (categories: Category[]): Promise<{
   success: boolean;
   error?: string;
 }> => {
-  const categoryDAO = DAOFactory.getCategoryDAO();
-  const indexedCategories = categories.map((it, index) => ({
-    ...it,
-    order: index
-  }));
-  const success = await categoryDAO.saveCategories(indexedCategories);
+  const categoryDAO = DAOFactory.getCategoryDAO()
+  const success = await categoryDAO.saveCategories(categories);
   return { success };
 }
 
@@ -248,7 +250,7 @@ async function loadImagesData(loadFromDB: boolean = false): Promise<ImageData> {
     if (loadFromDB) {
       const imageDAO = DAOFactory.getImageDAO();
       const { images, categories } = await imageDAO.getImagesAndCategories();
-      const sortedCategories = categories.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      const sortedCategories = categories.sort((a, b) => (a.order || '').localeCompare(b.order || ''));
       return { images, categories: sortedCategories };
     }
 

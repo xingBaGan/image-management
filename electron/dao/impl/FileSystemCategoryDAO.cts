@@ -210,7 +210,7 @@ export default class FileSystemCategoryDAO implements CategoryDAO {
     categoryId: string;
   }> {
     try {
-      let { category, images: newImages } = await readImagesFromFolder(folderPath);
+      let { category, images: newImages } = await readImagesFromFolder(folderPath, categories);
       newImages = newImages.map(img => ({
         ...img,
         isBindInFolder: true

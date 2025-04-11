@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { Category } from '../../types/index.ts';
 import { BulkAction } from './BulkActions.tsx';
 
-interface CategoryDropdownMenuProps {
+interface CategoryDropdownProps {
   action: BulkAction;
   index: number;
   selectedCategories: string[];
@@ -10,7 +10,7 @@ interface CategoryDropdownMenuProps {
   t: (key: string) => string;
 }
 
-const CategoryDropdownMenu: React.FC<CategoryDropdownMenuProps> = ({
+const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
   action,
   index,
   selectedCategories,
@@ -111,4 +111,4 @@ const CategoryDropdownMenu: React.FC<CategoryDropdownMenuProps> = ({
   );
 };
 
-export default CategoryDropdownMenu;
+export default CategoryDropdown;
