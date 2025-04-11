@@ -22,6 +22,7 @@ import { tagImage, getMainColor, checkEnvironment, installEnvironment } from '..
 import { tagQueue, colorQueue } from './queueService.cjs';
 import { logger } from './logService.cjs';
 import { MAX_IMAGE_COUNT } from '../services/checkImageCount.cjs';
+import { Category } from '../dao/type.cjs';
 
 interface LogMeta {
   [key: string]: any;
@@ -262,8 +263,8 @@ const init = (): void => {
   });
 
   // =============== 文件夹操作相关 ===============
-  ipcMain.handle('read-images-from-folder', async (event, folderPath: string) => {
-    return await processDirectoryFiles(folderPath);
+  ipcMain.handle('read-images-from-folder', async (event, folderPath: string, categories: Category[]) => {
+    return await processDirectoryFiles(folderPath, categories);
   });
 
   // =============== 文件管理相关 ===============

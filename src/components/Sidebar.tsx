@@ -1,23 +1,18 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { 
-  Image, 
-  FolderPlus, 
-  Clock, 
-  Heart, 
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  Image,
+  FolderPlus,
+  Clock,
+  Heart,
   Video,
-  FolderInput, 
-  MoreVertical,
-  Edit2,
-  GripVertical,
-  Trash2
+  FolderInput,
 } from 'lucide-react';
-import { Category, FilterType, ImportStatus, LocalImageData } from '../types/index.ts';
-import { DragDropContext, DropResult } from 'react-beautiful-dnd';
+import { Category, FilterType, ImportStatus } from '../types/index.ts';
+import { DragDropContext, DraggableRubric, DropResult } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from './StrictModeDroppable';
 import { useLocale } from '../contexts/LanguageContext';
 import ThemeToggle from './ThemeToggle.tsx';
 import LanguageToggle from './LanguageToggle.tsx';
-import CategoryDropdownMenu from './CategoryDropdownMenu.tsx';
 import CategoryItem from './CategoryItem.tsx';
 
 interface SidebarProps {
@@ -33,7 +28,10 @@ interface SidebarProps {
   onImportFolder?: () => Promise<void>;
   setImportState: (state: ImportStatus) => void;
 }
-
+const getMaxOrder = (categories: Category[], level: number): number => {
+  if (!categories || categories.length === 0) return 0;
+  return Math.max(...categories.map(cat => parseInt(cat.order?.split('-')[level - 1] || '0'))) + 1;
+}
 const Sidebar: React.FC<SidebarProps> = ({
   selectedCategory,
   onSelectCategory,
@@ -46,11 +44,13 @@ const Sidebar: React.FC<SidebarProps> = ({
   onImportFolder,
 }) => {
   const { t } = useLocale();
+  const [addingFatherId, setAddingFatherId] = useState<string | null>(null);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [showDropdown, setShowDropdown] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -76,34 +76,42 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleAddCategory = () => {
     if (newCategoryName.trim()) {
+      const order = getMaxOrder(categories, 1);
       onAddCategory({
         id: `category-${Date.now()}`,
         name: newCategoryName.trim(),
         images: [],
         count: 0,
-        isImportFromFolder: false
+        isImportFromFolder: false,
+        order: order.toString(),
+        level: 1
       });
       setNewCategoryName('');
       setIsAddingCategory(false);
     }
   };
 
-  const handleAddSubcategory = (parentId: string) => {
+  const handleAddSubcategory = (parentId: string, addingName: string) => {
     const parentCategory = categories.find(cat => cat.id === parentId);
     if (parentCategory) {
+      const level = parentCategory.level ? parentCategory.level + 1 : 1;
+      const currentLevelCategories = categories.filter(cat => cat.level === (level || 0) && cat.father === parentCategory.id)
+      const order = getMaxOrder(currentLevelCategories, level);
       const newSubcategory: Category = {
         id: `category-${Date.now()}`,
-        name: '',
+        name: addingName,
         images: [],
         count: 0,
         isImportFromFolder: false,
         father: parentCategory.id,
         children: [],
+        order: parentCategory.order + '-' + order.toString(),
+        level,
       };
-      
+
       // Create a deep copy of the categories array
       const updatedCategories = JSON.parse(JSON.stringify(categories));
-      
+
       // Find the parent category and add the new subcategory to its children
       const updateCategoryChildren = (categories: Category[]): Category[] => {
         for (const cat of categories) {
@@ -114,17 +122,17 @@ const Sidebar: React.FC<SidebarProps> = ({
         }
         return categories;
       };
-      
+
       const result = updateCategoryChildren(updatedCategories);
-      
+
       // Update the categories in the parent component
       if (onUpdateCategories) {
         onUpdateCategories([...result, newSubcategory]);
       }
-      
+
       // Set the editing state for the new subcategory
-      setEditingCategory(newSubcategory.id);
-      setEditingName(newSubcategory.name);
+      setIsAddingCategory(false);
+      setAddingFatherId(null);
     }
   };
 
@@ -136,26 +144,76 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
+  const reorder = (list: any[], startIndex: number, endIndex: number): any[] => {
+    const result = Array.from(list);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+    console.log('result', list, '---->', result, 'startIndex', startIndex, 'endIndex', endIndex);
+    return result;
+  };
+
+  const updateChildrenOrder = (children: Category[], level: number, newOrder: string) => {
+    if (children.length === 0) return;
+    children.forEach((category, index) => {
+      let orders = category.order?.split('-') || [];
+      orders[level - 1] = newOrder;
+      category.order = orders.join('-');
+      if (category.children) {
+        const children = categories.filter(cat => category.children?.includes(cat.id));
+        updateChildrenOrder(children,level, newOrder);
+      }
+    });
+  }
+  const reAssignOrder = (categories: Category[], level: number, parentId?: string) => {
+    if (categories.length === 0) return;
+    let tempCategories = categories.filter(cat => cat.level === level && cat.father === parentId);
+    tempCategories.forEach((category, index) => {
+      let orders = category.order?.split('-') || [];
+      orders[level - 1] = index.toString();
+      category.order = orders.join('-');
+      if (category.children) {
+        const children = categories.filter(cat => category.children?.includes(cat.id));
+        updateChildrenOrder(children, level, index.toString());
+      }
+    });
+  }
+
+
+
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination || !onUpdateCategories) return;
 
     const { source, destination } = result;
-
+    console.log('result', result);
     if (
       destination.droppableId === source.droppableId &&
       destination.index === source.index
     ) {
       return;
     }
-
-    let reorderedCategories = Array.from(categories);
-    const [removed] = reorderedCategories.splice(source.index, 1);
-    reorderedCategories.splice(destination.index, 0, removed);
-    reorderedCategories = reorderedCategories.map((category, index) => ({
-      ...category,
-      order: index
-    }));
-    onUpdateCategories(reorderedCategories);
+    if (result.type === 'level1') {
+      let reorderedCategories = categories;
+      reorderedCategories = reorder(reorderedCategories, source.index, destination.index);
+      reAssignOrder(reorderedCategories, 1);
+      reorderedCategories = reorderedCategories.map((category) => ({
+        ...category,
+      }));
+      onUpdateCategories(reorderedCategories);
+    } else {
+      const currentCategory = categories.find(cat => cat.id === result.source.droppableId);
+      const parentCategory = categories.find(cat => cat.id === currentCategory?.father);
+      if (parentCategory) {
+        const children = parentCategory.children;
+        const level = parentCategory.level ? parentCategory.level + 1 : 1;
+        const childrenCategories = categories.filter(cat => children?.includes(cat.id));
+        const restCategories = categories.filter(cat => !children?.includes(cat.id));
+        if (childrenCategories) {
+          let reorderedChildren = reorder(childrenCategories, source.index, destination.index);
+          reAssignOrder(categories, level, parentCategory.id);
+          onUpdateCategories([...restCategories, ...reorderedChildren]);
+        }
+      }
+    }
   };
 
   const handleDeleteRequest = (categoryId: string) => {
@@ -163,6 +221,9 @@ const Sidebar: React.FC<SidebarProps> = ({
     setShowDropdown(null);
   };
 
+  const handleDragStart = ({ draggableId }: DraggableRubric) => {
+    setDraggingId(draggableId);
+  }
 
   const collectChildren = useCallback((categoryId: string): string[] => {
     const children: string[] = [];
@@ -218,9 +279,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             <button
               key={id}
               onClick={() => onSelectCategory(id as FilterType)}
-              className={`text-base flex w-full items-center py-1 px-2 rounded-lg text-gray-700 dark:text-white hover:bg-gray-100 hover:bg-opacity-80 dark:hover:bg-gray-700 dark:hover:bg-opacity-80 ${
-                selectedCategory === id ? 'bg-gray-100 dark:bg-gray-700' : ''
-              }`}
+              className={`text-base flex w-full items-center py-1 px-2 rounded-lg text-gray-700 dark:text-white hover:bg-gray-100 hover:bg-opacity-80 dark:hover:bg-gray-700 dark:hover:bg-opacity-80 ${selectedCategory === id ? 'bg-gray-100 dark:bg-gray-700' : ''
+                }`}
             >
               <Icon size={16} className="mr-2" />
               <span>{label}</span>
@@ -252,8 +312,60 @@ const Sidebar: React.FC<SidebarProps> = ({
               </button>
             </div>
           </div>
-
-          {isAddingCategory && (
+          <DragDropContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
+            <StrictModeDroppable droppableId="root" type="root">
+              {(provided, snapshot) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className={`space-y-1 ${snapshot.isDraggingOver ? 'bg-gray-100 dark:bg-gray-700 bg-opacity-50' : ''}`}
+                >
+                  {categories.map((category, index) => !category.father && (
+                    <StrictModeDroppable droppableId={category.id} type={`level${1}`} key={category.id}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                          className={`relative ${snapshot.isDraggingOver ? 'pt-1 pb-1' : ''}`}
+                        >
+                          {snapshot.isDraggingOver && (
+                            <div className="absolute inset-0 bg-gray-100 bg-opacity-50 rounded-lg border-2 border-gray-300 border-dashed dark:border-gray-500 dark:bg-gray-700" />
+                          )}
+                          <CategoryItem
+                            key={category.id}
+                            category={category}
+                            index={index}
+                            categories={categories}
+                            isAddingCategory={isAddingCategory}
+                            setIsAddingCategory={setIsAddingCategory}
+                            selectedCategory={selectedCategory}
+                            editingCategory={editingCategory}
+                            editingName={editingName}
+                            showDropdown={showDropdown}
+                            onSelectCategory={onSelectCategory}
+                            onRenameCategory={onRenameCategory}
+                            handleDeleteRequest={handleDeleteRequest}
+                            onAddChild={handleAddSubcategory}
+                            setEditingCategory={setEditingCategory}
+                            setEditingName={setEditingName}
+                            setShowDropdown={setShowDropdown}
+                            countChildren={countChildren}
+                            isParentOfSelected={isParentOfSelected}
+                            addingFatherId={addingFatherId}
+                            setAddingFatherId={setAddingFatherId}
+                            draggingId={draggingId}
+                            snapshot={snapshot}
+                            level={1}
+                          />
+                        </div>
+                      )}
+                    </StrictModeDroppable>
+                  ))}
+                </div>
+              )}
+            </StrictModeDroppable>
+          </DragDropContext>
+          {isAddingCategory && addingFatherId === null && (
             <div className="flex items-center mb-2">
               <input
                 type="text"
@@ -273,45 +385,6 @@ const Sidebar: React.FC<SidebarProps> = ({
               />
             </div>
           )}
-
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <StrictModeDroppable droppableId="categories">
-              {(provided) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className="overflow-y-auto space-y-1"
-                  style={{
-                    maxHeight: 'calc(100vh - 280px)',
-                    overflowY: 'auto',
-                  }}
-                >
-                  {categories.map((category, index) => !category.father && (
-                    <CategoryItem
-                      key={category.id}
-                      category={category}
-                      index={index}
-                      categories={categories}
-                      selectedCategory={selectedCategory}
-                      editingCategory={editingCategory}
-                      editingName={editingName}
-                      showDropdown={showDropdown}
-                      onSelectCategory={onSelectCategory}
-                      onRenameCategory={onRenameCategory}
-                      handleDeleteRequest={handleDeleteRequest}
-                      onAddChild={handleAddSubcategory}
-                      setEditingCategory={setEditingCategory}
-                      setEditingName={setEditingName}
-                      setShowDropdown={setShowDropdown}
-                      countChildren={countChildren}
-                      isParentOfSelected={isParentOfSelected}
-                    />
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </StrictModeDroppable>
-          </DragDropContext>
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AppendButtonsProps, Category } from '../../types/index.ts';
 import { useLocale } from '../../contexts/LanguageContext';
 import { DynamicIcon } from 'lucide-react/dynamic';
-import CategoryDropdownMenu from './CategoryDropdownMenu';
+import CategoryDropdown from './CategoryDropdown.tsx';
 
 export interface BulkAction {
   icon: React.ReactNode;
@@ -52,7 +52,7 @@ const BulkActions: React.FC<BulkActionsProps> = ({
                   {action.icon}
                 </button>
 
-                <CategoryDropdownMenu
+                <CategoryDropdown
                   action={action}
                   index={index}
                   selectedCategories={selectedCategories}

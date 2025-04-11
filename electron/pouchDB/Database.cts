@@ -47,7 +47,8 @@ export interface Category {
     isImportFromFolder?: boolean;
     children?: Category['id'][];
     father?: Category['id'] | null; // 新增父分类属性
-    order?: number;
+    order?: string;
+    level?: number;
 }
 
 function compare(oriImage: Image | Category, newImage: Image | Category) {

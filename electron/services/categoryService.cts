@@ -7,7 +7,6 @@ export const addCategory = async (
   images: LocalImageData[],
   categories: Category[]
 ): Promise<Category[]> => {
-  newCategory.order = categories.length;
   return await categoryDAO.addCategory(newCategory, images, categories);
 };
 
@@ -27,11 +26,7 @@ export const deleteCategory = async (
   updatedCategories: Category[];
   updatedImages: LocalImageData[]
 }> => {
-  const indexedCategories = categories.map((it, index) => ({
-    ...it,
-    order: index
-  }));
-  return await categoryDAO.deleteCategory(categoryId, images, indexedCategories);
+  return await categoryDAO.deleteCategory(categoryId, images, categories);
 };
 
 export const addToCategory = async (
@@ -57,7 +52,6 @@ export const importFolderFromPath = async (
 }> => {
   const indexedCategories = categories.map((it, index) => ({
     ...it,
-    order: index
   }));
   return await categoryDAO.importFolderFromPath(folderPath, images, indexedCategories);
 }; 
