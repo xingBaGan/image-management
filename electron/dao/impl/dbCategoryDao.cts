@@ -170,6 +170,49 @@ export default class DBCategoryDAO implements CategoryDAO {
       const image = images.find(image => image.id === imageId);
       if (image) {
         image.categories = image.categories?.filter(categoryId => !grandParentCategories.has(categoryId)) || [];
+        image.isDirty = true;
+      }
+    }
+    const imageDAO = DAOFactory.getImageDAO();
+    await imageDAO.saveImagesAndCategories(images, categories);
+    return { updatedImages: images, updatedCategories: categories };
+  }
+
+  collectChildren(categoryId: string, categories: Category[]): string[] {
+    const children: string[] = [];
+    const current = categories?.find(cat => cat.id === categoryId);
+    if (!current?.children) return children;
+    for (const childId of current.children) {
+      // 收集儿子
+      children.push(childId);
+      const child = categories?.find(cat => cat.id === childId);
+      if (child?.children) {
+        children.push(...this.collectChildren(childId, categories));
+      }
+    }
+    return children;
+  };
+
+  async removeFromChildrenCategory(selectedImages: Set<string>, selectedCategories: string[], images: LocalImageData[], categories: Category[]): Promise<{
+    updatedImages: LocalImageData[];
+    updatedCategories: Category[];
+  }> {
+    const allChildrenId: string[] = [];
+    for (const selectedId of selectedCategories) {
+      allChildrenId.push(...this.collectChildren(selectedId, categories));
+    }
+    for (const categoryId of allChildrenId) {
+      const category = categories.find(cat => cat.id === categoryId);
+      if (category) {
+        category.images = category.images?.filter(imageId => !selectedImages.has(imageId)) || [];
+        category.count = category.images?.length || 0;
+      }
+    }
+    for (const imageId of selectedImages) {
+      const image = images.find(image => image.id === imageId);
+      if (image) {
+        image.categories = image.categories?.filter(categoryId => !allChildrenId.includes(categoryId)) || [];
+        image.isDirty = true;
       }
     }
     const imageDAO = DAOFactory.getImageDAO();
@@ -224,8 +267,17 @@ export default class DBCategoryDAO implements CategoryDAO {
           await this.db.updateCategory(updatedCategories[i].id, updatedCategories[i]);
         }
       }
-      const { updatedImages: updatedImages2, updatedCategories: updatedCategories2 } = await this.removeFromGrandParentCategory(selectedImages, selectedCategories, updatedImages, updatedCategories);
-      return { updatedImages: updatedImages2, updatedCategories: updatedCategories2 };
+      // 将祖父中重复的图片删除
+      const { 
+        updatedImages: updatedImages2,
+        updatedCategories: updatedCategories2
+       } = await this.removeFromGrandParentCategory(selectedImages, selectedCategories, updatedImages, updatedCategories);
+      // 将儿子中重复的图片删除
+      const { 
+        updatedImages: updatedImages3,
+        updatedCategories: updatedCategories3
+       } = await this.removeFromChildrenCategory(selectedImages, selectedCategories, updatedImages2, updatedCategories2);
+      return { updatedImages: updatedImages3, updatedCategories: updatedCategories3 };
     } catch (error) {
       console.error('Error in add-to-category:', error);
       throw error;

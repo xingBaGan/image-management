@@ -46,8 +46,8 @@ export const translations = {
     subFolder: 'sub folder',
     subFolders: 'sub folders',
     // Image Info
-    basicInfo: 'basic information',
-    videoInfo: 'video information',
+    basicInfo: 'Summary',
+    videoInfo: 'Summary',
     fileName: 'File Name',
     fileSize: 'File Size',
     dimensions: 'Dimensions',
@@ -267,8 +267,8 @@ export const translations = {
     subFolders: '子文件夹',
 
     // 图片信息
-    basicInfo: '基本信息',
-    videoInfo: '视频信息',
+    basicInfo: '图片概览',
+    videoInfo: '视频概览',
     fileName: '文件名',
     fileSize: '文件大小',
     dimensions: '尺寸',
