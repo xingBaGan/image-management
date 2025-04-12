@@ -68,6 +68,12 @@ interface MainContentProps {
   setSearchTags: React.Dispatch<React.SetStateAction<string[]>>;
   isZenMode: boolean;
   onSelectSubfolder: (subfolderId: string) => void;
+  randomInspirationIndex: () => void;
+  randomButtonState: {
+    isActive: boolean;
+    tooltip: string;
+  };
+  setRandomInspiration: (index: number) => void;
 }
 
 export const MainContent: React.FC<MainContentProps> = ({
@@ -110,7 +116,10 @@ export const MainContent: React.FC<MainContentProps> = ({
   searchTags,
   setSearchTags,
   isZenMode,
-  onSelectSubfolder
+  onSelectSubfolder,
+  setRandomInspiration,
+  randomButtonState,
+  randomInspirationIndex
 }) => {
   // 获取当前选中的图片
   const selectedImage = React.useMemo(() => 
@@ -143,6 +152,9 @@ export const MainContent: React.FC<MainContentProps> = ({
         setMultiFilter={setMultiFilter}
         searchTags={searchTags}
         setSearchTags={setSearchTags}
+        randomInspirationIndex={randomInspirationIndex}
+        setRandomInspiration={setRandomInspiration}
+        randomButtonState={randomButtonState}
       />
       <div className="flex overflow-y-auto flex-1">
         <div className={`flex-1 ${isSidebarOpen ? 'mr-0' : 'mr-60'}`}>

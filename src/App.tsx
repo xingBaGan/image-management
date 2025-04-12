@@ -63,6 +63,7 @@ function App() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [selectedImageForInfo, setSelectedImageForInfo] = useState<LocalImageData | null>(null);
   const [installStatus, setInstallStatus] = useState<InstallStatus>(InstallStatus.Installed);
+  const [randomInspiration, setRandomInspiration] = useState<number>(0);
   const [multiFilter, setMultiFilter] = useState<FilterOptions>({
     colors: [],
     ratio: [],
@@ -595,7 +596,27 @@ function App() {
         sortBy,
         sortDirection
       }).then(images => {
-        setFilteredAndSortedImages(images);
+        // Apply random sorting if setRandomInspiration is greater than 0
+        if (randomInspiration > 0) {
+          // Use Fisher-Yates shuffle algorithm with a better seed-based random number generator
+          const shuffledImages = [...images];
+          const seed = randomInspiration;
+          
+          // Simple but effective seed-based random number generator
+          const random = (index: number) => {
+            const x = Math.sin(seed * 1000 + index) * 10000;
+            return Math.abs(x - Math.floor(x));
+          };
+
+          for (let i = shuffledImages.length - 1; i > 0; i--) {
+            // Generate a random index between 0 and i (inclusive)
+            const j = Math.floor(random(i) * (i + 1));
+            [shuffledImages[i], shuffledImages[j]] = [shuffledImages[j], shuffledImages[i]];
+          }
+          setFilteredAndSortedImages(shuffledImages);
+        } else {
+          setFilteredAndSortedImages(images);
+        }
       }).finally(async () => {
         if (await window.electron.isReadFromDB()) {
           setImportState(ImportStatus.Imported);
@@ -612,7 +633,8 @@ function App() {
     categories,
     searchTags,
     multiFilter,
-    filterColors
+    filterColors,
+    randomInspiration
   ]);
 
   // 使用快捷键 hook
@@ -724,6 +746,35 @@ function App() {
     }
   };
 
+  const randomInspirationIndex = () => {
+    console.log('randomInspirationIndex', randomInspiration);
+    // If setRandomInspiration is 0, start random mode
+    // If setRandomInspiration is greater than 0, increment it to get a new random order
+    // If setRandomInspiration reaches 10, reset it to 0 to exit random mode
+    if (randomInspiration === 0) {
+      setRandomInspiration(1);
+    } else if (randomInspiration < 10) {
+      setRandomInspiration(prev => prev + 1);
+    } else {
+      setRandomInspiration(0);
+    }
+  };
+
+  // Add a function to get the random button state
+  const getRandomButtonState = () => {
+    if (randomInspiration === 0) {
+      return {
+        isActive: false,
+        tooltip: t('randomOrder')
+      };
+    } else {
+      return {
+        isActive: true,
+        tooltip: t('randomOrderTooltip', { progress: randomInspiration })
+      };
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen backdrop-blur-md dark:bg-gray-900"
       style={{
@@ -796,6 +847,9 @@ function App() {
           searchTags={searchTags}
           setSearchTags={setSearchTags}
           onSelectSubfolder={handleSelectSubfolder}
+          randomInspirationIndex={randomInspirationIndex}
+          randomButtonState={getRandomButtonState()}
+          setRandomInspiration={setRandomInspiration}
         />
       </div>
 

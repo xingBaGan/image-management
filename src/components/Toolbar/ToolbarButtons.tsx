@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { FileJson, Settings as SettingsIcon, FilterIcon, Keyboard } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { FileJson, Settings as SettingsIcon, FilterIcon, Keyboard, Dices  } from 'lucide-react';
 import { useLocale } from '../../contexts/LanguageContext';
 import { FilterOptions } from '../../types/index.ts';
 
@@ -13,8 +13,15 @@ interface ToolbarButtonsProps {
   filterButtonRef: React.RefObject<HTMLElement>;
   filterRef: React.RefObject<HTMLDivElement>;
   filterColors: string[];
+  randomInspirationIndex: () => void;
+  randomButtonState: {
+    isActive: boolean;
+    tooltip: string;
+  };
+  setRandomInspiration: (inspiration: number) => void;
 }
 
+const pressTime = 2000; // 2 seconds for long press
 const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
   onOpenConfig,
   setIsSettingsOpen,
@@ -25,8 +32,16 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
   filterButtonRef,
   filterRef,
   filterColors,
+  randomInspirationIndex,
+  randomButtonState,
+  setRandomInspiration,
 }) => {
   const { t } = useLocale();
+  const [isLongPressing, setIsLongPressing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const longPressTimer = useRef<NodeJS.Timeout>();
+  const progressInterval = useRef<NodeJS.Timeout>();
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -47,6 +62,32 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
       filterOptions?.ratio.length +
       filterOptions?.formats.length +
       (filterOptions?.rating !== null ? 1 : 0);
+  };
+
+  const handleRandomButtonMouseDown = () => {
+    longPressTimer.current = setTimeout(() => {
+      setIsLongPressing(true);
+    }, 500);
+  };
+
+  const handleRandomButtonMouseUp = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+    }
+    if (!isLongPressing) {
+      randomInspirationIndex();
+    }
+    if (isLongPressing) {
+      setRandomInspiration(0);
+      setIsLongPressing(false);
+    }
+  };
+
+  const handleRandomButtonMouseLeave = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+    }
+    setIsLongPressing(false);
   };
 
   return (
@@ -97,6 +138,57 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
       >
         <Keyboard size={20} />
       </button>
+      <div className="relative">
+        <button
+          className={`p-2 rounded-lg transition-all duration-300 relative ${
+            randomButtonState.isActive
+              ? 'bg-blue-500 text-white hover:bg-blue-600'
+              : 'bg-gray-200 hover:bg-gray-300'
+          } ${isLongPressing ? 'scale-110 rotate-12' : ''}`}
+          onMouseDown={handleRandomButtonMouseDown}
+          onMouseUp={handleRandomButtonMouseUp}
+          onMouseLeave={handleRandomButtonMouseLeave}
+          title={randomButtonState.tooltip}
+        >
+          <div className="relative">
+            <Dices 
+              size={20} 
+              className={`transition-transform duration-300 ${isLongPressing ? 'animate-bounce' : ''}`}
+            />
+            {isLongPressing && (
+              <>
+                <div className="absolute inset-0">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle
+                      className="text-blue-500"
+                      strokeWidth="2"
+                      stroke="currentColor"
+                      fill="transparent"
+                      r="10"
+                      cx="12"
+                      cy="12"
+                      style={{
+                        strokeDasharray: '62.8',
+                        strokeDashoffset: `${62.8 - (progress / 100) * 62.8}`,
+                        transition: 'stroke-dashoffset 0.1s linear'
+                      }}
+                    />
+                  </svg>
+                </div>
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-ping" />
+              </>
+            )}
+          </div>
+          {progress === 100 && (
+            <div className="flex absolute inset-0 justify-center items-center">
+              <div className="w-6 h-6 bg-blue-500 rounded-full animate-ping" />
+              <div className="flex absolute inset-0 justify-center items-center">
+                <div className="w-4 h-4 bg-white rounded-full" />
+              </div>
+            </div>
+          )}
+        </button>
+      </div>
     </div>
   );
 };

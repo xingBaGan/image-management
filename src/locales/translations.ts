@@ -216,7 +216,9 @@ export const translations = {
     installing: 'Installing environment...',
     install: 'Install',
     restartAgainAndInstall: 'Please restart and install again',
-    checkEnvironmentVariable: 'Please check if the environment variable is correct'
+    checkEnvironmentVariable: 'Please check if the environment variable is correct',
+    randomOrder: 'Random order',
+    randomOrderTooltip: 'Random order ({{progress}}/10) - Click to change order or long press to exit',
   },
   zh: {
     // 工具栏
@@ -437,6 +439,8 @@ export const translations = {
     installing: '正在安装环境...',
     install: '安装',
     restartAgainAndInstall: '请重新启动并重新安装',
-    checkEnvironmentVariable: '请检测环境变量是否正确'
+    checkEnvironmentVariable: '请检测环境变量是否正确',
+    randomOrder: '随机顺序',
+    randomOrderTooltip: '随机顺序 ({{progress}}/10) - 点击更改顺序或长按退出',
   }
 }; 

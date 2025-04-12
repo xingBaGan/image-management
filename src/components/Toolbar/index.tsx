@@ -34,6 +34,12 @@ interface ToolbarProps {
   setMultiFilter: (filters: FilterOptions | ((prev: FilterOptions) => FilterOptions)) => void;
   searchTags: string[];
   setSearchTags: React.Dispatch<React.SetStateAction<string[]>>;
+  randomInspirationIndex: () => void;
+  randomButtonState: {
+    isActive: boolean;
+    tooltip: string;
+  };
+  setRandomInspiration: (inspiration: number) => void;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -59,6 +65,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
   setMultiFilter,
   searchTags,
   setSearchTags,
+  randomInspirationIndex,
+  randomButtonState,
+  setRandomInspiration,
 }) => {
   const { t } = useLocale();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -135,6 +144,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
                   filterButtonRef={filterButtonRef}
                   filterRef={filterRef}
                   filterColors={filterColors}
+                  randomInspirationIndex={randomInspirationIndex}
+                  randomButtonState={randomButtonState}
+                  setRandomInspiration={setRandomInspiration}
                 />
 
                 {isFilterOpen && (
