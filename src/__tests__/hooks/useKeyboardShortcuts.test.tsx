@@ -55,6 +55,9 @@ describe('useKeyboardShortcuts', () => {
     filterButtonRef: { current: document.createElement('button') },
     setViewMode: jest.fn(),
     setViewingMedia: jest.fn(),
+    setRandomInspiration: jest.fn(),
+    randomInspiration: 0,
+    setSortDirection: jest.fn(),
   };
 
   beforeEach(() => {

@@ -20,9 +20,10 @@
 | Shortcut 快捷键 | Action 操作 | Description 描述 |
 |----------------|-------------|-----------------|
 | `Ctrl/⌘ + G` | Toggle View Mode 切换视图模式 | Switch between grid and list view 在网格视图和列表视图之间切换 |
-| `Ctrl/⌘ + F` | Search 搜索 | Open search box 打开搜索框 |
-| `Ctrl/⌘ + S` | Sort 排序 | Toggle sort options popup 切换排序选项弹窗 |
-| `Ctrl/⌘ + R` | Filter 筛选 | Toggle filter options popup 切换筛选选项弹窗 |
+| `Ctrl/⌘ + S` | Search 搜索 | Open search box 打开搜索框 |
+| `Ctrl/⌘ + O` | Sort 排序 | Toggle sort direction 切换排序方向 |
+| `Ctrl/⌘ + F` | Filter 筛选 | Toggle filter options popup 切换筛选选项弹窗 |
+| `Ctrl/⌘ + R` | Random 随机 | Toggle random order / Reset random order 切换随机排序/重置随机排序 |
 
 ## Selection Tools 选择工具
 

@@ -1,5 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { FileX2 } from 'lucide-react';
+
 interface SubfolderBarProps {
   subfolders: {
     id: string;
@@ -39,7 +41,9 @@ const SubfolderBar: React.FC<SubfolderBarProps> = ({ subfolders, onSelectSubfold
                 />
               ) : (
                 <div className="flex justify-center items-center w-full h-full">
-                  <div className="w-12 h-12 rounded-full dark:bg-gray-700" />
+                  <div className="relative w-12 h-12 bg-gray-300 rounded-full dark:bg-gray-700">
+                    <FileX2 className="absolute top-1/2 left-1/2 w-6 h-6 text-gray-500 transform -translate-x-1/2 -translate-y-1/2 dark:text-gray-400" />
+                  </div>
                 </div>
               )}
             </div>

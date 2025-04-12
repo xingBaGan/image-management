@@ -184,7 +184,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     if (!result.destination || !onUpdateCategories) return;
 
     const { source, destination } = result;
-    console.log('result', result);
     if (
       destination.droppableId === source.droppableId &&
       destination.index === source.index

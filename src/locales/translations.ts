@@ -46,8 +46,8 @@ export const translations = {
     subFolder: 'sub folder',
     subFolders: 'sub folders',
     // Image Info
-    basicInfo: 'basic information',
-    videoInfo: 'video information',
+    basicInfo: 'Summary',
+    videoInfo: 'Summary',
     fileName: 'File Name',
     fileSize: 'File Size',
     dimensions: 'Dimensions',
@@ -181,12 +181,12 @@ export const translations = {
       escape: 'ESC - Deselect all images',
       delete: 'Delete - Delete selected images',
       ctrlA: 'Ctrl+A - Select all images',
-      ctrlF: 'Ctrl+F - Open search',
+      ctrlS: 'Ctrl+S - Open search',
       ctrlG: 'Ctrl+G - Toggle view mode',
       ctrlE: 'Ctrl+E - Open in editor',
       ctrlH: 'Ctrl+H - Add to favorites',
-      ctrlS: 'Ctrl+S - Toggle sort popup',
-      ctrlR: 'Ctrl+R - Toggle filter popup',
+      ctrlO: 'Ctrl+O - Toggle sort popup',
+      ctrlF: 'Ctrl+F - Toggle filter popup',
     },
 
     // Progress
@@ -216,7 +216,9 @@ export const translations = {
     installing: 'Installing environment...',
     install: 'Install',
     restartAgainAndInstall: 'Please restart and install again',
-    checkEnvironmentVariable: 'Please check if the environment variable is correct'
+    checkEnvironmentVariable: 'Please check if the environment variable is correct',
+    randomOrder: 'Random order',
+    randomOrderTooltip: 'Random order ({{progress}}/10) - Click to change order or long press to exit',
   },
   zh: {
     // 工具栏
@@ -267,8 +269,8 @@ export const translations = {
     subFolders: '子文件夹',
 
     // 图片信息
-    basicInfo: '基本信息',
-    videoInfo: '视频信息',
+    basicInfo: '图片概览',
+    videoInfo: '视频概览',
     fileName: '文件名',
     fileSize: '文件大小',
     dimensions: '尺寸',
@@ -402,12 +404,12 @@ export const translations = {
       escape: 'ESC - 取消选择所有图片',
       delete: 'Delete - 删除选中的图片',
       ctrlA: 'Ctrl+A - 选择所有图片',
-      ctrlF: 'Ctrl+F - 打开搜索',
+      ctrlS: 'Ctrl+S - 打开搜索',
       ctrlG: 'Ctrl+G - 切换视图模式',
       ctrlE: 'Ctrl+E - 在编辑器中打开',
       ctrlH: 'Ctrl+H - 添加到收藏',
-      ctrlS: 'Ctrl+S - 切换排序弹窗',
-      ctrlR: 'Ctrl+R - 切换筛选弹窗',
+      ctrlO: 'Ctrl+O - 切换排序弹窗',
+      ctrlF: 'Ctrl+F - 切换筛选弹窗',
     },
 
     // Progress
@@ -437,6 +439,8 @@ export const translations = {
     installing: '正在安装环境...',
     install: '安装',
     restartAgainAndInstall: '请重新启动并重新安装',
-    checkEnvironmentVariable: '请检测环境变量是否正确'
+    checkEnvironmentVariable: '请检测环境变量是否正确',
+    randomOrder: '随机顺序',
+    randomOrderTooltip: '随机顺序 ({{progress}}/10) - 点击更改顺序或长按退出',
   }
 }; 
