@@ -791,7 +791,9 @@ function App() {
           selectedImages.size > 0
           && !target.closest('.main-content-grid') 
           && !target.closest('button') 
-          && !target.closest('input') 
+          && !target.closest('input')
+          && !target.closest('label') 
+          && !target.closest('select')
           && !target.closest('textarea') 
           && !target.closest('*[role="dialog"]')
           && !target.closest('*[role="button"]')
