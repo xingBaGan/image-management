@@ -156,8 +156,8 @@ export const MainContent: React.FC<MainContentProps> = ({
         setRandomInspiration={setRandomInspiration}
         randomButtonState={randomButtonState}
       />
-      <div className="flex overflow-y-auto flex-1">
-        <div className={`flex-1 main-content-grid ${isSidebarOpen ? 'mr-0' : 'mr-60'}`}>
+      <div className="flex overflow-y-auto flex-1 main-content-grid">
+        <div className={`flex-1 ${isSidebarOpen ? 'mr-0' : 'mr-60'}`}>
           <MediaGrid
             images={images}
             onFavorite={onFavorite}
