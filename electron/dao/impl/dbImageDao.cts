@@ -314,6 +314,7 @@ export default class DBImageDAO implements ImageDAO {
     categories = categories.filter((category: Category) => category.id !== currentSelectedCategory?.id);
     if (currentSelectedCategory) {
       currentSelectedCategory.images = currentSelectedCategory.images?.filter((id: string) => !selectedImages.has(id));
+      currentSelectedCategory.count = currentSelectedCategory.images?.length || 0;
     }
     if (currentSelectedCategory) {
       categories.push(currentSelectedCategory);
