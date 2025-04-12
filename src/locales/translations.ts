@@ -181,12 +181,12 @@ export const translations = {
       escape: 'ESC - Deselect all images',
       delete: 'Delete - Delete selected images',
       ctrlA: 'Ctrl+A - Select all images',
-      ctrlF: 'Ctrl+F - Open search',
+      ctrlS: 'Ctrl+S - Open search',
       ctrlG: 'Ctrl+G - Toggle view mode',
       ctrlE: 'Ctrl+E - Open in editor',
       ctrlH: 'Ctrl+H - Add to favorites',
-      ctrlS: 'Ctrl+S - Toggle sort popup',
-      ctrlR: 'Ctrl+R - Toggle filter popup',
+      ctrlO: 'Ctrl+O - Toggle sort popup',
+      ctrlF: 'Ctrl+F - Toggle filter popup',
     },
 
     // Progress
@@ -404,12 +404,12 @@ export const translations = {
       escape: 'ESC - 取消选择所有图片',
       delete: 'Delete - 删除选中的图片',
       ctrlA: 'Ctrl+A - 选择所有图片',
-      ctrlF: 'Ctrl+F - 打开搜索',
+      ctrlS: 'Ctrl+S - 打开搜索',
       ctrlG: 'Ctrl+G - 切换视图模式',
       ctrlE: 'Ctrl+E - 在编辑器中打开',
       ctrlH: 'Ctrl+H - 添加到收藏',
-      ctrlS: 'Ctrl+S - 切换排序弹窗',
-      ctrlR: 'Ctrl+R - 切换筛选弹窗',
+      ctrlO: 'Ctrl+O - 切换排序弹窗',
+      ctrlF: 'Ctrl+F - 切换筛选弹窗',
     },
 
     // Progress

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { LocalImageData } from '../types/index.ts';
+import { SortDirection } from '../types/index.ts';
 
 interface UseKeyboardShortcutsProps {
   selectedImages: Set<string>;
@@ -14,6 +15,9 @@ interface UseKeyboardShortcutsProps {
   filterButtonRef: React.RefObject<HTMLElement>;
   setViewMode: React.Dispatch<React.SetStateAction<'grid' | 'list'>>;
   setViewingMedia: (media: LocalImageData | null) => void;
+  setRandomInspiration: (inspiration: number | ((prev: number) => number)) => void;
+  randomInspiration: number;
+  setSortDirection: (direction: SortDirection | ((prev: SortDirection) => SortDirection)) => void;
 }
 
 export const useKeyboardShortcuts = ({
@@ -29,6 +33,9 @@ export const useKeyboardShortcuts = ({
   filterButtonRef,
   setViewMode,
   setViewingMedia,
+  setRandomInspiration,
+  randomInspiration,
+  setSortDirection
 }: UseKeyboardShortcutsProps) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -104,6 +111,13 @@ export const useKeyboardShortcuts = ({
             }
           }
           break;
+        case 'o':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            // 切换排序方向
+            setSortDirection(prev => prev === SortDirection.Asc ? SortDirection.Desc : SortDirection.Asc);
+          }
+          break;
         case 'h':
           if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
@@ -126,10 +140,7 @@ export const useKeyboardShortcuts = ({
         case 'r':
           if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
-            // 切换筛选弹窗
-            if (filterButtonRef.current) {
-              filterButtonRef.current.click();
-            }
+            setRandomInspiration(prev => prev + 1);
           }
           break;
       }
@@ -150,5 +161,7 @@ export const useKeyboardShortcuts = ({
     filterButtonRef,
     setViewMode,
     setViewingMedia,
+    setRandomInspiration,
+    randomInspiration,
   ]);
 }; 

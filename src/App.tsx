@@ -651,6 +651,9 @@ function App() {
     filterButtonRef,
     setViewMode,
     setViewingMedia,
+    setRandomInspiration,
+    randomInspiration,
+    setSortDirection
   });
   const gridItemAppendButtonsProps = useMemo(() => {
     return getGridItemAppendButtonsProps();
@@ -781,7 +784,24 @@ function App() {
         backgroundImage: `url('${settings.backgroundUrl}')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center'
-      }}>
+      }}
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        if (
+          selectedImages.size > 0
+          && !target.closest('.main-content-grid') 
+          && !target.closest('button') 
+          && !target.closest('input') 
+          && !target.closest('textarea') 
+          && !target.closest('*[role="dialog"]')
+          && !target.closest('*[role="button"]')
+          && !target.closest('*[role="checkbox"]')
+          && !target.closest('.color-item')
+        ) {
+          setSelectedImages(new Set());
+        }
+      }}
+      >
       <TitleBar
         isMaximized={isMaximized}
         onMinimize={() => window.electron?.minimize()}

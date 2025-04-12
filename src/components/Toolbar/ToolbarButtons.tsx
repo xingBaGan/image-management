@@ -21,7 +21,7 @@ interface ToolbarButtonsProps {
   setRandomInspiration: (inspiration: number) => void;
 }
 
-const pressTime = 2000; // 2 seconds for long press
+const pressTime = 500; 
 const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
   onOpenConfig,
   setIsSettingsOpen,
@@ -67,7 +67,7 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
   const handleRandomButtonMouseDown = () => {
     longPressTimer.current = setTimeout(() => {
       setIsLongPressing(true);
-    }, 500);
+    }, pressTime);
   };
 
   const handleRandomButtonMouseUp = () => {
@@ -117,7 +117,7 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
               ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-sky-500'
               : 'hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-sky-500'
           }`}
-          title={`${t('filter')} (Ctrl+R)`}
+          title={`${t('filter')} (Ctrl+F)`}
           onClick={() => setIsFilterOpen(!isFilterOpen)}
         >
           <div className="relative">

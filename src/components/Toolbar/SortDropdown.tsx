@@ -41,7 +41,7 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
       <button 
         ref={sortButtonRef as React.RefObject<HTMLButtonElement>}
         className="flex items-center px-3 py-2 space-x-2 rounded-lg sort-button dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-        title={`${t('sortBy')} (Ctrl+S)`}
+        title={`${t('sortBy')} (Ctrl+O)`}
         onClick={() => setIsDropdownOpen(prev => !prev)}
       >
         {sortDirection === 'asc' ? <SortAsc size={20} /> : <SortDesc size={20} />}

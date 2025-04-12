@@ -119,7 +119,7 @@ export const MainContent: React.FC<MainContentProps> = ({
   onSelectSubfolder,
   setRandomInspiration,
   randomButtonState,
-  randomInspirationIndex
+  randomInspirationIndex,
 }) => {
   // 获取当前选中的图片
   const selectedImage = React.useMemo(() => 
@@ -127,7 +127,7 @@ export const MainContent: React.FC<MainContentProps> = ({
   , [images, selectedImages]);
 
   return (
-    <div className="flex overflow-hidden relative flex-col flex-1">
+    <div className="flex overflow-hidden relative flex-col flex-1 main-content">
       <Toolbar 
         viewMode={viewMode}
         sortBy={sortBy}
@@ -157,7 +157,7 @@ export const MainContent: React.FC<MainContentProps> = ({
         randomButtonState={randomButtonState}
       />
       <div className="flex overflow-y-auto flex-1">
-        <div className={`flex-1 ${isSidebarOpen ? 'mr-0' : 'mr-60'}`}>
+        <div className={`flex-1 main-content-grid ${isSidebarOpen ? 'mr-0' : 'mr-60'}`}>
           <MediaGrid
             images={images}
             onFavorite={onFavorite}

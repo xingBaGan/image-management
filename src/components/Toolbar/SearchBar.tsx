@@ -86,7 +86,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         <button
           ref={searchButtonRef as React.RefObject<HTMLButtonElement>}
           className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-blue-400"
-          title={`${t('search')} (Ctrl+F)`}
+          title={`${t('search')} (Ctrl+S)`}
           onClick={handleSearchClick}
         >
           <Search size={20} />

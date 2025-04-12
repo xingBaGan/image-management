@@ -29,9 +29,10 @@ const shortcutsMarkdown = `# Keyboard Shortcuts 键盘快捷键
 | Shortcut 快捷键 | Action 操作 | Description 描述 |
 |----------------|-------------|-----------------|
 | \`Ctrl/⌘ + G\` | Toggle View Mode 切换视图模式 | Switch between grid and list view 在网格视图和列表视图之间切换 |
-| \`Ctrl/⌘ + F\` | Search 搜索 | Open search box 打开搜索框 |
-| \`Ctrl/⌘ + S\` | Sort 排序 | Toggle sort options popup 切换排序选项弹窗 |
-| \`Ctrl/⌘ + R\` | Filter 筛选 | Toggle filter options popup 切换筛选选项弹窗 |
+| \`Ctrl/⌘ + S\` | Search 搜索 | Open search box 打开搜索框 |
+| \`Ctrl/⌘ + O\` | Sort 排序 | Toggle sort direction 切换排序方向 |
+| \`Ctrl/⌘ + F\` | Filter 筛选 | Toggle filter options popup 切换筛选选项弹窗 |
+| \`Ctrl/⌘ + R\` | Random 随机 | Toggle random order / Reset random order 切换随机排序/重置随机排序 |
 
 ## Selection Tools 选择工具
 
@@ -55,7 +56,7 @@ const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onClose }) => {
 
   return (
     <div className="flex fixed inset-0 z-50 justify-center items-center backdrop-blur-sm transition-all duration-200 bg-black/60">
-      <div className="relative w-[900px] max-h-[85vh] bg-white/95 dark:bg-gray-800/95 rounded-2xl shadow-2xl overflow-hidden border border-gray-200  transform transition-all duration-200 dark:text-white">
+      <div className="relative w-[900px] max-h-[85vh] bg-white/95 dark:bg-gray-800/95 rounded-2xl shadow-2xl overflow-hidden border border-gray-200 transform transition-all duration-200 dark:text-white">
         <div className="flex justify-between items-center px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b dark:from-gray-800 dark:to-gray-750 dark:text-white">
           <div className="flex items-center space-x-3">
             <Keyboard className="w-6 h-6 text-blue-400 dark:text-blue-400" />
