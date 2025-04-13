@@ -21,6 +21,7 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
   isZenMode?: boolean;
   isDragging: boolean;
   setIsDragging: (isDragging: boolean) => void;
+  columnCount?: number;
 }> = ({
   images,
   onFavorite,
@@ -39,7 +40,8 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
   onSelectSubfolder,
   isZenMode,
   isDragging,
-  setIsDragging
+  setIsDragging,
+  columnCount = 4
 }) => {
     const [viewingMedia, setViewingMedia] = useState<LocalImageData | null>(null);
    
@@ -317,6 +319,7 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
               onOpenInEditor: handleOpenInEditor,
               showInFolder: handleShowInFolder,
               gridItemAppendButtonsProps: gridItemAppendButtonsProps,
+              columnCount: columnCount
             }} />
           )}
         </div>

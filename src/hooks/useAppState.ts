@@ -22,6 +22,7 @@ export const useAppState = () => {
   const [isZenMode, setIsZenMode] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [randomInspiration, setRandomInspiration] = useState<number>(0);
+  const [columnCount, setColumnCount] = useState<number>(3);
   
   // Image viewing and selection state
   const [viewingMedia, setViewingMedia] = useState<LocalImageData | null>(null);
@@ -123,6 +124,8 @@ export const useAppState = () => {
     setViewMode,
     randomInspiration,
     setRandomInspiration,
+    columnCount,
+    setColumnCount,
     
     // Media and selection state
     viewingMedia,

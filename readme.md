@@ -11,6 +11,14 @@ Could manage 100000+ images and videos with good performance.
 ![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v0.4.1_2.png)
 ## Main Features
 
+- Clean and intuitive user interface
+- Fast browsing and management of large media collections
+- Powerful categorization and tagging system
+- Support for image and video previews
+- AI automatic tagging functionality
+- Random sorting and display feature
+- Comprehensive keyboard shortcuts
+- Optimized drag interaction
 
 ## User Guide
 python 3.10+ is required.
@@ -22,10 +30,11 @@ For installation instructions, see [install.en.md](install.en.md)
 
 1. **Browse Media**
    - Switch View Mode: Click the grid/list icon in the toolbar
-   - Sort: Click the sort button in the toolbar to choose sorting method
+   - Sort: Click the sort button in the toolbar to choose sorting method (including the new random sorting feature)
    - View Large Image: Double-click any media to enlarge
    - Video Preview: Hover mouse over video to preview, move mouse to quickly preview different timestamps
    - Filter: Use the filter button in the toolbar to filter by file type, size, date, and other conditions
+   - Random Display: Long press the sort button to activate random display feature
 
 2. **Import Media**
    - Click the "Import" button in the toolbar
@@ -52,6 +61,7 @@ For installation instructions, see [install.en.md](install.en.md)
    - Select one or multiple media files
    - Click "Add to Category" button
    - Select target category to confirm addition
+   - Category items display the count of currently selected images
 
 ### Batch Operations
 
@@ -59,6 +69,7 @@ For installation instructions, see [install.en.md](install.en.md)
    - Click to select single media
    - Hold Shift and click to select a range
    - Hold mouse and drag in empty space to box select multiple media
+   - Optimized dragging state management for smoother user experience
 
 2. **Batch Operations**
    - Batch operation toolbar appears after selecting media
@@ -121,11 +132,13 @@ npm run electron:build --linux
 
 ## Notes
 
+- Current version: 0.4.12
 - First run will create configuration file in user data directory
 - Supported image formats: jpg, jpeg, png, gif
 - Supported video formats: mp4, mov, avi, webm
 - AI features require corresponding Python environment and dependencies
 - ComfyUI features require proper ComfyUI environment configuration
+- Regular backups of the configuration file (images.json) are recommended
 
 ## Future Plans
 
@@ -135,6 +148,8 @@ npm run electron:build --linux
 - [x] Color classification support
 - [x] Multi-language support
 - [x] Shortcut key support
+- [x] Main color extraction
+- [x] Random sorting feature
 - [ ] Extensible plugin system
    - [ ] Image editing features
    - [ ] More AI model integration

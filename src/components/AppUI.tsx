@@ -95,7 +95,9 @@ export const AppUI = ({
     queueProgress,
     showInstallConfirm,
     isDragging,
-    setIsDragging
+    setIsDragging,
+    columnCount,
+    setColumnCount
   } = state;
 
   const {
@@ -223,6 +225,8 @@ export const AppUI = ({
           setRandomInspiration={state.setRandomInspiration}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
+          columnCount={columnCount}
+          setColumnCount={setColumnCount}
         />
       </div>
 

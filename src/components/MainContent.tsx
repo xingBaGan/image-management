@@ -76,6 +76,8 @@ interface MainContentProps {
   setRandomInspiration: (index: number) => void;
   isDragging: boolean;
   setIsDragging: (isDragging: boolean) => void;
+  columnCount: number;
+  setColumnCount: (count: number) => void;
 }
 
 export const MainContent: React.FC<MainContentProps> = ({
@@ -123,7 +125,9 @@ export const MainContent: React.FC<MainContentProps> = ({
   randomButtonState,
   randomInspirationIndex,
   isDragging,
-  setIsDragging
+  setIsDragging,
+  columnCount,
+  setColumnCount
 }) => {
   // 获取当前选中的图片
   const selectedImage = React.useMemo(() => 
@@ -159,6 +163,8 @@ export const MainContent: React.FC<MainContentProps> = ({
         randomInspirationIndex={randomInspirationIndex}
         setRandomInspiration={setRandomInspiration}
         randomButtonState={randomButtonState}
+        columnCount={columnCount}
+        setColumnCount={setColumnCount}
       />
       <div className="flex overflow-y-auto flex-1 main-content-grid">
         <div className={`flex-1 ${isSidebarOpen ? 'mr-0' : 'mr-60'}`}>
@@ -182,6 +188,7 @@ export const MainContent: React.FC<MainContentProps> = ({
             onSelectSubfolder={onSelectSubfolder}
             isDragging={isDragging}
             setIsDragging={setIsDragging}
+            columnCount={columnCount}
           />
         </div>
         <div className="fixed right-0 bottom-0 top-[3rem]">
