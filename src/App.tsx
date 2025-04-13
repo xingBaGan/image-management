@@ -485,7 +485,7 @@ function App() {
 
       e.preventDefault();
       const clipboardText = e.clipboardData?.getData('text') || '';
-      if (clipboardText && !/^\[.*\]/.test(clipboardText)) {
+      if (clipboardText && /^\[.*\]/.test(clipboardText)) {
         const parsedTags = JSON.parse(clipboardText);
         if (isArrayOfString(parsedTags)) {
           return;
