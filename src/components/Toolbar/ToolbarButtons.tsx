@@ -38,9 +38,8 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
 }) => {
   const { t } = useLocale();
   const [isLongPressing, setIsLongPressing] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [progress,] = useState(0);
   const longPressTimer = useRef<NodeJS.Timeout>();
-  const progressInterval = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

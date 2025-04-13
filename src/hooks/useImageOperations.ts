@@ -4,9 +4,9 @@ import { useLocale } from '../contexts/LanguageContext';
 import * as imageOperations from '../services/imageOperations';
 import { DeleteType } from '../types/index.ts';
 
-export const useImageOperations = () => {
+export const useImageOperations = (state: ReturnType<typeof import('./useAppState').useAppState> ) => {
   const { t } = useLocale();
-  const [images, setImages] = useState<LocalImageData[]>([]);
+  const { mediaList: images, setMediaList: setImages } = state;
   const [importState, setImportState] = useState<ImportStatus>(ImportStatus.Imported);
   const [showBindInFolderConfirm, setShowBindInFolderConfirm] = useState<{
     selectedImages: Set<string>;

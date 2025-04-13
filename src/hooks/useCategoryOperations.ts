@@ -6,14 +6,17 @@ import * as categoryService from '../services/categoryService';
 export const useCategoryOperations = ({
   images,
   setImages,
-  setSelectedCategory
+  setSelectedCategory,
+  categories,
+  setCategories
 }: {
   images: LocalImageData[];
   setImages: (images: LocalImageData[]) => void;
   setSelectedCategory: (category: string) => void;
+  categories: Category[];
+  setCategories: (categories: Category[]) => void;
 }) => {
   const { t } = useLocale();
-  const [categories, setCategories] = useState<Category[]>([]);
 
   const handleAddCategory = async (newCategory: Category, images: LocalImageData[]) => {
     try {
