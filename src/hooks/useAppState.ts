@@ -44,6 +44,7 @@ export const useAppState = () => {
   // Search and filter state
   const [searchTags, setSearchTags] = useState<string[]>([]);
   const [filterColors, setFilterColors] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
   const [multiFilter, setMultiFilter] = useState<FilterOptions>({
     colors: [],
     ratio: [],
@@ -186,6 +187,9 @@ export const useAppState = () => {
     
     // Derived state
     shouldListenFolders,
-    selectedImagesList
+    selectedImagesList,
+    // Dragging
+    isDragging,
+    setIsDragging
   };
 }; 

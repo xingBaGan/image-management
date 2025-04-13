@@ -42,7 +42,8 @@ export const useAppEventHandlers = (state: ReturnType<typeof import('./useAppSta
     setRandomInspiration,
     categories,
     setCategories,
-    tasksStatus
+    tasksStatus,
+    setIsDragging
   } = state;
 
   // Use image operations hook
@@ -222,6 +223,7 @@ export const useAppEventHandlers = (state: ReturnType<typeof import('./useAppSta
     } catch (error) {
      setImportState(ImportStatus.Imported);
      setSelectedImages(new Set());
+     setIsDragging(false);
      console.error('添加标签失败', error);
     }
   }, [selectedImagesList, mediaList, categories, settings.modelName, setImportState, setSelectedImages, selectedCategory, setMessageBox]);
@@ -437,6 +439,7 @@ export const useAppEventHandlers = (state: ReturnType<typeof import('./useAppSta
     const s2 = tasksStatus.color === TaskStatus.Canceled && tasksStatus.tag !== TaskStatus.Running;
     if (s1 || s2) {
       setImportState(ImportStatus.Imported);
+      setIsDragging(false);
       setSelectedImages(new Set());
       toast.error(t('canceled'));
     }

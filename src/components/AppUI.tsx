@@ -93,7 +93,9 @@ export const AppUI = ({
     showDeleteConfirm,
     setShowDeleteConfirm,
     queueProgress,
-    showInstallConfirm
+    showInstallConfirm,
+    isDragging,
+    setIsDragging
   } = state;
 
   const {
@@ -219,6 +221,8 @@ export const AppUI = ({
           randomInspirationIndex={randomInspirationIndex}
           randomButtonState={getRandomButtonState()}
           setRandomInspiration={state.setRandomInspiration}
+          isDragging={isDragging}
+          setIsDragging={setIsDragging}
         />
       </div>
 

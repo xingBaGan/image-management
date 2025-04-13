@@ -19,6 +19,8 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
   }[];
   onSelectSubfolder?: (name: string) => void;
   isZenMode?: boolean;
+  isDragging: boolean;
+  setIsDragging: (isDragging: boolean) => void;
 }> = ({
   images,
   onFavorite,
@@ -35,10 +37,12 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
   currentSelectedCategory,
   installStatus,
   onSelectSubfolder,
-  isZenMode
+  isZenMode,
+  isDragging,
+  setIsDragging
 }) => {
     const [viewingMedia, setViewingMedia] = useState<LocalImageData | null>(null);
-    const [isDragging, setIsDragging] = useState(false);
+   
     const [isSelecting, setIsSelecting] = useState(false);
     const [selectionStart, setSelectionStart] = useState({ x: 0, y: 0 });
     const [selectionEnd, setSelectionEnd] = useState({ x: 0, y: 0 });

@@ -74,6 +74,8 @@ interface MainContentProps {
     tooltip: string;
   };
   setRandomInspiration: (index: number) => void;
+  isDragging: boolean;
+  setIsDragging: (isDragging: boolean) => void;
 }
 
 export const MainContent: React.FC<MainContentProps> = ({
@@ -120,6 +122,8 @@ export const MainContent: React.FC<MainContentProps> = ({
   setRandomInspiration,
   randomButtonState,
   randomInspirationIndex,
+  isDragging,
+  setIsDragging
 }) => {
   // 获取当前选中的图片
   const selectedImage = React.useMemo(() => 
@@ -176,6 +180,8 @@ export const MainContent: React.FC<MainContentProps> = ({
             installStatus={installStatus}
             isZenMode={isZenMode}
             onSelectSubfolder={onSelectSubfolder}
+            isDragging={isDragging}
+            setIsDragging={setIsDragging}
           />
         </div>
         <div className="fixed right-0 bottom-0 top-[3rem]">
