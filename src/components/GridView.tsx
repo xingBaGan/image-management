@@ -169,7 +169,7 @@ const GridView: React.FC<ImageGridBaseProps & {
         <Masonry
           breakpointCols={breakpointColumns}
           className="flex -ml-6 w-auto"
-          columnClassName={`pl-6 space-y-6 [&>*]:will-change-transform [&>*]:transition-all [&>*]:duration-[300ms] [&>*]:ease-[cubic-bezier(0.4,0,0.2,1)]`}
+          columnClassName={`${columnCount >= 5 ? 'pl-1' : 'pl-2'} ${columnCount >= 5 ? 'space-y-1' : 'space-y-2'} [&>*]:will-change-transform [&>*]:transition-all [&>*]:duration-[300ms] [&>*]:ease-[cubic-bezier(0.4,0,0.2,1)]`}
         >
           {displayImages.map((image, index) => (
             <div

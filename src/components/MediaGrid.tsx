@@ -257,7 +257,7 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
           />
         )}
 
-        <div className="pt-4 pl-4 w-full h-full select-none scroll-smooth"
+        <div className="pt-2 pl-2 w-full h-full select-none scroll-smooth"
           ref={containerRef}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -268,7 +268,8 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
           }}
           style={{ 
             position: 'relative', 
-            overflow: isImporting || isDragging ? 'hidden' : 'auto'
+            overflow: isImporting || isDragging ? 'hidden' : 'auto',
+            marginLeft: `5px`
           }}
           onDragEnter={() => setIsDragging(true)}
           onDragOver={(e) => e.preventDefault()}

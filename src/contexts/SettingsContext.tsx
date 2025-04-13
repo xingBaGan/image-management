@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { defaultModel } from '../config';
+
 
 export interface Settings {
   ComfyUI_URL: string;
@@ -15,7 +15,7 @@ interface SettingsContextType {
   loadSettings: () => Promise<void>;
   setModelName: (modelName: string) => void;
 }
-
+const defaultModel = 'wd-v1-4-moat-tagger-v2';
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

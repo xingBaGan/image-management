@@ -138,7 +138,13 @@ export const useKeyboardShortcuts = ({
         case 'r':
           if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
-            setRandomInspiration(prev => prev + 1);
+            if (randomInspiration === 0) {
+              setRandomInspiration(1);
+            } else if (randomInspiration < 10) {
+              setRandomInspiration(prev => prev + 1);
+            } else {
+              setRandomInspiration(0);
+            }
           }
           break;
       }
