@@ -1,4 +1,4 @@
-import { AppendButtonsProps } from '../components/Toolbar/ToolbarButtons';
+import { AppendButtonsProps } from '../types/index.ts';
 
 const ADD_GRID_ITEM_BUTTON = 'add-grid-item-button';
 const ADD_TOOL_BAR_ITEM = 'add-tool-bar-item';

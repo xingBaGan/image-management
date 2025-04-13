@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import Masonry from 'react-masonry-css';
 import { AppendButtonsProps, LocalImageData, VideoData, isVideoMedia } from '../types/index.ts';
-import { ImageGridBaseProps, handleContextMenu, breakpointColumns } from './ImageGridBase';
+import { ImageGridBaseProps, handleContextMenu } from './ImageGridBase';
 import ImageItem from './ImageItem';
 import VideoItem from './VideoItem';
 import { useInView } from 'react-intersection-observer';
@@ -89,6 +89,7 @@ const GridView: React.FC<ImageGridBaseProps & {
   hasMore?: boolean;
   onLoadMore?: () => void;
   loading?: boolean;
+  columnCount?: number;
 }> = ({
   images,
   onFavorite,
@@ -99,6 +100,7 @@ const GridView: React.FC<ImageGridBaseProps & {
   onOpenInEditor,
   showInFolder,
   gridItemAppendButtonsProps,
+  columnCount = 4,
 }) => {
     const [page, setPage] = useState(1);
     const displayImages = useMemo(() => images.slice(0, page * PAGE_SIZE), [images, page]);
@@ -147,6 +149,21 @@ const GridView: React.FC<ImageGridBaseProps & {
       }
     }, [inView, hasMore]);
 
+    // Dynamically create breakpointColumns based on columnCount
+    const breakpointColumns = useMemo(() => {
+      const largeScreenCols = Math.min(columnCount, 6);
+      const mediumScreenCols = Math.max(Math.min(columnCount - 1, 4), 2);
+      const smallScreenCols = Math.max(Math.min(columnCount - 2, 3), 1);
+      
+      return {
+        default: largeScreenCols,
+        1536: largeScreenCols,
+        1280: mediumScreenCols,
+        1024: mediumScreenCols,
+        768: smallScreenCols,
+      };
+    }, [columnCount]);
+    
     return (
       <div className="relative">
         <Masonry

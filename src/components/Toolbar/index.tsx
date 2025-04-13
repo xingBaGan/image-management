@@ -9,6 +9,7 @@ import ViewModeToggle from './ViewModeToggle';
 import SortDropdown from './SortDropdown';
 import BulkActions from './BulkActions';
 import ToolbarButtons from './ToolbarButtons';
+import ColumnSlider from './ColumnSlider';
 import { getToolBarAppendButtonsProps } from '../../plugins';
 interface ToolbarProps {
   viewMode: ViewMode;
@@ -40,6 +41,8 @@ interface ToolbarProps {
     tooltip: string;
   };
   setRandomInspiration: (inspiration: number) => void;
+  columnCount: number;
+  setColumnCount: (count: number) => void;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -68,6 +71,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
   randomInspirationIndex,
   randomButtonState,
   setRandomInspiration,
+  columnCount,
+  setColumnCount,
 }) => {
   const { t } = useLocale();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -127,6 +132,13 @@ const Toolbar: React.FC<ToolbarProps> = ({
                   sortButtonRef={sortButtonRef}
                 />
               </div>
+
+              {viewMode === 'grid' && (
+                <ColumnSlider
+                  columnCount={columnCount}
+                  setColumnCount={setColumnCount}
+                />
+              )}
 
               <div className="relative">
                 <ToolbarButtons

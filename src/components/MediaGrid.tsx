@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { handleDrop as handleDropUtil } from '../utils';
 import DragOverlay from './DragOverlay';
 import MediaViewer from './MediaViewer';
@@ -19,6 +19,9 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
   }[];
   onSelectSubfolder?: (name: string) => void;
   isZenMode?: boolean;
+  isDragging: boolean;
+  setIsDragging: (isDragging: boolean) => void;
+  columnCount?: number;
 }> = ({
   images,
   onFavorite,
@@ -35,10 +38,13 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
   currentSelectedCategory,
   installStatus,
   onSelectSubfolder,
-  isZenMode
+  isZenMode,
+  isDragging,
+  setIsDragging,
+  columnCount = 4
 }) => {
     const [viewingMedia, setViewingMedia] = useState<LocalImageData | null>(null);
-    const [isDragging, setIsDragging] = useState(false);
+   
     const [isSelecting, setIsSelecting] = useState(false);
     const [selectionStart, setSelectionStart] = useState({ x: 0, y: 0 });
     const [selectionEnd, setSelectionEnd] = useState({ x: 0, y: 0 });
@@ -313,6 +319,7 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
               onOpenInEditor: handleOpenInEditor,
               showInFolder: handleShowInFolder,
               gridItemAppendButtonsProps: gridItemAppendButtonsProps,
+              columnCount: columnCount
             }} />
           )}
         </div>

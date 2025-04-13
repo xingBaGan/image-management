@@ -87,11 +87,18 @@ export const useKeyboardShortcuts = ({
             setSelectedImages(newSelected);
           }
           break;
-        case 'f':
+        case 's':
           if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
             // 打开搜索
             searchButtonRef.current?.click();
+          }
+          break;
+        case 'f':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            // 打开搜索
+            filterButtonRef.current?.click();
           }
           break;
         case 'g':
@@ -125,15 +132,6 @@ export const useKeyboardShortcuts = ({
             const selectedImage = images.find(img => selectedImages.has(img.id));
             if (selectedImage) {
               handleFavorite(selectedImage.id);
-            }
-          }
-          break;
-        case 's':
-          if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            // 切换排序弹窗
-            if (sortButtonRef.current) {
-              sortButtonRef.current.click();
             }
           }
           break;

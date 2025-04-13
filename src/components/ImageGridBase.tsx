@@ -30,12 +30,3 @@ export interface MediaItemProps {
 export const handleContextMenu = (e: React.MouseEvent) => {
   e.preventDefault();
 };
-
-export const breakpointColumns = {
-  default: 4,
-  1536: 3,
-  1280: 3,
-  1024: 2,
-  768: 2,
-  640: 1,
-}; 
