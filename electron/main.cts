@@ -11,6 +11,9 @@ import { getImageSize } from './services/mediaService.cjs';
 import { logger } from './services/logService.cjs';
 import watchService from './services/watchService.cjs';
 
+// 获取设置文件路径
+const { startImageServer, stopImageServer } = require('./imageServer/imageServerService.cjs');
+
 const isDev = !app.isPackaged;
 
 interface EnvConfig {
@@ -269,11 +272,12 @@ async function startComfyUIServer(): Promise<void> {
     }
   });
 }
-
+let imageServer: any;
 app.whenReady().then(async () => {
   await startComfyUIServer();
-  // 初始化用户数据
   await initializeUserData();
+  
+  // 启动图片服务器
 
   protocol.registerFileProtocol('local-image', (request, callback) => {
     const filePath = request.url.replace('local-image://', '');
@@ -303,6 +307,13 @@ app.whenReady().then(async () => {
       console.log('React Devtools 加载失败', e);
     }
   }
+  try {
+    const { tunnelUrl } = await startImageServer();
+    console.log('图片服务器地址:', tunnelUrl);
+  } catch (error) {
+    stopImageServer();
+    console.error('启动图片服务器失败:', error);
+  }
 });
 
 app.on('window-all-closed', async () => {
@@ -318,3 +329,12 @@ ipcMain.handle('update-folder-watchers', async (event, folders: string[]) => {
   await watchService.updateWatchers(folders);
   return true;
 });
+app.on('before-quit', () => {
+  if (serverProcess) {
+    serverProcess.kill();
+  }
+  // 关闭图片服务器
+  stopImageServer();
+});
+
+require('./services/ipcService.cjs');

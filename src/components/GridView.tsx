@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import Masonry from 'react-masonry-css';
 import { AppendButtonsProps, LocalImageData, VideoData, isVideoMedia } from '../types/index.ts';
 import { ImageGridBaseProps, handleContextMenu } from './ImageGridBase';
@@ -18,7 +18,7 @@ type MediaItemProps = {
   currentViewIndex: number;
   setCurrentViewIndex: (index: number) => void;
 }
-
+const MIN_CHANGE_INTERVAL = 2000; // 3秒
 // 使用 memo 优化 MediaItem 组件的重渲染
 const MediaItem = memo(({
   media,
@@ -35,6 +35,10 @@ const MediaItem = memo(({
     threshold: 0,
     triggerOnce: true,
   });
+  
+  // Add timestamp tracking refs
+  const lastDestroyChangeRef = useRef<number>(Date.now());
+  const lastShouldDestroyRef = useRef<boolean>(false);
 
   const handleInViewChange = useThrottle((againInView: boolean) => {
     if (inCache && againInView) {
@@ -47,12 +51,34 @@ const MediaItem = memo(({
     onChange: handleInViewChange
   });
 
-  // 修改销毁逻辑：计算当前项目所在组和当前视图组的距离
+  // 修改销毁逻辑：计算当前项目所在组和当前视图组的距离，并添加时间因素
   const shouldDestroy = useMemo(() => {
     const currentGroup = Math.floor(currentViewIndex / PAGE_SIZE);
     const itemGroup = Math.floor(index / PAGE_SIZE);
-    // 当距离超过2组时销毁
-    return Math.abs(currentGroup - itemGroup) > 2;
+    const groupDistance = Math.abs(currentGroup - itemGroup);
+    
+    // 计算基于组距离的销毁状态
+    const newShouldDestroy = groupDistance > 2;
+    
+    // 获取当前时间戳
+    const now = Date.now();
+    
+    // 如果状态变化了，并且距离上次变化的时间小于3秒，则保持上一个状态
+    if (newShouldDestroy !== lastShouldDestroyRef.current) {
+      // 至少需要3秒才能改变销毁状态，防止快速切换
+      const timeSinceLastChange = now - lastDestroyChangeRef.current;
+      
+      
+      if (timeSinceLastChange < MIN_CHANGE_INTERVAL) {
+        return lastShouldDestroyRef.current;
+      }
+      
+      // 更新最后变化时间和状态
+      lastDestroyChangeRef.current = now;
+      lastShouldDestroyRef.current = newShouldDestroy;
+    }
+    
+    return newShouldDestroy;
   }, [currentViewIndex, index]);
 
   return (
@@ -165,7 +191,7 @@ const GridView: React.FC<ImageGridBaseProps & {
     }, [columnCount]);
     
     return (
-      <div className="relative">
+      <div className="relative ml-4">
         <Masonry
           breakpointCols={breakpointColumns}
           className="flex -ml-6 w-auto"

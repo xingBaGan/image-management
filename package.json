@@ -24,7 +24,9 @@
     "test": "yarn build && jest",
     "test:watch": "yarn build && jest --watch",
     "test:coverage": "yarn build && jest --coverage",
-    "view-db": "node scripts/view-db.cjs"
+    "view-db": "node scripts/view-db.cjs",
+    "download:cloudflared": "node script/download-cloudflared.cjs",
+    "prepare:cloudflared": "npm run download:cloudflared && chmod +x bin/cloudflared && build:comfyui"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
@@ -165,6 +167,13 @@
       {
         "from": "config.cjs",
         "to": "config.cjs"
+      },
+      {
+        "from": "bin",
+        "to": "bin",
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "extraMetadata": {
