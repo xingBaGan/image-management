@@ -325,6 +325,11 @@ const init = (): void => {
     return isReadFromDB();
   });
 
+  // 设置 IPC 处理程序
+  ipcMain.handle('open-external', async (_, url) => {
+    await shell.openExternal(url);
+  });
+
   ipcMain.handle('cancel-color', async () => {
     try {
       // 取消所有正在运行的配色任务

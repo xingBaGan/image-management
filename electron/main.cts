@@ -166,8 +166,22 @@ async function createWindow() {
   ipcMain.handle('window-close', () => {
     mainWindow?.close()
   })
+  startLocalImageServer()
 }
 
+
+async function startLocalImageServer() {
+  try {
+    const { tunnelUrl } = await startImageServer();
+    console.log('图片服务器公网地址:', tunnelUrl);
+    BrowserWindow.getAllWindows().forEach(window => {
+      window.webContents.send('image-server-started', { success: true, tunnelUrl });
+    });
+  } catch (error) {
+    stopImageServer();
+    console.error('启动图片服务器失败:', error);
+  }
+}
 const downloadRemoteImage = async (imageUrl: string, fileName: string): Promise<string | null> => {
   try {
     const response = await fetch(imageUrl);
@@ -306,13 +320,6 @@ app.whenReady().then(async () => {
     } catch (e) {
       console.log('React Devtools 加载失败', e);
     }
-  }
-  try {
-    const { tunnelUrl } = await startImageServer();
-    console.log('图片服务器地址:', tunnelUrl);
-  } catch (error) {
-    stopImageServer();
-    console.error('启动图片服务器失败:', error);
   }
 });
 

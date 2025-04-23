@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
-import { supportModes } from '../config';
+import { supportModes } from '../config.mts';
 import { useLocale } from '../contexts/LanguageContext';
 
 interface SettingsProps {

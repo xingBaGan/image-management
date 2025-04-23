@@ -113,6 +113,13 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.removeListener('remote-images-downloaded', callback);
   },
 
+  // =============== 图片服务器相关 ===============
+  onImageServerStarted: (callback: (status: any) => void) => {
+    ipcRenderer.on('image-server-started', (event, status) => callback(status));
+  },
+  removeImageServerStartedListener: (callback: (status: any) => void) => {
+    ipcRenderer.removeListener('image-server-started', callback);
+  },
   // =============== 插件通信相关 ===============
   on: (channel: string, callback: (...args: any[]) => void) => {
     if (channel === 'initialize-plugin') {  // 白名单校验
@@ -128,6 +135,9 @@ contextBridge.exposeInMainWorld('electron', {
   // =============== 环境检查相关 ===============
   checkEnvironment: () => ipcRenderer.invoke('check-environment'),
   installEnvironment: () => ipcRenderer.invoke('install-environment'),
+
+  // 添加 openExternal 方法，在默认浏览器中打开链接
+  openExternal: (url: string) => ipcRenderer.invoke('open-external', url)
 });
 
 // =============== 插件系统相关 API ===============

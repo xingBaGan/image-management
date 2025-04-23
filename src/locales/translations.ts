@@ -173,6 +173,7 @@ export const translations = {
     deleteCategoryFailed: 'Failed to delete category: {{error}}',
     loadImagesFailed: 'Failed to load images: {{error}}',
     pasteImageFailed: 'Failed to paste image: {{error}}',
+    imageServerStarted: 'Image server started on {{tunnelUrl}}',
 
     // Shortcuts
     shortcuts: {

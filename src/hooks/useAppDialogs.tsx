@@ -3,6 +3,9 @@ import { getGridItemAppendButtonsProps } from '../plugins';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { FolderContentChangeType, LocalImageData, Category } from '../types';
 import { useLocale } from '../contexts/LanguageContext';
+import { toast } from 'react-toastify';
+import ImageServerStartedToast from '../components/ImageServerStatus';
+
 
 /**
  * Hook to manage dialog and modal state
@@ -160,9 +163,18 @@ export const useAppDialogs = (
       }
     });
 
+    window.electron.onImageServerStarted((status: any) => {
+      toast.info(()=><ImageServerStartedToast status={status} />, {
+        className: 'server-started-toast pl-2 w-[400px] border border-purple-600/40',
+        ariaLabel: 'image-server-started',
+        autoClose: false
+      });
+    });
+
     return () => {
       window.electron.removeRemoteImagesDownloadedListener(() => { });
       window.electron.removeQueueUpdateListener(()=>{})
+      window.electron.removeImageServerStartedListener(()=>{})
     };
   }, []);
 

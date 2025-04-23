@@ -43,3 +43,4 @@ jest.config.cjs
 jest.config.js
 images-db*
 images.json
+src/config.js
