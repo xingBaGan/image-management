@@ -1,5 +1,5 @@
 import { LocalImageData, Category, ImportFile, ImportStatus } from './types/index.ts';
-import { defaultModel } from './config';
+import { defaultModel } from './config.mts';
 
 export const generateHashId = (filePath: string, fileSize: number): string => {
   const str = `${filePath}-${fileSize}`;

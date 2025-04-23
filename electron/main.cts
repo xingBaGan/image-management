@@ -11,6 +11,9 @@ import { getImageSize } from './services/mediaService.cjs';
 import { logger } from './services/logService.cjs';
 import watchService from './services/watchService.cjs';
 
+// 获取设置文件路径
+const { startImageServer, stopImageServer } = require('./imageServer/imageServerService.cjs');
+
 const isDev = !app.isPackaged;
 
 interface EnvConfig {
@@ -137,6 +140,13 @@ async function createWindow() {
       // 更新环境变量
       ComfyUI_URL = settings.ComfyUI_URL;
     }
+    console.log('settings.startImageServer', settings.startImageServer);
+    if (settings.startImageServer && !tunnelUrl) {
+      startLocalImageServer()
+    } else if (!settings.startImageServer && tunnelUrl) {
+      stopImageServer();
+      tunnelUrl = null;
+    }
     return result;
   });
 
@@ -163,8 +173,26 @@ async function createWindow() {
   ipcMain.handle('window-close', () => {
     mainWindow?.close()
   })
+  const settings = await loadSettings();
+  if (settings.startImageServer) {
+    startLocalImageServer()
+  }
 }
+let tunnelUrl: string | null = null;
 
+async function startLocalImageServer() {
+  try {
+    const result = await startImageServer();
+    tunnelUrl = result.tunnelUrl;
+    console.log('图片服务器公网地址:', tunnelUrl);
+    BrowserWindow.getAllWindows().forEach(window => {
+      window.webContents.send('image-server-started', { success: true, tunnelUrl });
+    });
+  } catch (error) {
+    stopImageServer();
+    console.error('启动图片服务器失败:', error);
+  }
+}
 const downloadRemoteImage = async (imageUrl: string, fileName: string): Promise<string | null> => {
   try {
     const response = await fetch(imageUrl);
@@ -269,11 +297,12 @@ async function startComfyUIServer(): Promise<void> {
     }
   });
 }
-
+let imageServer: any;
 app.whenReady().then(async () => {
   await startComfyUIServer();
-  // 初始化用户数据
   await initializeUserData();
+  
+  // 启动图片服务器
 
   protocol.registerFileProtocol('local-image', (request, callback) => {
     const filePath = request.url.replace('local-image://', '');
@@ -318,3 +347,12 @@ ipcMain.handle('update-folder-watchers', async (event, folders: string[]) => {
   await watchService.updateWatchers(folders);
   return true;
 });
+app.on('before-quit', () => {
+  if (serverProcess) {
+    serverProcess.kill();
+  }
+  // 关闭图片服务器
+  stopImageServer();
+});
+
+require('./services/ipcService.cjs');

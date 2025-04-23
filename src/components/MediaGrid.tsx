@@ -267,9 +267,8 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
             setMouseDownPos(null);
           }}
           style={{ 
-            position: 'relative', 
+            position: 'relative',
             overflow: isImporting || isDragging ? 'hidden' : 'auto',
-            marginLeft: `5px`
           }}
           onDragEnter={() => setIsDragging(true)}
           onDragOver={(e) => e.preventDefault()}

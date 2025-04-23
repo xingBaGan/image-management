@@ -173,6 +173,7 @@ export const translations = {
     deleteCategoryFailed: 'Failed to delete category: {{error}}',
     loadImagesFailed: 'Failed to load images: {{error}}',
     pasteImageFailed: 'Failed to paste image: {{error}}',
+    imageServerStarted: 'Image server started on {{tunnelUrl}}',
 
     // Shortcuts
     shortcuts: {
@@ -219,6 +220,7 @@ export const translations = {
     checkEnvironmentVariable: 'Please check if the environment variable is correct',
     randomOrder: 'Random order',
     randomOrderTooltip: 'Random order ({{progress}}/10) - Click to change order or long press to exit',
+    startImageServer: 'Start Image Server',
   },
   zh: {
     // 工具栏
@@ -442,5 +444,6 @@ export const translations = {
     checkEnvironmentVariable: '请检测环境变量是否正确',
     randomOrder: '随机顺序',
     randomOrderTooltip: '随机顺序 ({{progress}}/10) - 点击更改顺序或长按退出',
+    startImageServer: '启动图片服务器',
   }
 }; 

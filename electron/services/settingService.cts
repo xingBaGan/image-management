@@ -9,6 +9,7 @@ interface Settings {
   ComfyUI_URL: string;
   backgroundUrl: string;
   modelName: string;
+  startImageServer: boolean;
 }
 
 const getSettingsPath = (): string => {
@@ -25,7 +26,8 @@ const loadSettings = async (): Promise<Settings> => {
         autoColor: false,
         ComfyUI_URL: 'http://localhost:8188',
         backgroundUrl: 'https://pica.zhimg.com/v2-8fe89aff1426d94bf36f8d4e1c25ed32_1440w.jpg',
-        modelName: 'wd-v1-4-moat-tagger-v2'
+        modelName: 'wd-v1-4-moat-tagger-v2',
+        startImageServer: false
       };
       console.log('不存在文件, 创建文件');
       await fsPromises.writeFile(
@@ -44,7 +46,8 @@ const loadSettings = async (): Promise<Settings> => {
       autoColor: false,
       ComfyUI_URL: '',
       backgroundUrl: '',
-      modelName: ''
+      modelName: '',
+      startImageServer: false
     };
   }
 };

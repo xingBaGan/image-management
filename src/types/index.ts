@@ -82,6 +82,7 @@ export interface Settings {
   backgroundUrl: string;
   modelName: string;
   autoColor: boolean;
+  startImageServer: boolean;
 }
 
 // =============== 导入相关类型 ===============
@@ -340,6 +341,9 @@ export interface ElectronAPI {
     needsInstall: boolean;
   }>;
   installEnvironment: () => Promise<boolean>;
+  onImageServerStarted: (callback: (status: any) => void) => void;
+  removeImageServerStartedListener: (callback: (status: any) => void) => void;
+  openExternal: (url: string) => Promise<void>;
 }
 
 // =============== 类型守卫函数 ===============
