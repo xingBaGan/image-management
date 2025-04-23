@@ -97,7 +97,6 @@ export const useKeyboardShortcuts = ({
         case 'f':
           if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
-            // 打开搜索
             filterButtonRef.current?.click();
           }
           break;

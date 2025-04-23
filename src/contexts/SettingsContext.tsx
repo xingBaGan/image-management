@@ -7,6 +7,7 @@ export interface Settings {
   backgroundUrl: string;
   modelName: string;
   autoColor: boolean;
+  startImageServer: boolean;
 }
 
 interface SettingsContextType {
@@ -25,6 +26,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     backgroundUrl: '',
     modelName: defaultModel,
     autoColor: false,
+    startImageServer: false,
   });
 
   const loadSettings = async () => {
@@ -36,6 +38,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         backgroundUrl: loadedSettings.backgroundUrl || '',
         modelName: loadedSettings.modelName || defaultModel,
         autoColor: loadedSettings.autoColor || false,
+        startImageServer: loadedSettings.startImageServer || false,
       });
     } catch (error) {
       console.error('加载设置失败:', error);

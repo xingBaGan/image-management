@@ -123,12 +123,12 @@ describe('useKeyboardShortcuts', () => {
     });
   });
 
-  it('应该在按下 Ctrl+F 时触发搜索按钮点击', () => {
+  it('应该在按下 Ctrl+S 时触发搜索按钮点击', () => {
     const mockClick = jest.fn();
     mockProps.searchButtonRef.current.click = mockClick;
     renderHook(() => useKeyboardShortcuts(mockProps));
 
-    simulateKeyDown('f', true);
+    simulateKeyDown('s', true);
     expect(mockClick).toHaveBeenCalled();
   });
 

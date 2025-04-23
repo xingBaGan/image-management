@@ -82,6 +82,7 @@ export interface Settings {
   backgroundUrl: string;
   modelName: string;
   autoColor: boolean;
+  startImageServer: boolean;
 }
 
 // =============== 导入相关类型 ===============

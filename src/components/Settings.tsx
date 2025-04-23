@@ -32,12 +32,14 @@ const Settings: React.FC<SettingsProps> = ({
   const [backgroundUrl, setBackgroundUrl] = useState('');
   const [modelName, setModelName] = useState('');
   const [autoColor, setAutoColor] = useState(false);
+  const [startImageServer, setStartImageServer] = useState(false);
   useEffect(() => {
     if (isOpen) {
       setComfyUrl(settings.ComfyUI_URL);
       setAutoTagging(settings.autoTagging);
       setBackgroundUrl(settings.backgroundUrl);
       setAutoColor(settings.autoColor);
+      setStartImageServer(settings.startImageServer);
     }
   }, [isOpen, settings]);
 
@@ -49,6 +51,7 @@ const Settings: React.FC<SettingsProps> = ({
         backgroundUrl: backgroundUrl,
         modelName: modelName,
         autoColor: autoColor,
+        startImageServer: startImageServer,
       });
       setMessageBox({
         ...messageBox,
@@ -126,6 +129,18 @@ const Settings: React.FC<SettingsProps> = ({
                 type="checkbox"
                 checked={autoColor}
                 onChange={(e) => setAutoColor(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+            </div>
+            <div>
+              <label className="block mb-1 text-sm font-medium text-gray-700dark:text-blue-300">
+                {t('startImageServer')}
+              </label>
+              <input
+                title={t('startImageServer')}
+                type="checkbox"
+                checked={startImageServer}
+                onChange={(e) => setStartImageServer(e.target.checked)}
                 className="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
             </div>

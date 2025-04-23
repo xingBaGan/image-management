@@ -140,6 +140,13 @@ async function createWindow() {
       // 更新环境变量
       ComfyUI_URL = settings.ComfyUI_URL;
     }
+    console.log('settings.startImageServer', settings.startImageServer);
+    if (settings.startImageServer && !tunnelUrl) {
+      startLocalImageServer()
+    } else if (!settings.startImageServer && tunnelUrl) {
+      stopImageServer();
+      tunnelUrl = null;
+    }
     return result;
   });
 
@@ -166,13 +173,17 @@ async function createWindow() {
   ipcMain.handle('window-close', () => {
     mainWindow?.close()
   })
-  startLocalImageServer()
+  const settings = await loadSettings();
+  if (settings.startImageServer) {
+    startLocalImageServer()
+  }
 }
-
+let tunnelUrl: string | null = null;
 
 async function startLocalImageServer() {
   try {
-    const { tunnelUrl } = await startImageServer();
+    const result = await startImageServer();
+    tunnelUrl = result.tunnelUrl;
     console.log('图片服务器公网地址:', tunnelUrl);
     BrowserWindow.getAllWindows().forEach(window => {
       window.webContents.send('image-server-started', { success: true, tunnelUrl });
