@@ -12,7 +12,7 @@ import { logger } from './services/logService.cjs';
 import watchService from './services/watchService.cjs';
 
 // 获取设置文件路径
-const { startImageServer, stopImageServer } = require('./imageServer/imageServerService.cjs');
+import { startImageServer, stopImageServer } from './imageServer/imageServerService.cjs';
 
 const isDev = !app.isPackaged;
 
@@ -354,5 +354,3 @@ app.on('before-quit', () => {
   // 关闭图片服务器
   stopImageServer();
 });
-
-require('./services/ipcService.cjs');
