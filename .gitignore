@@ -34,6 +34,7 @@ r2-worker/
 
 RTC/
 electron/**/*.cjs
+!electron/imageServer/*.cjs
 electron/**/*.js
 *.mdc
 coverage/
