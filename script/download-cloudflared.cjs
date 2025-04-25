@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const https = require('https');
+const axios = require('axios');
 const { execSync } = require('child_process');
 const ProgressBar = require('progress');
 
@@ -51,6 +51,7 @@ const MIRROR_URLS = {
 // 获取下载URL列表
 function getDownloadUrls() {
   const urls = MIRROR_URLS[platform];
+  console.log('platform', platform, arch)
   if (!urls) {
     throw new Error(`不支持的操作系统: ${platform}`);
   }
@@ -59,6 +60,7 @@ function getDownloadUrls() {
     throw new Error(`不支持的架构: ${arch}`);
   }
   return urlList;
+  // return 
 }
 
 // 创建bin目录
@@ -93,102 +95,72 @@ function safeUnlink(filePath) {
   }
 }
 
-// 下载文件（带进度条）
-function downloadFile(url, destPath, timeout = 30000) {
-  return new Promise((resolve, reject) => {
-    // 检查目标文件是否被占用
-    if (fs.existsSync(destPath) && !isFileAvailable(destPath)) {
-      console.log('目标文件被占用，尝试关闭进程...');
-      try {
-        // 在 Windows 上尝试结束占用进程
-        if (process.platform === 'win32') {
-          execSync(`taskkill /F /IM cloudflared.exe`, { stdio: 'ignore' });
-        }
-        // 等待文件释放
-        setTimeout(() => {
-          safeUnlink(destPath);
-        }, 1000);
-      } catch (error) {
-        console.log('警告: 无法结束占用进程');
-      }
-    }
+// 现代化的下载函数
+async function downloadFile(url, destPath, timeout = 30000) {
+  const tempPath = `${destPath}.tmp`;
+  const writer = fs.createWriteStream(tempPath);
 
-    const tempPath = `${destPath}.tmp`;
-    const file = fs.createWriteStream(tempPath);
-    
-    const request = https.get(url, { timeout }, (response) => {
-      if (response.statusCode === 302 || response.statusCode === 301) {
-        file.close();
-        safeUnlink(tempPath);
-        downloadFile(response.headers.location, destPath, timeout)
-          .then(resolve)
-          .catch(reject);
-        return;
-      }
+  try {
+    const response = await axios({
+      method: 'GET',
+      url: url,
+      timeout: timeout,
+      responseType: 'stream',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': '*/*',
+        'Accept-Encoding': 'gzip, deflate, br'
+      },
+      maxRedirects: 5,
+      validateStatus: status => status >= 200 && status < 300,
+    });
 
-      if (response.statusCode !== 200) {
-        file.close();
-        safeUnlink(tempPath);
-        reject(new Error(`HTTP 状态码: ${response.statusCode}`));
-        return;
-      }
+    const totalLength = response.headers['content-length'];
 
-      // 获取文件大小
-      const totalSize = parseInt(response.headers['content-length'], 10);
-      let downloadedSize = 0;
+    const progressBar = new ProgressBar('下载进度 [:bar] :percent :etas', {
+      complete: '=',
+      incomplete: ' ',
+      width: 50,
+      total: parseInt(totalLength, 10)
+    });
 
-      // 创建进度条
-      const bar = new ProgressBar('下载进度 [:bar] :percent :etas', {
-        complete: '=',
-        incomplete: ' ',
-        width: 50,
-        total: totalSize
-      });
+    response.data.on('data', (chunk) => {
+      progressBar.tick(chunk.length);
+    });
 
-      response.on('data', (chunk) => {
-        downloadedSize += chunk.length;
-        bar.tick(chunk.length);
-      });
+    response.data.pipe(writer);
 
-      response.pipe(file);
-
-      file.on('finish', () => {
-        file.close(() => {
-          try {
-            // 下载完成后，将临时文件重命名为目标文件
-            if (fs.existsSync(destPath)) {
-              safeUnlink(destPath);
-            }
-            fs.renameSync(tempPath, destPath);
-            console.log('\n'); // 进度条完成后换行
-            resolve();
-          } catch (error) {
-            safeUnlink(tempPath);
-            reject(new Error(`无法重命名文件: ${error.message}`));
+    return new Promise((resolve, reject) => {
+      writer.on('finish', async () => {
+        writer.close();
+        try {
+          if (fs.existsSync(destPath)) {
+            await safeUnlink(destPath);
           }
-        });
+          fs.renameSync(tempPath, destPath);
+          console.log('\n下载完成');
+          resolve();
+        } catch (error) {
+          await safeUnlink(tempPath);
+          reject(new Error(`无法重命名文件: ${error.message}`));
+        }
       });
 
-      file.on('error', (err) => {
-        file.close();
-        safeUnlink(tempPath);
-        reject(err);
+      writer.on('error', async (error) => {
+        await safeUnlink(tempPath);
+        reject(error);
       });
     });
-
-    request.on('error', (err) => {
-      file.close();
-      safeUnlink(tempPath);
-      reject(err);
-    });
-
-    request.on('timeout', () => {
-      request.destroy();
-      file.close();
-      safeUnlink(tempPath);
-      reject(new Error('请求超时'));
-    });
-  });
+  } catch (error) {
+    await safeUnlink(tempPath);
+    if (axios.isAxiosError(error)) {
+      if (error.code === 'ETIMEDOUT' || error.code === 'ECONNRESET') {
+        throw new Error(`连接问题: ${error.message}`);
+      }
+      throw new Error(`下载失败: ${error.response?.status || error.message}`);
+    }
+    throw error;
+  }
 }
 
 // 添加格式化文件大小的函数
@@ -200,26 +172,39 @@ function formatFileSize(bytes) {
   return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
 }
 
-// 修改 downloadWithRetry 函数，添加更多信息
-async function downloadWithRetry(urls, destPath) {
+// 改进的重试下载函数
+async function downloadWithRetry(urls, destPath, maxRetries = 3) {
   for (let i = 0; i < urls.length; i++) {
     const url = urls[i];
-    try {
-      console.log(`\n[${i + 1}/${urls.length}] 尝试从以下地址下载:`);
-      console.log(url);
-      await downloadFile(url, destPath);
-      console.log(`\n✓ 下载成功！`);
-      
-      // 显示文件信息
-      const stats = fs.statSync(destPath);
-      console.log(`文件大小: ${formatFileSize(stats.size)}`);
-      return;
-    } catch (error) {
-      console.log(`\n✗ 下载失败: ${error.message}`);
-      if (i === urls.length - 1) {
-        throw new Error('所有下载源都失败了');
+    let retryCount = 0;
+
+    while (retryCount < maxRetries) {
+      try {
+        console.log(`\n[${i + 1}/${urls.length}] 尝试从以下地址下载 (重试 ${retryCount + 1}/${maxRetries}):`);
+        console.log(url);
+        
+        await downloadFile(url, destPath);
+        
+        // 验证文件大小
+        const stats = fs.statSync(destPath);
+        console.log(`\n✓ 下载成功！文件大小: ${formatFileSize(stats.size)}`);
+        return;
+      } catch (error) {
+        console.log(`\n✗ 下载失败: ${error.message}`);
+        retryCount++;
+        
+        if (retryCount === maxRetries) {
+          if (i === urls.length - 1) {
+            throw new Error('所有下载源都失败了');
+          }
+          console.log('切换到下一个下载源...\n');
+          break;
+        }
+        
+        const waitTime = retryCount * 2000; // 递增等待时间
+        console.log(`等待 ${waitTime/1000} 秒后重试...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
       }
-      console.log('正在切换到下一个下载源...\n');
     }
   }
 }
