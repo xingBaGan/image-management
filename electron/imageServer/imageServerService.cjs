@@ -157,55 +157,58 @@ const startImageServer = async (port = 8564) => {
             res.status(500).json({ error: '读取图片数据失败' });
         }
     });
-    // 启动服务器
-    return new Promise(async (resolve, reject) => {
+    expressApp.post('/startTunnel', async (req, res) => {
         try {
-            // expressApp.listen 是异步的。它开始监听端口，
-            // 并立即返回，不会阻塞当前代码执行。
-            // 当服务器准备好接收连接时，提供的回调函数会被调用。
-            imageServer = expressApp.listen(port, async () => {
-                // 这个回调函数在服务器成功启动后异步执行
-                console.log(`图片服务器运行在 http://localhost:${port}`);
-                // 启动 Cloudflare Tunnel (startCloudflaredTunnel 内部使用异步的 spawn)
-                try {
-                    // await 在这里等待 startCloudflaredTunnel 的 Promise 完成，
-                    // 但由于 listen 的回调本身是异步执行的，这不会阻塞启动服务器的初始调用。
-                    const tunnelUrl = await startCloudflaredTunnel(port);
-                    console.log(`图片服务器外部访问地址: ${tunnelUrl}`);
-                    // 解析 Promise，传递服务器实例和隧道 URL
-                    resolve({ server: imageServer, tunnelUrl });
-                }
-                catch (error) {
-                    console.error('Cloudflare Tunnel 启动失败:', error);
-                    // 即使 tunnel 失败，服务器仍然可用于本地访问
-                    // 解析 Promise，只传递服务器实例
-                    resolve({ server: imageServer });
-                }
-            });
-            // 处理 listen 本身可能发生的错误 (例如端口已被占用)
-            imageServer.on('error', (error) => {
-                console.error(`图片服务器启动监听失败 (端口: ${port}):`, error);
-                reject(error); // 拒绝外部的 Promise
-            });
+            // await 在这里等待 startCloudflaredTunnel 的 Promise 完成，
+            // 但由于 listen 的回调本身是异步执行的，这不会阻塞启动服务器的初始调用。
+            const tunnelUrl = await startCloudflaredTunnel(port);
+            console.log(`图片服务器外部访问地址: ${tunnelUrl}`);
+            // 解析 Promise，传递服务器实例和隧道 URL
+            res.json({ message: 'Tunnel started successfully', tunnelUrl });
         }
         catch (error) {
-            // 捕获 expressApp.listen 调用之前的同步错误 (虽然不太可能)
-            console.error('启动图片服务器时发生意外错误:', error);
-            reject(error);
+            console.error('Cloudflare Tunnel 启动失败:', error);
+            // 即使 tunnel 失败，服务器仍然可用于本地访问
+            // 解析 Promise，只传递服务器实例
+            // 发送错误响应
+            res.status(500).json({ error: 'Cloudflare Tunnel 启动失败' });
         }
     });
-};
-const stopImageServer = () => {
-    if (imageServer) {
-        imageServer.close();
-        imageServer = null;
+    expressApp.post('/stopTunnel', async (req, res) => {
+        try {
+            if (cloudflaredProcess) {
+                cloudflaredProcess.kill();
+                cloudflaredProcess = null;
+            }
+            res.json({ message: 'Tunnel stopped successfully' });
+        }
+        catch (error) {
+            console.error('停止 Tunnel 失败:', error);
+            res.status(500).json({ error: '停止 Tunnel 失败' });
+        }
+    });
+    try {
+        // expressApp.listen 是异步的。它开始监听端口，
+        // 并立即返回，不会阻塞当前代码执行。
+        // 当服务器准备好接收连接时，提供的回调函数会被调用。
+        imageServer = expressApp.listen(port, async () => {
+            // 这个回调函数在服务器成功启动后异步执行
+            console.log(`图片服务器运行在 http://localhost:${port}`);
+            // 启动 Cloudflare Tunnel (startCloudflaredTunnel 内部使用异步的 spawn)
+        });
+        // 处理 listen 本身可能发生的错误 (例如端口已被占用)
+        imageServer.on('error', (error) => {
+            console.error(`图片服务器启动监听失败 (端口: ${port}):`, error);
+            reject(error); // 拒绝外部的 Promise
+        });
     }
-    if (cloudflaredProcess) {
-        cloudflaredProcess.kill();
-        cloudflaredProcess = null;
+    catch (error) {
+        // 捕获 expressApp.listen 调用之前的同步错误 (虽然不太可能)
+        console.error('启动图片服务器时发生意外错误:', error);
+        reject(error);
     }
+    return expressApp; // 返回 Express 实例
 };
 module.exports = {
-    startImageServer,
-    stopImageServer,
+    startImageServer
 };
