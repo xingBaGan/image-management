@@ -48,6 +48,7 @@
     "i18next": "^24.2.2",
     "lodash": "^4.17.21",
     "lucide-react": "^0.475.0",
+    "multer": "1.4.5-lts.2",
     "node-fetch": "^2.7.0",
     "pouchdb": "^9.0.0",
     "pouchdb-find": "^9.0.0",
@@ -69,7 +70,7 @@
     "react-virtualized-auto-sizer": "^1.0.25",
     "react-window": "^1.8.11",
     "relational-pouch": "^4.1.1",
-    "uuid": "^11.0.5",
+    "uuid": "^11.1.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {

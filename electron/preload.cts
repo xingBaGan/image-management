@@ -114,11 +114,11 @@ contextBridge.exposeInMainWorld('electron', {
   },
 
   // =============== 图片服务器相关 ===============
-  onImageServerStarted: (callback: (status: any) => void) => {
-    ipcRenderer.on('image-server-started', (event, status) => callback(status));
+  onImageServerStatusChange: (callback: (status: any) => void) => {
+    ipcRenderer.on('image-server-changed', (event, status) => callback(status));
   },
   removeImageServerStartedListener: (callback: (status: any) => void) => {
-    ipcRenderer.removeListener('image-server-started', callback);
+    ipcRenderer.removeListener('image-server-changed', callback);
   },
   // =============== 插件通信相关 ===============
   on: (channel: string, callback: (...args: any[]) => void) => {

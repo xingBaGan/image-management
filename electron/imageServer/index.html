@@ -126,10 +126,55 @@
         .scroll-top:hover {
             background: #0056b3;
         }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .upload-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .upload-btn:hover {
+            background: #0056b3;
+        }
+
+        .upload-icon {
+            font-size: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="header">
+            <h1>图片库</h1>
+            <a href="/upload" class="upload-btn">
+                <span class="upload-icon">📤</span>
+                上传图片
+            </a>
+        </div>
         <div id="masonry" class="masonry"></div>
         <div id="loading" class="loading">加载中...</div>
         <div id="error" class="error" style="display: none;"></div>

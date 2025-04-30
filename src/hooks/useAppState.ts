@@ -11,7 +11,6 @@ import {
   TaskStatus,
   Category
 } from '../types';
-
 /**
  * Hook to manage the main application state
  */
@@ -112,6 +111,10 @@ export const useAppState = () => {
     [mediaList, selectedImages]
   );
 
+  // Image server state
+  const [isServerStarted, setIsServerStarted] = useState<boolean>(false);
+  const [tunnelUrl, setTunnelUrl] = useState('');
+
   return {
     // UI state
     isMaximized,
@@ -193,6 +196,12 @@ export const useAppState = () => {
     selectedImagesList,
     // Dragging
     isDragging,
-    setIsDragging
+    setIsDragging,
+
+    // Image server state
+    isServerStarted,
+    setIsServerStarted,
+    tunnelUrl,
+    setTunnelUrl
   };
 }; 

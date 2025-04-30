@@ -78,6 +78,10 @@ interface MainContentProps {
   setIsDragging: (isDragging: boolean) => void;
   columnCount: number;
   setColumnCount: (count: number) => void;
+  isServerStarted: boolean;
+  setIsServerStarted: (isServerStarted: boolean) => void;
+  tunnelUrl: string;
+  setTunnelUrl: (tunnelUrl: string) => void;
 }
 
 export const MainContent: React.FC<MainContentProps> = ({
@@ -127,7 +131,11 @@ export const MainContent: React.FC<MainContentProps> = ({
   isDragging,
   setIsDragging,
   columnCount,
-  setColumnCount
+  setColumnCount,
+  isServerStarted,
+  setIsServerStarted,
+  tunnelUrl,
+  setTunnelUrl
 }) => {
   // 获取当前选中的图片
   const selectedImage = React.useMemo(() => 
@@ -165,6 +173,10 @@ export const MainContent: React.FC<MainContentProps> = ({
         randomButtonState={randomButtonState}
         columnCount={columnCount}
         setColumnCount={setColumnCount}
+        isServerStarted={isServerStarted}
+        setIsServerStarted={setIsServerStarted}
+        tunnelUrl={tunnelUrl}
+        setTunnelUrl={setTunnelUrl}
       />
       <div className="flex overflow-y-auto flex-1 main-content-grid">
         <div className={`flex-1 ${isSidebarOpen ? 'mr-0' : 'mr-60'}`}>

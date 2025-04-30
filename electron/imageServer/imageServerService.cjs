@@ -5,10 +5,53 @@ const fs = require('fs');
 const path = require('path');
 const { app } = require('electron');
 const { spawn } = require('child_process');
-const { loadImagesData } = require('../services/FileService.cjs');
+const { loadImagesData, saveImageToLocal } = require('../services/FileService.cjs');
+const { getImageSize } = require('../services/mediaService.cjs');
+const { v4: uuidv4 } = require('uuid');
+const multer = require('multer');
+const crypto = require('crypto');
 let imageServer = null;
 let cloudflaredProcess = null;
 const isDev = !app.isPackaged;
+// 创建multer存储配置
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        // 确保上传目录存在
+        const uploadDir = path.join(app.getPath('userData'), 'uploads');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        // 生成唯一文件名
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, uniqueSuffix + ext);
+    }
+});
+// 创建文件过滤器，仅接受图片
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+    }
+    else {
+        cb(new Error('只允许上传图片文件'), false);
+    }
+};
+// 初始化multer
+const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: {
+        fileSize: 10 * 1024 * 1024 // 限制文件大小为10MB
+    }
+});
+// 生成文件哈希ID
+const generateHashId = (filePath, fileSize) => {
+    const data = `${filePath}-${fileSize}-${Date.now()}`;
+    return crypto.createHash('md5').update(data).digest('hex');
+};
 // 启动 Cloudflare Tunnel
 const startCloudflaredTunnel = async (port) => {
     return new Promise((resolve, reject) => {
@@ -63,6 +106,10 @@ const startImageServer = async (port = 8564) => {
     expressApp.get('/', (req, res) => {
         res.sendFile(path.join(__dirname, 'index.html'));
     });
+    // 提供上传页面
+    expressApp.get('/upload', (req, res) => {
+        res.sendFile(path.join(__dirname, 'upload.html'));
+    });
     expressApp.get('/images/:id', async (req, res) => {
         try {
             const id = req.params.id;
@@ -115,6 +162,60 @@ const startImageServer = async (port = 8564) => {
             if (!res.headersSent) {
                 res.status(500).json({ error: '服务器内部错误' });
             }
+        }
+    });
+    // 图片上传API端点
+    expressApp.post('/api/upload', upload.single('image'), async (req, res) => {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ error: '未找到上传的图片' });
+            }
+            const file = req.file;
+            const filePath = file.path;
+            const fileName = path.basename(file.originalname, path.extname(file.originalname));
+            const fileExt = path.extname(file.originalname).slice(1); // 移除点号
+            // 读取图片尺寸
+            const { width, height } = await getImageSize(filePath);
+            // 生成唯一ID
+            const id = generateHashId(filePath, file.size);
+            // 创建图片记录
+            const imageRecord = {
+                id: id,
+                path: `local-image://${filePath}`,
+                name: fileName,
+                extension: fileExt,
+                size: file.size,
+                width: width,
+                height: height,
+                dateCreated: new Date().toISOString(),
+                dateModified: new Date().toISOString(),
+                tags: [],
+                favorite: false,
+                categories: [],
+                type: 'image'
+            };
+            // 加载当前图片数据
+            const imagesData = await loadImagesData();
+            // 添加新图片到数组
+            imagesData.images.push(imageRecord);
+            // 保存更新后的图片数据
+            const { saveImagesAndCategories } = require('../services/FileService.cjs');
+            await saveImagesAndCategories(imagesData.images, imagesData.categories);
+            // 返回成功响应
+            res.json({
+                success: true,
+                message: '图片上传成功',
+                image: {
+                    id: imageRecord.id,
+                    name: imageRecord.name,
+                    width: imageRecord.width,
+                    height: imageRecord.height
+                }
+            });
+        }
+        catch (error) {
+            console.error('图片上传处理失败:', error);
+            res.status(500).json({ error: '图片上传失败: ' + error.message });
         }
     });
     // 修改图片列表API，添加分页功能

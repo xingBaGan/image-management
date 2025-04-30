@@ -220,7 +220,8 @@ export const translations = {
     checkEnvironmentVariable: 'Please check if the environment variable is correct',
     randomOrder: 'Random order',
     randomOrderTooltip: 'Random order ({{progress}}/10) - Click to change order or long press to exit',
-    startImageServer: 'Start Image Server',
+    startImageServer: 'Start Image Server (default)',
+    tunnelStopped: 'Image server stopped',
   },
   zh: {
     // 工具栏
@@ -444,6 +445,7 @@ export const translations = {
     checkEnvironmentVariable: '请检测环境变量是否正确',
     randomOrder: '随机顺序',
     randomOrderTooltip: '随机顺序 ({{progress}}/10) - 点击更改顺序或长按退出',
-    startImageServer: '启动图片服务器',
+    startImageServer: '启动图片服务器(默认)',
+    tunnelStopped: '图片服务器已停止',
   }
 }; 

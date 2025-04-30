@@ -89,10 +89,13 @@ async function startLocalImageServer() {
     tunnelUrl = result.tunnelUrl;
     console.log('图片服务器公网地址:', tunnelUrl);
     BrowserWindow.getAllWindows().forEach(window => {
-      window.webContents.send('image-server-started', { success: true, tunnelUrl });
+      window.webContents.send('image-server-changed', { success: true, tunnelUrl });
     });
   } catch (error) {
     stopImageServerByRequest();
+    BrowserWindow.getAllWindows().forEach(window => {
+      window.webContents.send('image-server-changed', { success: false, tunnelUrl: null });
+    });
     console.error('启动图片服务器失败:', error);
   }
 }
@@ -221,12 +224,6 @@ async function createWindow() {
       ComfyUI_URL = settings.ComfyUI_URL;
     }
     console.log('settings.startImageServer', settings.startImageServer);
-    if (settings.startImageServer && !tunnelUrl) {
-      startLocalImageServer()
-    } else if (!settings.startImageServer && tunnelUrl) {
-      stopImageServerByRequest();
-      tunnelUrl = null;
-    }
     return result;
   });
 

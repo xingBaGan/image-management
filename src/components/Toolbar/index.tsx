@@ -43,6 +43,10 @@ interface ToolbarProps {
   setRandomInspiration: (inspiration: number) => void;
   columnCount: number;
   setColumnCount: (count: number) => void;
+  isServerStarted: boolean;
+  setIsServerStarted: (isServerStarted: boolean) => void;
+  tunnelUrl: string;
+  setTunnelUrl: (tunnelUrl: string) => void;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -73,6 +77,10 @@ const Toolbar: React.FC<ToolbarProps> = ({
   setRandomInspiration,
   columnCount,
   setColumnCount,
+  isServerStarted,
+  setIsServerStarted,
+  tunnelUrl,
+  setTunnelUrl
 }) => {
   const { t } = useLocale();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -159,6 +167,10 @@ const Toolbar: React.FC<ToolbarProps> = ({
                   randomInspirationIndex={randomInspirationIndex}
                   randomButtonState={randomButtonState}
                   setRandomInspiration={setRandomInspiration}
+                  isServerStarted={isServerStarted}
+                  setIsServerStarted={setIsServerStarted}
+                  tunnelUrl={tunnelUrl}
+                  setTunnelUrl={setTunnelUrl}
                 />
 
                 {isFilterOpen && (

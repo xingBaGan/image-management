@@ -341,8 +341,8 @@ export interface ElectronAPI {
     needsInstall: boolean;
   }>;
   installEnvironment: () => Promise<boolean>;
-  onImageServerStarted: (callback: (status: any) => void) => void;
-  removeImageServerStartedListener: (callback: (status: any) => void) => void;
+  onImageServerStatusChange: (callback: (status: { success: boolean, tunnelUrl: string | null }) => void) => void;
+  removeImageServerStartedListener: (callback: (status: { success: boolean, tunnelUrl: string | null }) => void) => void;
   openExternal: (url: string) => Promise<void>;
 }
 
