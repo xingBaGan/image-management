@@ -1,75 +1,105 @@
-"use strict";
-const express = require('express');
-const cors = require('cors');
-const fs = require('fs');
-const path = require('path');
-const { app } = require('electron');
-const { spawn } = require('child_process');
-const { loadImagesData, saveImageToLocal } = require('../services/FileService.cjs');
-const { getImageSize } = require('../services/mediaService.cjs');
-const { v4: uuidv4 } = require('uuid');
-const multer = require('multer');
-const crypto = require('crypto');
-let imageServer = null;
-let cloudflaredProcess = null;
+import express from 'express';
+import cors from 'cors';
+import fs from 'fs';
+import path from 'path';
+import { app } from 'electron';
+import { spawn } from 'child_process';
+import { loadImagesData, saveImageToLocal } from '../services/FileService.cjs';
+import { getImageSize } from '../services/mediaService.cjs';
+import { v4 as uuidv4 } from 'uuid';
+import multer from 'multer';
+import crypto from 'crypto';
+import { DAOFactory } from '../dao/DAOFactory.cjs';
+import { noticeDataChanged } from '../main.cjs';
+import { LocalImageData, Category } from '../dao/type.cjs';
+
+interface ImagesData {
+    images: LocalImageData[];
+    categories: Category[];
+}
+
+interface PaginationResponse {
+    currentPage: number;
+    pageSize: number;
+    totalImages: number;
+    totalPages: number;
+    hasMore: boolean;
+}
+
+interface ImagesResponse {
+    images: Array<{
+        name: string;
+        id: string;
+        width: number;
+        height: number;
+    }>;
+    pagination: PaginationResponse;
+}
+
+let imageServer: express.Application | null = null;
+let cloudflaredProcess: any = null;
 const isDev = !app.isPackaged;
-// 创建multer存储配置
+
+const imageDAO = DAOFactory.getImageDAO();
+
+// Multer storage configuration
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        // 确保上传目录存在
+    destination: (req: express.Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
         const uploadDir = path.join(app.getPath('userData'), 'uploads');
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
         cb(null, uploadDir);
     },
-    filename: function (req, file, cb) {
-        // 生成唯一文件名
+    filename: (req: express.Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const ext = path.extname(file.originalname);
         cb(null, uniqueSuffix + ext);
     }
 });
-// 创建文件过滤器，仅接受图片
-const fileFilter = (req, file, cb) => {
+
+// File filter for images only
+const fileFilter = (req: express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
     if (file.mimetype.startsWith('image/')) {
         cb(null, true);
-    }
-    else {
-        cb(new Error('只允许上传图片文件'), false);
+    } else {
+        cb(new Error('只允许上传图片文件'));
     }
 };
-// 初始化multer
+
+// Initialize multer
 const upload = multer({
-    storage: storage,
-    fileFilter: fileFilter,
+    storage,
+    fileFilter,
     limits: {
-        fileSize: 10 * 1024 * 1024 // 限制文件大小为10MB
+        fileSize: 10 * 1024 * 1024 // 10MB limit
     }
 });
-// 生成文件哈希ID
-const generateHashId = (filePath, fileSize) => {
+
+// Generate file hash ID
+const generateHashId = (filePath: string, fileSize: number): string => {
     const data = `${filePath}-${fileSize}-${Date.now()}`;
     return crypto.createHash('md5').update(data).digest('hex');
 };
-// 启动 Cloudflare Tunnel
-const startCloudflaredTunnel = async (port) => {
+
+// Start Cloudflare Tunnel
+const startCloudflaredTunnel = async (port: number): Promise<string> => {
     return new Promise((resolve, reject) => {
         try {
-            // 检查 cloudflared 是否安装
             const cloudflaredPath = isDev
                 ? path.join(__dirname, '..', '..', 'bin', 'cloudflared.exe')
                 : path.join(process.resourcesPath, 'bin', 'cloudflared.exe');
+
             if (!fs.existsSync(cloudflaredPath)) {
                 throw new Error('cloudflared 未安装，请先下载安装 cloudflared');
             }
-            // 启动 cloudflared tunnel
+
             cloudflaredProcess = spawn(cloudflaredPath, ['tunnel', '--url', `http://localhost:${port}`]);
             let tunnelUrl = '';
-            cloudflaredProcess.stdout.on('data', (data) => {
+
+            cloudflaredProcess.stdout.on('data', (data: Buffer) => {
                 const output = data.toString();
                 console.log('Cloudflare Tunnel 输出:', output);
-                // 捕获生成的 tunnel URL
                 const match = output.match(/https:\/\/[^\s]+\.trycloudflare\.com/);
                 if (match && !tunnelUrl) {
                     tunnelUrl = match[0];
@@ -77,7 +107,8 @@ const startCloudflaredTunnel = async (port) => {
                     resolve(tunnelUrl);
                 }
             });
-            cloudflaredProcess.stderr.on('data', (data) => {
+
+            cloudflaredProcess.stderr.on('data', (data: Buffer) => {
                 const str = data.toString();
                 console.error('Cloudflare Tunnel 错误:', str);
                 if (str.includes('Your quick Tunnel has been created! Visit it at (it may take some time to be reachable)')) {
@@ -88,120 +119,119 @@ const startCloudflaredTunnel = async (port) => {
                     }
                 }
             });
-            cloudflaredProcess.on('close', (code) => {
+
+            cloudflaredProcess.on('close', (code: number) => {
                 console.log(`Cloudflare Tunnel 已关闭，退出码: ${code}`);
                 cloudflaredProcess = null;
             });
-        }
-        catch (error) {
+        } catch (error) {
             console.error('启动 Cloudflare Tunnel 失败:', error);
             reject(error);
         }
     });
 };
-const startImageServer = async (port = 8564) => {
+
+export const startImageServer = async (port: number = 8564): Promise<express.Application> => {
     const expressApp = express();
     expressApp.use(cors());
-    // 提供静态文件服务（index.html）
-    expressApp.get('/', (req, res) => {
+
+    // Serve static files
+    expressApp.get('/', (req: express.Request, res: express.Response) => {
         res.sendFile(path.join(__dirname, 'index.html'));
     });
-    // 提供上传页面
-    expressApp.get('/upload', (req, res) => {
+
+    // Serve upload page
+    expressApp.get('/upload', (req: express.Request, res: express.Response) => {
         res.sendFile(path.join(__dirname, 'upload.html'));
     });
-    expressApp.get('/images/:id', async (req, res) => {
+
+    // Get image by ID
+    expressApp.get('/images/:id', async (req: express.Request, res: express.Response) => {
         try {
             const id = req.params.id;
             const images = (await loadImagesData()).images.find(img => img.id === id);
-            if (!images?.path)
-                return res.status(404).json({ error: '图片信息未找到' }); // Improved 404
+            
+            if (!images?.path) {
+                return res.status(404).json({ error: '图片信息未找到' });
+            }
+
             const localPath = images.path.replace('local-image://', '');
-            // Decode URI component is crucial for paths with spaces or special chars
-            const filePath = decodeURIComponent(localPath.replace(/^\//, '')); // Remove potential leading slash
-            // 检查文件是否存在 (Asynchronous check is better for performance, but sync is okay here)
+            const filePath = decodeURIComponent(localPath.replace(/^\//, ''));
+
             if (!fs.existsSync(filePath)) {
                 console.warn(`图片文件不存在: ${filePath}`);
                 return res.status(404).json({ error: '图片文件不存在' });
             }
-            // 读取文件类型
+
             const ext = path.extname(filePath).toLowerCase();
-            const mimeTypes = {
+            const mimeTypes: Record<string, string> = {
                 '.jpg': 'image/jpeg',
                 '.jpeg': 'image/jpeg',
                 '.png': 'image/png',
                 '.gif': 'image/gif',
                 '.webp': 'image/webp'
-                // Add other types if needed
             };
-            // 设置正确的 Content-Type
+
             res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
-            // 使用流式传输，这是处理大文件的推荐方式，也是非阻塞的 I/O
             const fileStream = fs.createReadStream(filePath);
-            // 当流出错时处理
-            fileStream.on('error', (error) => {
+
+            fileStream.on('error', (error: Error) => {
                 console.error('读取文件流错误:', filePath, error);
-                // Avoid sending JSON response if headers already sent or stream partially sent
                 if (!res.headersSent) {
                     res.status(500).json({ error: '读取文件失败' });
-                }
-                else {
-                    res.end(); // Terminate the response if possible
+                } else {
+                    res.end();
                 }
             });
-            // 当流成功完成时（可选，用于调试）
-            // fileStream.on('end', () => {
-            //   console.log(`Sent file: ${filePath}`);
-            // });
-            // 将文件流管道连接到响应流
+
             fileStream.pipe(res);
-        }
-        catch (error) {
+        } catch (error) {
             console.error('处理图片请求失败:', error);
-            // Avoid sending JSON response if headers already sent
             if (!res.headersSent) {
                 res.status(500).json({ error: '服务器内部错误' });
             }
         }
     });
-    // 图片上传API端点
-    expressApp.post('/api/upload', upload.single('image'), async (req, res) => {
+
+    // Upload image API endpoint
+    expressApp.post('/api/upload', upload.single('image'), async (req: express.Request, res: express.Response) => {
         try {
             if (!req.file) {
                 return res.status(400).json({ error: '未找到上传的图片' });
             }
+
             const file = req.file;
             const filePath = file.path;
             const fileName = path.basename(file.originalname, path.extname(file.originalname));
-            const fileExt = path.extname(file.originalname).slice(1); // 移除点号
-            // 读取图片尺寸
+            const fileExt = path.extname(file.originalname).slice(1);
+
             const { width, height } = await getImageSize(filePath);
-            // 生成唯一ID
             const id = generateHashId(filePath, file.size);
-            // 创建图片记录
-            const imageRecord = {
-                id: id,
+
+            const imageRecord: LocalImageData = {
+                id,
                 path: `local-image://${filePath}`,
                 name: fileName,
                 extension: fileExt,
                 size: file.size,
-                width: width,
-                height: height,
+                width,
+                height,
                 dateCreated: new Date().toISOString(),
                 dateModified: new Date().toISOString(),
                 tags: [],
                 favorite: false,
                 categories: [],
-                type: 'image'
+                type: 'image' as const,
+                colors: [],
+                isBindInFolder: false,
+                rating: 0
             };
-            // 加载当前图片数据
-            const imagesData = await loadImagesData();
-            // 添加新图片到数组
+
+            const imagesData = await imageDAO.getImagesAndCategories();
             imagesData.images.push(imageRecord);
-            // 保存更新后的图片数据
-            const { saveImagesAndCategories } = require('../services/FileService.cjs');
-            await saveImagesAndCategories(imagesData.images, imagesData.categories);
-            // 返回成功响应
+            await imageDAO.saveImagesAndCategories(imagesData.images, imagesData.categories);
+            await noticeDataChanged();
+
             res.json({
                 success: true,
                 message: '图片上传成功',
@@ -212,37 +242,36 @@ const startImageServer = async (port = 8564) => {
                     height: imageRecord.height
                 }
             });
-        }
-        catch (error) {
+        } catch (error) {
             console.error('图片上传处理失败:', error);
-            res.status(500).json({ error: '图片上传失败: ' + error.message });
+            res.status(500).json({ error: '图片上传失败: ' + (error as Error).message });
         }
     });
-    // 修改图片列表API，添加分页功能
-    expressApp.get('/api/images', async (req, res) => {
+
+    // Get images with pagination
+    expressApp.get('/api/images', async (req: express.Request, res: express.Response) => {
         try {
-            const page = parseInt(req.query.page) || 1;
-            const pageSize = parseInt(req.query.pageSize) || 10;
-            // loadImagesData 内部可能是异步读取文件，但这里 await 会处理好 Promise
+            const page = parseInt(req.query.page as string) || 1;
+            const pageSize = parseInt(req.query.pageSize as string) || 10;
+            
             const allImagesData = await loadImagesData();
-            const filteredImages = (allImagesData.images || []) // Add default empty array
-                .filter(img => img.type === 'image' && img.path && img.id) // Ensure essential fields exist
+            const filteredImages = (allImagesData.images || [])
+                .filter(img => img.type === 'image' && img.path && img.id)
                 .map(img => ({
-                name: img.name ? `${img.name}${img.extension ? '.' + img.extension : ''}` : `image_${img.id}`, // Handle missing name/extension
-                id: img.id,
-                width: img.width,
-                height: img.height,
-                // Consider adding a placeholder or direct path if needed by frontend
-                // url: `/images/${img.id}` // Example direct URL
-            }));
+                    name: img.name ? `${img.name}${img.extension ? '.' + img.extension : ''}` : `image_${img.id}`,
+                    id: img.id,
+                    width: img.width,
+                    height: img.height
+                }));
+
             const totalImages = filteredImages.length;
             const totalPages = Math.ceil(totalImages / pageSize);
             const startIndex = (page - 1) * pageSize;
-            // Ensure startIndex is not out of bounds
             const imagesSlice = startIndex < totalImages
                 ? filteredImages.slice(startIndex, startIndex + pageSize)
                 : [];
-            res.json({
+
+            const response: ImagesResponse = {
                 images: imagesSlice,
                 pagination: {
                     currentPage: page,
@@ -251,65 +280,53 @@ const startImageServer = async (port = 8564) => {
                     totalPages,
                     hasMore: page < totalPages && imagesSlice.length > 0
                 }
-            });
-        }
-        catch (error) {
+            };
+
+            res.json(response);
+        } catch (error) {
             console.error('读取图片数据失败:', error);
             res.status(500).json({ error: '读取图片数据失败' });
         }
     });
-    expressApp.post('/startTunnel', async (req, res) => {
+
+    // Start tunnel endpoint
+    expressApp.post('/startTunnel', async (req: express.Request, res: express.Response) => {
         try {
-            // await 在这里等待 startCloudflaredTunnel 的 Promise 完成，
-            // 但由于 listen 的回调本身是异步执行的，这不会阻塞启动服务器的初始调用。
             const tunnelUrl = await startCloudflaredTunnel(port);
             console.log(`图片服务器外部访问地址: ${tunnelUrl}`);
-            // 解析 Promise，传递服务器实例和隧道 URL
             res.json({ message: 'Tunnel started successfully', tunnelUrl });
-        }
-        catch (error) {
+        } catch (error) {
             console.error('Cloudflare Tunnel 启动失败:', error);
-            // 即使 tunnel 失败，服务器仍然可用于本地访问
-            // 解析 Promise，只传递服务器实例
-            // 发送错误响应
             res.status(500).json({ error: 'Cloudflare Tunnel 启动失败' });
         }
     });
-    expressApp.post('/stopTunnel', async (req, res) => {
+
+    // Stop tunnel endpoint
+    expressApp.post('/stopTunnel', async (req: express.Request, res: express.Response) => {
         try {
             if (cloudflaredProcess) {
                 cloudflaredProcess.kill();
                 cloudflaredProcess = null;
             }
             res.json({ message: 'Tunnel stopped successfully' });
-        }
-        catch (error) {
+        } catch (error) {
             console.error('停止 Tunnel 失败:', error);
             res.status(500).json({ error: '停止 Tunnel 失败' });
         }
     });
+
     try {
-        // expressApp.listen 是异步的。它开始监听端口，
-        // 并立即返回，不会阻塞当前代码执行。
-        // 当服务器准备好接收连接时，提供的回调函数会被调用。
-        imageServer = expressApp.listen(port, async () => {
-            // 这个回调函数在服务器成功启动后异步执行
+        imageServer = expressApp.listen(port, () => {
             console.log(`图片服务器运行在 http://localhost:${port}`);
-            // 启动 Cloudflare Tunnel (startCloudflaredTunnel 内部使用异步的 spawn)
-        });
-        // 处理 listen 本身可能发生的错误 (例如端口已被占用)
-        imageServer.on('error', (error) => {
+        }) as any;
+
+        imageServer!.on('error', (error: any) => {
             console.error(`图片服务器启动监听失败 (端口: ${port}):`, error);
-            reject(error); // 拒绝外部的 Promise
         });
-    }
-    catch (error) {
-        // 捕获 expressApp.listen 调用之前的同步错误 (虽然不太可能)
+    } catch (error) {
         console.error('启动图片服务器时发生意外错误:', error);
-        reject(error);
+        throw error;
     }
-    return expressApp; // 返回 Express 实例
-};
-module.exports = {
-    startImageServer
-};
+
+    return expressApp;
+}; 

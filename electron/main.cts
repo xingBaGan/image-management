@@ -1,8 +1,7 @@
-import { app, BrowserWindow, ipcMain, protocol } from 'electron';
+import { app, BrowserWindow, ipcMain, protocol, Menu } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import { promises as fsPromises } from 'fs';
-import { Menu } from 'electron';
 import { spawn, ChildProcess } from 'child_process';
 import { saveImageToLocal } from './services/FileService.cjs';
 import { loadSettings, saveSettings, getComfyURL } from './services/settingService.cjs';
@@ -16,7 +15,7 @@ import http from 'http';
 import { startImageServer } from './imageServer/imageServerService.cjs';
 const port = 8564;
 const isDev = !app.isPackaged;
-startImageServer(port);
+
 async function stopImageServerByRequest() {
   return new Promise((resolve, reject) => {
     const req = http.request({
@@ -88,12 +87,12 @@ async function startLocalImageServer() {
     const result: StartImageServerResponse = await startImageServerByRequest();
     tunnelUrl = result.tunnelUrl;
     console.log('图片服务器公网地址:', tunnelUrl);
-    BrowserWindow.getAllWindows().forEach(window => {
+    BrowserWindow.getAllWindows().forEach((window: any) => {
       window.webContents.send('image-server-changed', { success: true, tunnelUrl });
     });
   } catch (error) {
     stopImageServerByRequest();
-    BrowserWindow.getAllWindows().forEach(window => {
+    BrowserWindow.getAllWindows().forEach((window: any) => {
       window.webContents.send('image-server-changed', { success: false, tunnelUrl: null });
     });
     console.error('启动图片服务器失败:', error);
@@ -202,7 +201,7 @@ async function createWindow() {
   Menu.setApplicationMenu(null);
 
   // 注册 IPC 处理器
-  ipcMain.handle('save-image-to-local', async (event, imageBuffer: Buffer, fileName: string, ext: string) => {
+  ipcMain.handle('save-image-to-local', async (event: any, imageBuffer: Buffer, fileName: string, ext: string) => {
     return await saveImageToLocal(imageBuffer, fileName, ext);
   });
 
@@ -211,7 +210,7 @@ async function createWindow() {
     return await loadSettings();
   });
 
-  ipcMain.handle('save-settings', async (event, settings: any) => {
+  ipcMain.handle('save-settings', async (event: any, settings: any) => {
     const result = await saveSettings(settings);
 
     if (serverProcess) {
@@ -314,7 +313,7 @@ const downloadRemoteImagesInBackground = async (jsonPath: string): Promise<void>
             'utf-8'
           );
           // 通知所有窗口下载完成
-          BrowserWindow.getAllWindows().forEach(window => {
+          BrowserWindow.getAllWindows().forEach((window: any) => {
             window.webContents.send('remote-images-downloaded', { success: true });
           });
         }
@@ -329,7 +328,7 @@ const downloadRemoteImagesInBackground = async (jsonPath: string): Promise<void>
   } catch (error) {
     console.error('后台下载图片时出错:', error);
     // 通知所有窗口下载失败
-    BrowserWindow.getAllWindows().forEach(window => {
+    BrowserWindow.getAllWindows().forEach((window: any) => {
       window.webContents.send('remote-images-downloaded', { success: false, error: (error as Error).message });
     });
   }
@@ -367,7 +366,7 @@ app.whenReady().then(async () => {
   await initializeUserData();
   // 启动图片服务器
 
-  protocol.registerFileProtocol('local-image', (request, callback) => {
+  protocol.registerFileProtocol('local-image', (request: any, callback: any) => {
     const filePath = request.url.replace('local-image://', '');
     try {
       const decodedPath = decodeURIComponent(filePath);
@@ -406,7 +405,7 @@ app.on('window-all-closed', async () => {
 
 const ipcService = require('./services/ipcService.cjs');
 ipcService.init();
-ipcMain.handle('update-folder-watchers', async (event, folders: string[]) => {
+ipcMain.handle('update-folder-watchers', async (event: any, folders: string[]) => {
   await watchService.updateWatchers(folders);
   return true;
 });
@@ -417,3 +416,10 @@ app.on('before-quit', () => {
   // 关闭图片服务器
   stopImageServerByRequest();
 });
+
+export async function noticeDataChanged() {
+  BrowserWindow.getAllWindows().forEach((window: any) => {
+    window.webContents.send('image-data-changed');
+  });
+}
+startImageServer(port);

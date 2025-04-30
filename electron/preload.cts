@@ -120,6 +120,12 @@ contextBridge.exposeInMainWorld('electron', {
   removeImageServerStartedListener: (callback: (status: any) => void) => {
     ipcRenderer.removeListener('image-server-changed', callback);
   },
+  onImageDataChanged: (callback: () => void) => {
+    ipcRenderer.on('image-data-changed', () => callback());
+  },
+  removeImageDataChangedListener: (callback: () => void) => {
+    ipcRenderer.removeListener('image-data-changed', callback);
+  },
   // =============== 插件通信相关 ===============
   on: (channel: string, callback: (...args: any[]) => void) => {
     if (channel === 'initialize-plugin') {  // 白名单校验

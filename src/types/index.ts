@@ -344,6 +344,8 @@ export interface ElectronAPI {
   onImageServerStatusChange: (callback: (status: { success: boolean, tunnelUrl: string | null }) => void) => void;
   removeImageServerStartedListener: (callback: (status: { success: boolean, tunnelUrl: string | null }) => void) => void;
   openExternal: (url: string) => Promise<void>;
+  onImageDataChanged: (callback: () => void) => void;
+  removeImageDataChangedListener: (callback: () => void) => void;
 }
 
 // =============== 类型守卫函数 ===============
