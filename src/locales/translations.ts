@@ -222,6 +222,8 @@ export const translations = {
     randomOrderTooltip: 'Random order ({{progress}}/10) - Click to change order or long press to exit',
     startImageServer: 'Start Image Server (default)',
     tunnelStopped: 'Image server stopped',
+    copy_url_success: 'URL copied to clipboard',
+    scan_to_upload: 'Scan QR code to upload image',
   },
   zh: {
     // 工具栏
@@ -447,5 +449,7 @@ export const translations = {
     randomOrderTooltip: '随机顺序 ({{progress}}/10) - 点击更改顺序或长按退出',
     startImageServer: '启动图片服务器(默认)',
     tunnelStopped: '图片服务器已停止',
+    copy_url_success: 'URL已复制到剪贴板',
+    scan_to_upload: '扫描二维码上传图片',
   }
 }; 
