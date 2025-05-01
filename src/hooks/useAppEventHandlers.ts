@@ -445,6 +445,18 @@ export const useAppEventHandlers = (state: ReturnType<typeof import('./useAppSta
     }
   }, [tasksStatus, setImportState, setSelectedImages, t]);
 
+
+  useEffect(() => {
+    const handleImageDataChanged = () => {
+      loadImages();
+    };
+
+    window.electron.onImageDataChanged(handleImageDataChanged);
+    return () => {
+      window.electron.removeImageDataChangedListener(handleImageDataChanged);
+    };
+  }, [loadImages]);
+
   // Install environment
   const handleInstallConfirm = async () => {
     try {

@@ -1,7 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { FileJson, Settings as SettingsIcon, FilterIcon, Keyboard, Dices  } from 'lucide-react';
+import { FileJson, Settings as SettingsIcon, FilterIcon, Keyboard, Dices, Globe2, ChevronRight, ChevronDown, Copy } from 'lucide-react';
 import { useLocale } from '../../contexts/LanguageContext';
+import { toast } from 'react-toastify';
+import { startImageServer, stopImageServer } from '../../services/imageServerService';
 import { FilterOptions } from '../../types/index.ts';
+import ImageServerStartedToast from '../ImageServerStatus.tsx';
+import TunnelUrlPanel from './TunnelUrlPanel';
 
 interface ToolbarButtonsProps {
   onOpenConfig: () => Promise<void>;
@@ -19,6 +23,10 @@ interface ToolbarButtonsProps {
     tooltip: string;
   };
   setRandomInspiration: (inspiration: number) => void;
+  isServerStarted: boolean;
+  setIsServerStarted: (isServerStarted: boolean) => void;
+  tunnelUrl: string;
+  setTunnelUrl: (tunnelUrl: string) => void;
 }
 
 const pressTime = 500; 
@@ -35,11 +43,16 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
   randomInspirationIndex,
   randomButtonState,
   setRandomInspiration,
+  isServerStarted,
+  setIsServerStarted,
+  tunnelUrl,
+  setTunnelUrl
 }) => {
   const { t } = useLocale();
   const [isLongPressing, setIsLongPressing] = useState(false);
   const [progress,] = useState(0);
   const longPressTimer = useRef<NodeJS.Timeout>();
+  const [isServerLoading, setIsServerLoading] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -89,6 +102,31 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
     setIsLongPressing(false);
   };
 
+  const toggleImageServer = async () => {
+    try {
+      setIsServerLoading(true);
+      if (isServerStarted) {
+        await stopImageServer();
+        setIsServerStarted(false);
+        setTunnelUrl('');
+        toast.info(t('tunnelStopped'));
+      } else {
+        const { tunnelUrl }  = await startImageServer();
+          toast.info(()=><ImageServerStartedToast status={{success: true, tunnelUrl}} />, {
+            className: 'server-started-toast pl-2 w-[400px] border border-purple-600/40',
+            ariaLabel: 'image-server-changed',
+            autoClose: false
+          });
+          setTunnelUrl(tunnelUrl);
+          setIsServerStarted(true);
+        }
+    } catch (error) {
+      console.error('Failed to toggle image server:', error);
+    } finally {
+      setIsServerLoading(false);
+    }
+  };
+
   return (
     <div ref={filterRef} className="flex items-center space-x-2">
       <button
@@ -107,6 +145,26 @@ const ToolbarButtons: React.FC<ToolbarButtonsProps> = ({
       >
         <SettingsIcon size={20} />
       </button>
+
+      <div className="relative">
+        <button
+          onClick={toggleImageServer}
+          disabled={isServerLoading}
+          className={`p-2 rounded-lg transition-all duration-300 relative ${
+            isServerStarted
+              ? 'text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-500'
+              : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-sky-500'
+          }`}
+          title={isServerStarted ? 'Stop Image Server' : 'Start Image Server'}
+        >
+          <Globe2 
+            size={20} 
+            className={`${isServerLoading ? 'animate-spin' : ''}`}
+          />
+        </button>
+
+        {isServerStarted && <TunnelUrlPanel tunnelUrl={tunnelUrl} />}
+      </div>
 
       <div className="relative">
         <button

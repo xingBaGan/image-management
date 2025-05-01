@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { filterAndSortImages } from '../services/imageOperations';
 import { FilterType, ImportStatus } from '../types';
 
@@ -26,51 +26,47 @@ export const useAppUI = (state: ReturnType<typeof import('./useAppState').useApp
     viewingMedia
   } = state;
 
-  // Update filtered images whenever relevant states change
-  useEffect(() => {
-    const fetchData = async () => {
-      if (await window.electron.isReadFromDB()) {
-        setImportState(importState => importState !== ImportStatus.Imported ? importState : ImportStatus.Loading);
-      }
-      
-      filterAndSortImages(mediaList, {
-        filter,
-        selectedCategory,
-        categories,
-        searchTags,
-        filterColors,
-        multiFilter,
-        sortBy,
-        sortDirection
-      }).then(images => {
-        // Apply random sorting if randomInspiration is greater than 0
-        if (randomInspiration > 0) {
-          // Use Fisher-Yates shuffle algorithm with a better seed-based random number generator
-          const shuffledImages = [...images];
-          const seed = randomInspiration;
-          
-          // Simple but effective seed-based random number generator
-          const random = (index: number) => {
-            const x = Math.sin(seed * 1000 + index) * 10000;
-            return Math.abs(x - Math.floor(x));
-          };
+  const fetchData = useCallback(async () => {
+    if (await window.electron.isReadFromDB()) {
+      setImportState(importState => importState !== ImportStatus.Imported ? importState : ImportStatus.Loading);
+    }
+    
+    filterAndSortImages(mediaList, {
+      filter,
+      selectedCategory,
+      categories,
+      searchTags,
+      filterColors,
+      multiFilter,
+      sortBy,
+      sortDirection
+    }).then(images => {
+      // Apply random sorting if randomInspiration is greater than 0
+      if (randomInspiration > 0) {
+        // Use Fisher-Yates shuffle algorithm with a better seed-based random number generator
+        const shuffledImages = [...images];
+        const seed = randomInspiration;
+        
+        // Simple but effective seed-based random number generator
+        const random = (index: number) => {
+          const x = Math.sin(seed * 1000 + index) * 10000;
+          return Math.abs(x - Math.floor(x));
+        };
 
-          for (let i = shuffledImages.length - 1; i > 0; i--) {
-            // Generate a random index between 0 and i (inclusive)
-            const j = Math.floor(random(i) * (i + 1));
-            [shuffledImages[i], shuffledImages[j]] = [shuffledImages[j], shuffledImages[i]];
-          }
-          setFilteredAndSortedImages(shuffledImages);
-        } else {
-          setFilteredAndSortedImages(images);
+        for (let i = shuffledImages.length - 1; i > 0; i--) {
+          // Generate a random index between 0 and i (inclusive)
+          const j = Math.floor(random(i) * (i + 1));
+          [shuffledImages[i], shuffledImages[j]] = [shuffledImages[j], shuffledImages[i]];
         }
-      }).finally(async () => {
-        if (await window.electron.isReadFromDB()) {
-          setImportState(ImportStatus.Imported);
-        }
-      });
-    };
-    fetchData();
+        setFilteredAndSortedImages(shuffledImages);
+      } else {
+        setFilteredAndSortedImages(images);
+      }
+    }).finally(async () => {
+      if (await window.electron.isReadFromDB()) {
+        setImportState(ImportStatus.Imported);
+      }
+    });
   }, [
     mediaList,
     sortBy,
@@ -84,6 +80,13 @@ export const useAppUI = (state: ReturnType<typeof import('./useAppState').useApp
     randomInspiration,
     setFilteredAndSortedImages,
     setImportState
+  ]);
+
+  // Update filtered images whenever relevant states change
+  useEffect(() => {
+    fetchData();
+  }, [
+    fetchData
   ]);
 
   // Reset selection when category changes

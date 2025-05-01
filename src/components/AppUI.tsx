@@ -97,7 +97,11 @@ export const AppUI = ({
     isDragging,
     setIsDragging,
     columnCount,
-    setColumnCount
+    setColumnCount,
+    isServerStarted,
+    setIsServerStarted,
+    tunnelUrl,
+    setTunnelUrl
   } = state;
 
   const {
@@ -227,6 +231,10 @@ export const AppUI = ({
           setIsDragging={setIsDragging}
           columnCount={columnCount}
           setColumnCount={setColumnCount}
+          isServerStarted={isServerStarted}
+          setIsServerStarted={setIsServerStarted}
+          tunnelUrl={tunnelUrl}
+          setTunnelUrl={setTunnelUrl}
         />
       </div>
 

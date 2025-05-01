@@ -163,12 +163,14 @@ export const useAppDialogs = (
       }
     });
 
-    window.electron.onImageServerStarted((status: any) => {
+    window.electron.onImageServerStatusChange((status: any) => {
       toast.info(()=><ImageServerStartedToast status={status} />, {
         className: 'server-started-toast pl-2 w-[400px] border border-purple-600/40',
-        ariaLabel: 'image-server-started',
+        ariaLabel: 'image-server-changed',
         autoClose: false
       });
+      state.setTunnelUrl(status.tunnelUrl);
+      state.setIsServerStarted(status.success);
     });
 
     return () => {

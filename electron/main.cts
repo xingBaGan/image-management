@@ -1,8 +1,7 @@
-import { app, BrowserWindow, ipcMain, protocol } from 'electron';
+import { app, BrowserWindow, ipcMain, protocol, Menu } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import { promises as fsPromises } from 'fs';
-import { Menu } from 'electron';
 import { spawn, ChildProcess } from 'child_process';
 import { saveImageToLocal } from './services/FileService.cjs';
 import { loadSettings, saveSettings, getComfyURL } from './services/settingService.cjs';
@@ -10,12 +9,95 @@ import { getJsonFilePath } from './services/FileService.cjs';
 import { getImageSize } from './services/mediaService.cjs';
 import { logger } from './services/logService.cjs';
 import watchService from './services/watchService.cjs';
+import http from 'http';
 
 // 获取设置文件路径
-import { startImageServer, stopImageServer } from './imageServer/imageServerService.cjs';
-
+import { startImageServer } from './imageServer/imageServerService.cjs';
+const port = 8564;
 const isDev = !app.isPackaged;
 
+async function stopImageServerByRequest() {
+  return new Promise((resolve, reject) => {
+    const req = http.request({
+      host: '127.0.0.1',
+      port: port,
+      path: '/stopTunnel',
+      method: 'POST',
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      
+      res.on('end', () => {
+        if (!res.complete) {
+          console.error('The connection was terminated while the message was still being sent');
+          reject(new Error('Connection terminated prematurely'));
+        } else {
+          resolve(JSON.parse(data));
+        }
+      });
+    });
+    
+    req.on('error', (err) => {
+      reject(err);
+    });
+    
+    req.end();
+  });
+}
+
+interface StartImageServerResponse {
+  tunnelUrl: string;
+  message: string;
+}
+async function startImageServerByRequest(): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const req = http.request({
+      host: '127.0.0.1',
+      port: port,
+      path: '/startTunnel',
+      method: 'POST',
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      
+      res.on('end', () => {
+        if (!res.complete) {
+          console.error('The connection was terminated while the message was still being sent');
+          reject(new Error('Connection terminated prematurely'));
+        } else {
+          resolve(JSON.parse(data));
+        }
+      });
+    });
+    
+    req.on('error', (err) => {
+      reject(err);
+    });
+    
+    req.end();
+  });
+}
+
+async function startLocalImageServer() {
+  try {
+    const result: StartImageServerResponse = await startImageServerByRequest();
+    tunnelUrl = result.tunnelUrl;
+    console.log('图片服务器公网地址:', tunnelUrl);
+    BrowserWindow.getAllWindows().forEach((window: any) => {
+      window.webContents.send('image-server-changed', { success: true, tunnelUrl });
+    });
+  } catch (error) {
+    stopImageServerByRequest();
+    BrowserWindow.getAllWindows().forEach((window: any) => {
+      window.webContents.send('image-server-changed', { success: false, tunnelUrl: null });
+    });
+    console.error('启动图片服务器失败:', error);
+  }
+}
 interface EnvConfig {
   [key: string]: string;
 }
@@ -117,9 +199,9 @@ async function createWindow() {
 
   // 完全移除菜单栏
   Menu.setApplicationMenu(null);
-  
+
   // 注册 IPC 处理器
-  ipcMain.handle('save-image-to-local', async (event, imageBuffer: Buffer, fileName: string, ext: string) => {
+  ipcMain.handle('save-image-to-local', async (event: any, imageBuffer: Buffer, fileName: string, ext: string) => {
     return await saveImageToLocal(imageBuffer, fileName, ext);
   });
 
@@ -128,7 +210,7 @@ async function createWindow() {
     return await loadSettings();
   });
 
-  ipcMain.handle('save-settings', async (event, settings: any) => {
+  ipcMain.handle('save-settings', async (event: any, settings: any) => {
     const result = await saveSettings(settings);
 
     if (serverProcess) {
@@ -141,12 +223,6 @@ async function createWindow() {
       ComfyUI_URL = settings.ComfyUI_URL;
     }
     console.log('settings.startImageServer', settings.startImageServer);
-    if (settings.startImageServer && !tunnelUrl) {
-      startLocalImageServer()
-    } else if (!settings.startImageServer && tunnelUrl) {
-      stopImageServer();
-      tunnelUrl = null;
-    }
     return result;
   });
 
@@ -157,9 +233,9 @@ async function createWindow() {
   })
 
   ipcMain.handle('window-maximize', () => {
-  // 根据id获取插件
+    // 根据id获取插件
     if (mainWindow?.isMaximized()) {
-    // 从plugins中获取id对应的插件
+      // 从plugins中获取id对应的插件
       logger.debug('Window unmaximized')
       mainWindow.unmaximize()
       mainWindow.webContents.send('window-unmaximized')
@@ -180,19 +256,6 @@ async function createWindow() {
 }
 let tunnelUrl: string | null = null;
 
-async function startLocalImageServer() {
-  try {
-    const result = await startImageServer();
-    tunnelUrl = result.tunnelUrl;
-    console.log('图片服务器公网地址:', tunnelUrl);
-    BrowserWindow.getAllWindows().forEach(window => {
-      window.webContents.send('image-server-started', { success: true, tunnelUrl });
-    });
-  } catch (error) {
-    stopImageServer();
-    console.error('启动图片服务器失败:', error);
-  }
-}
 const downloadRemoteImage = async (imageUrl: string, fileName: string): Promise<string | null> => {
   try {
     const response = await fetch(imageUrl);
@@ -239,7 +302,7 @@ const downloadRemoteImagesInBackground = async (jsonPath: string): Promise<void>
           // 更新特定图片的路径
           const currentData = JSON.parse(await fsPromises.readFile(jsonPath, 'utf-8'));
           // 获取图片的宽高
-          const dimensions = await getImageSize(localPath); 
+          const dimensions = await getImageSize(localPath);
           const updatedImagesList = currentData.images.map((currentImg: any) =>
             currentImg.id === img.id ? { ...currentImg, path: localPath, width: dimensions.width, height: dimensions.height } : currentImg
           );
@@ -250,7 +313,7 @@ const downloadRemoteImagesInBackground = async (jsonPath: string): Promise<void>
             'utf-8'
           );
           // 通知所有窗口下载完成
-          BrowserWindow.getAllWindows().forEach(window => {
+          BrowserWindow.getAllWindows().forEach((window: any) => {
             window.webContents.send('remote-images-downloaded', { success: true });
           });
         }
@@ -265,7 +328,7 @@ const downloadRemoteImagesInBackground = async (jsonPath: string): Promise<void>
   } catch (error) {
     console.error('后台下载图片时出错:', error);
     // 通知所有窗口下载失败
-    BrowserWindow.getAllWindows().forEach(window => {
+    BrowserWindow.getAllWindows().forEach((window: any) => {
       window.webContents.send('remote-images-downloaded', { success: false, error: (error as Error).message });
     });
   }
@@ -297,14 +360,13 @@ async function startComfyUIServer(): Promise<void> {
     }
   });
 }
-let imageServer: any;
+
 app.whenReady().then(async () => {
   await startComfyUIServer();
   await initializeUserData();
-  
   // 启动图片服务器
 
-  protocol.registerFileProtocol('local-image', (request, callback) => {
+  protocol.registerFileProtocol('local-image', (request: any, callback: any) => {
     const filePath = request.url.replace('local-image://', '');
     try {
       const decodedPath = decodeURIComponent(filePath);
@@ -343,7 +405,7 @@ app.on('window-all-closed', async () => {
 
 const ipcService = require('./services/ipcService.cjs');
 ipcService.init();
-ipcMain.handle('update-folder-watchers', async (event, folders: string[]) => {
+ipcMain.handle('update-folder-watchers', async (event: any, folders: string[]) => {
   await watchService.updateWatchers(folders);
   return true;
 });
@@ -352,5 +414,12 @@ app.on('before-quit', () => {
     serverProcess.kill();
   }
   // 关闭图片服务器
-  stopImageServer();
+  stopImageServerByRequest();
 });
+
+export async function noticeDataChanged() {
+  BrowserWindow.getAllWindows().forEach((window: any) => {
+    window.webContents.send('image-data-changed');
+  });
+}
+startImageServer(port);
