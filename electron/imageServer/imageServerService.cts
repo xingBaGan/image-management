@@ -202,8 +202,8 @@ export const startImageServer = async (port: number = 8564): Promise<express.App
 
             const file = req.file;
             const filePath = file.path;
-            const fileName = path.basename(file.originalname, path.extname(file.originalname));
-            const fileExt = path.extname(file.originalname).slice(1);
+            const fileName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+            const fileExt = path.extname(fileName).slice(1);
 
             const { width, height } = await getImageSize(filePath);
             const id = generateHashId(filePath, file.size);
