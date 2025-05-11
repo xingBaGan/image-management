@@ -1,14 +1,19 @@
 # atujii - Image Management Tool
 [Chinese Version](readme.zh.md)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/xingBaGan/image-management)
 
 A clean and elegant local image management tool to help you easily manage and organize your images and video resources.
 Supports Windows, MacOS, Linux.
 Could manage 100000+ images and videos with good performance.
 
+<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=114484282723113&bvid=BV1YGVZzqE9g&cid=29894836654&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
 
-![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v0.4.1_3.png)
-![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v0.4.1_1.png)
-![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v0.4.1_2.png)
+<iframe width="560" height="315" src="https://www.youtube.com/embed/xjbRYRC8cSY?si=Mzn4BUs32PSkZ4vg" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+## documentation
+
+[https://deepwiki.com/xingBaGan/image-management](https://deepwiki.com/xingBaGan/image-management)
+
 ## Main Features
 
 - Clean and intuitive user interface

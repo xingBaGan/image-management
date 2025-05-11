@@ -1,13 +1,19 @@
 # 图迹 - 图片管理工具
-
 [English Version](readme.md)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/xingBaGan/image-management)
+
 
 一个简洁优雅的本地图片管理工具，帮助你轻松管理和组织图片与视频资源。
 支持 Windows, MacOS, Linux.
 可以管理 100000+ 图片和视频，并保持良好的性能。
-![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v0.4.1_3.png)
-![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v0.4.1_1.png)
-![](https://picgo-1300491698.cos.ap-nanjing.myqcloud.com/v0.4.1_2.png)
+
+<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=114484282723113&bvid=BV1YGVZzqE9g&cid=29894836654&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/xjbRYRC8cSY?si=Mzn4BUs32PSkZ4vg" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+## 文档
+[https://deepwiki.com/xingBaGan/image-management](https://deepwiki.com/xingBaGan/image-management)
+
 ## 主要功能
 
 - 简洁直观的用户界面
