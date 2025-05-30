@@ -394,7 +394,7 @@
                 
                 formData.append('image', file);
                 
-                xhr.open('POST', '/api/upload', true);
+                xhr.open('POST', '/api/images/upload', true);
                 
                 xhr.upload.addEventListener('progress', (e) => {
                     if (e.lengthComputable) {
