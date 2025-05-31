@@ -1,8 +1,7 @@
 import axios from 'axios'
 import { ImageListResponse } from '../types/image'
 
-const port = 8564
-export const baseURL = `http://localhost:${port}/api`
+export const baseURL = `/api`
 
 const api = axios.create({
   baseURL

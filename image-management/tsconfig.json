@@ -15,13 +15,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "esModuleInterop": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    },
-    "types": ["jest", "@testing-library/jest-dom"]
+    "types": ["node", "vite/client"]
   },
-  "include": ["src", "electron", "jest.setup.ts", "src/setupTests.d.ts", "src/electron.d.ts", "image-management"],
+  "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
-}
+} 

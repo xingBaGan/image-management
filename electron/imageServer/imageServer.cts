@@ -8,18 +8,17 @@ export const startAPIServer = async (port: number = 8564): Promise<express.Appli
     const expressApp = express();
     expressApp.use(cors());
 
-    // Static routes
-    expressApp.get('/', (req, res) => {
-        res.sendFile(path.join(__dirname, 'index.html'));
-    });
+    // 静态文件服务
+    expressApp.use(express.static(path.join(__dirname, 'dist')));
 
-    expressApp.get('/upload', (req, res) => {
-        res.sendFile(path.join(__dirname, 'upload.html'));
-    });
-
-    // API routes
+    // API 路由
     expressApp.use('/api/images', imageRoutes);
     expressApp.use('/api/tunnel', tunnelRoutes);
+
+    // 所有其他路由返回 React 应用
+    expressApp.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    });
 
     try {
         const server = expressApp.listen(port, () => {
