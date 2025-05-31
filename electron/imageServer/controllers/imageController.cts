@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { ImageService } from '../services/imageService.cjs';
 import path from 'path';
+import sharp from 'sharp';
 
 export class ImageController {
     static async uploadImage(req: Request, res: Response) {
@@ -61,6 +62,51 @@ export class ImageController {
             res.send(imageBuffer);
         } catch (error) {
             console.error('获取图片失败:', error);
+            res.status(404).json({ error: (error as Error).message });
+        }
+    }
+
+    static async getCompressedImage(req: Request, res: Response) {
+        try {
+            const id = req.params.id;
+            const imageBuffer = await ImageService.getImageById(id);
+            
+            // Get image info for content type
+            const imagesData = await ImageService.getImages(1, 1);
+            const image = imagesData.images.find(img => img.id === id);
+            const ext = path.extname(image?.name || '').toLowerCase();
+            const mimeTypes: Record<string, string> = {
+                '.jpg': 'image/jpeg',
+                '.jpeg': 'image/jpeg',
+                '.png': 'image/png',
+                '.gif': 'image/gif',
+                '.webp': 'image/webp'
+            };
+
+            // Process image with sharp
+            let sharpInstance = sharp(imageBuffer);
+            const quality = 60;
+            // 根据不同格式设置不同的压缩选项
+            if (ext === '.jpg' || ext === '.jpeg') {
+                sharpInstance = sharpInstance.jpeg({ quality: quality });
+            } else if (ext === '.png') {
+                sharpInstance = sharpInstance.png({ quality: quality });
+            } else if (ext === '.webp') {
+                sharpInstance = sharpInstance.webp({ quality: quality });
+            }
+
+            // 压缩图片
+            const compressedBuffer = await sharpInstance
+                .resize(1200, 1200, {
+                    fit: 'inside',
+                    withoutEnlargement: true
+                })
+                .toBuffer();
+            
+            res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+            res.send(compressedBuffer);
+        } catch (error) {
+            console.error('获取压缩图片失败:', error);
             res.status(404).json({ error: (error as Error).message });
         }
     }

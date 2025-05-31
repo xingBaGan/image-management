@@ -1,11 +1,13 @@
 import React from 'react'
 import { ImageResponse } from '../types/image'
 import { baseURL } from '../api/images'
+
 interface ImageCardProps {
   image: ImageResponse
+  onDoubleClick?: (image: ImageResponse) => void
 }
 
-export const ImageCard: React.FC<ImageCardProps> = ({ image }) => {
+export const ImageCard: React.FC<ImageCardProps> = ({ image, onDoubleClick }) => {
   const [isLoading, setIsLoading] = React.useState(true)
   const [hasError, setHasError] = React.useState(false)
 
@@ -18,8 +20,15 @@ export const ImageCard: React.FC<ImageCardProps> = ({ image }) => {
     setHasError(true)
   }
 
+  const handleDoubleClick = () => {
+    onDoubleClick?.(image)
+  }
+
   return (
-    <div className="overflow-hidden mb-4 bg-white rounded-lg shadow-md transition-transform hover:-translate-y-1">
+    <div 
+      className="overflow-hidden mb-4 bg-white rounded-lg shadow-md transition-transform hover:-translate-y-1 cursor-pointer"
+      onDoubleClick={handleDoubleClick}
+    >
       {isLoading && (
         <div 
           className="bg-gray-200 animate-pulse" 
@@ -31,7 +40,7 @@ export const ImageCard: React.FC<ImageCardProps> = ({ image }) => {
       )}
       
       <img
-        src={`${baseURL}/images/${image.id}`}
+        src={`${baseURL}/images/compressed/${image.id}`}
         alt={image.name}
         className={`w-full h-auto object-cover ${isLoading ? 'hidden' : 'block'}`}
         style={{ aspectRatio: image.width / image.height }}

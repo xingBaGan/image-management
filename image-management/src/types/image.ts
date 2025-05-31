@@ -13,6 +13,7 @@ export interface ImageResponse {
   name: string
   width: number
   height: number
+  url?: string
 }
 
 export interface PaginationResponse {
