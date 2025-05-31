@@ -12,7 +12,7 @@ import watchService from './services/watchService.cjs';
 import http from 'http';
 
 // 获取设置文件路径
-import { startImageServer } from './imageServer/imageServerService.cjs';
+import { startAPIServer } from './imageServer/imageServer.cjs';
 const port = 8564;
 const isDev = !app.isPackaged;
 
@@ -422,4 +422,4 @@ export async function noticeDataChanged() {
     window.webContents.send('image-data-changed');
   });
 }
-startImageServer(port);
+startAPIServer(port);

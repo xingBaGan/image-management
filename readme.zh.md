@@ -24,6 +24,7 @@
 - 随机排序和展示功能
 - 完善的快捷键支持
 - 拖拽交互优化
+- 通过cloudflared 实现内网穿透
 
 ## 使用指南
 
@@ -114,7 +115,7 @@ node 20+ is required.
 
 ```bash
 # 安装 Node.js 依赖
-npm install
+pnpm run pre:dev
 
 # 安装 Python 依赖
 pip install -r requirements.txt

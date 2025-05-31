@@ -14,7 +14,7 @@ interface StartImageServerResponse {
 export const startImageServer = async (): Promise<StartImageServerResponse> => {
   try {
     const response = await axios.post<StartImageServerResponse>(
-      `${IMAGE_SERVER_BASE_URL}/startTunnel`
+      `${IMAGE_SERVER_BASE_URL}/api/tunnel/start`
     );
     return response.data;
   } catch (error) {
@@ -31,7 +31,7 @@ export const startImageServer = async (): Promise<StartImageServerResponse> => {
  */
 export const stopImageServer = async (): Promise<any> => {
   try {
-    const response = await axios.post(`${IMAGE_SERVER_BASE_URL}/stopTunnel`);
+    const response = await axios.post(`${IMAGE_SERVER_BASE_URL}/api/tunnel/stop`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
