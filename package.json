@@ -12,10 +12,11 @@
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
+    "pre:dev": "pnpm install  --shamefully-hoist && pnpm prepare:cloudflared && pnpm build:comfyui && pnpm build:image-management",
     "build": "cross-env NODE_ENV=development tsc -p electron/tsconfig.json && node scripts/copy-electron.cjs",
     "lint": "eslint .",
     "electron:dev": "cross-env NODE_ENV=development tsc -p electron/tsconfig.json && node scripts/copy-electron.cjs && concurrently \"vite\" \"electron .\"",
-    "electron:build": "pnpm install  --shamefully-hoist && pnpm prepare:cloudflared && tsc -p electron/tsconfig.json && node scripts/copy-electron.cjs && vite build && node -e \"require('fs').cpSync('electron', 'dist-electron', {recursive: true})\" && electron-builder",
+    "electron:build": "pnpm pre:dev && tsc -p electron/tsconfig.json && node scripts/copy-electron.cjs && vite build && node -e \"require('fs').cpSync('electron', 'dist-electron', {recursive: true})\" && electron-builder",
     "electron:preview": "concurrently \"vite\" \"electron .\"",
     "script": "cross-env NODE_ENV=development node script/script.cjs",
     "python:download": "python dataset\\download.py",
@@ -26,7 +27,8 @@
     "test:coverage": "yarn build && jest --coverage",
     "view-db": "node scripts/view-db.cjs",
     "download:cloudflared": "node script/download-cloudflared.cjs",
-    "prepare:cloudflared": "npm run download:cloudflared && npm run build:comfyui"
+    "build:image-management": "cd image-management && pnpm install && pnpm build",
+    "prepare:cloudflared": "npm run download:cloudflared"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
