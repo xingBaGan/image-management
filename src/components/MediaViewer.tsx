@@ -32,7 +32,6 @@ const MediaViewer: React.FC<MediaViewerProps> = ({
   onClose,
   onPrevious,
   onNext,
-  onTagsUpdate,
 }) => {
   const { t } = useLocale();
   const [scale, setScale] = useState(1);

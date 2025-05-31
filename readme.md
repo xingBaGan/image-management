@@ -24,6 +24,7 @@ Could manage 100000+ images and videos with good performance.
 - Random sorting and display feature
 - Comprehensive keyboard shortcuts
 - Optimized drag interaction
+- Through cloudflared to achieve intranet penetration
 
 ## User Guide
 python 3.10+ is required.
@@ -115,7 +116,7 @@ For installation instructions, see [install.en.md](install.en.md)
 
 ```bash
 # Install Node.js dependencies
-npm install
+pnpm run pre:dev
 
 # Install Python dependencies
 pip install -r requirements.txt
