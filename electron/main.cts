@@ -34,7 +34,12 @@ async function stopImageServerByRequest() {
           console.error('The connection was terminated while the message was still being sent');
           reject(new Error('Connection terminated prematurely'));
         } else {
-          resolve(JSON.parse(data));
+          try {
+            const result = JSON.parse(data);
+            resolve(result);
+          } catch (error) {
+            reject(error);
+          }
         }
       });
     });
@@ -69,7 +74,12 @@ async function startImageServerByRequest(): Promise<any> {
           console.error('The connection was terminated while the message was still being sent');
           reject(new Error('Connection terminated prematurely'));
         } else {
-          resolve(JSON.parse(data));
+          try {
+            const result = JSON.parse(data);
+            resolve(result);
+          } catch (error) {
+            reject(error);
+          }
         }
       });
     });

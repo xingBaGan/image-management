@@ -4,9 +4,14 @@ import { LocalImageData, FilterType, FilterOptions, SortType, SortDirection } fr
 import RelationalPouch from 'relational-pouch';
 import * as fs from 'fs/promises';
 import * as lodash from 'lodash';
+
+// 新增：可选引入 memory 适配器
+import MemoryAdapter from 'pouchdb-adapter-memory';
 // Register PouchDB plugins
 PouchDB.plugin(RelationalPouch);
 PouchDB.plugin(PouchDBFind);
+PouchDB.plugin(MemoryAdapter);
+
 export interface ColorInfo {
     color: string;
     percentage: number;
@@ -91,18 +96,33 @@ const isSimilarColor = (color1: string, color2: string, precision: number = 0.8)
     return similarity >= precision;
 };
 
+/**
+ * 工厂函数：创建 PouchDB 实例
+ * @param dbName 数据库名
+ * @param adapter 适配器类型（如 'memory'）
+ */
+export function createPouchDBInstance(dbName = 'images-db', adapter?: string) {
+    const opts: any = {};
+    if (adapter) opts.adapter = adapter;
+    return new PouchDB(dbName, opts);
+}
+
 export class ImageDatabase {
     private db: PouchDB.Database;
     private static instance: ImageDatabase;
 
-    private constructor() {
-        this.db = new PouchDB('images-db');
+    private constructor(isTest?: boolean) {
+        if (isTest) {
+            this.db = createPouchDBInstance('performance_test_db', 'memory');
+        } else {
+            this.db = new PouchDB('images-db');
+        }
         this.initSchema();
     }
 
-    public static getInstance(): ImageDatabase {
+    public static getInstance(isTest?: boolean): ImageDatabase {
         if (!ImageDatabase.instance) {
-            ImageDatabase.instance = new ImageDatabase();
+            ImageDatabase.instance = new ImageDatabase(isTest);
         }
         return ImageDatabase.instance;
     }
@@ -492,3 +512,7 @@ export class ImageDatabase {
     }
 
 } 
+
+export function getTestDBInstance() {
+    return ImageDatabase.getInstance(true);
+}
