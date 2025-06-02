@@ -1,5 +1,5 @@
 import { ImageDAO } from '../ImageDAO.cjs';
-import { LocalImageData, Category, FilterType, FilterOptions, SortType, SortDirection, VideoData } from '../type.cjs';
+import { LocalImageData, Category, FilterType, FilterOptions, SortType, SortDirection, VideoData, FetchDataResult } from '../type.cjs';
 import { ImageDatabase, Image } from '../../pouchDB/Database.cjs';
 import {
   deletePhysicalFile,
@@ -369,7 +369,8 @@ export default class DBImageDAO implements ImageDAO {
       filterColors,
       multiFilter,
       sortBy,
-      sortDirection
+      sortDirection,
+      limit
     }: {
       filter: FilterType;
       selectedCategory: FilterType | string;
@@ -379,8 +380,9 @@ export default class DBImageDAO implements ImageDAO {
       multiFilter: FilterOptions;
       sortBy: SortType;
       sortDirection: SortDirection;
+      limit: number;
     }
-  ): Promise<LocalImageData[]> {
+  ): Promise<FetchDataResult> {
     // console.log(
     //   '\nfilter', filter,
     //   '\nselectedCategory', selectedCategory,
@@ -389,7 +391,7 @@ export default class DBImageDAO implements ImageDAO {
     //   '\nmultiFilter', multiFilter,
     //   '\nsortBy', sortBy,
     //   '\nsortDirection', sortDirection);
-    return await this.db.filterAndSortImagesFromDB({
+    const result = await this.db.filterAndSortImagesFromDB({
       filter,
       selectedCategory,
       categories,
@@ -397,8 +399,10 @@ export default class DBImageDAO implements ImageDAO {
       filterColors,
       multiFilter,
       sortBy,
-      sortDirection
+      sortDirection,
+      limit
     });
+    return result;
   }
 
   async saveImagesAndCategories(images: LocalImageData[], categories: Category[]): Promise<boolean> {

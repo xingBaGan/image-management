@@ -156,6 +156,7 @@ export const useAppEventHandlers = (state: ReturnType<typeof import('./useAppSta
 
   // Wrapped favorite function
   const handleFavorite = async (id: string) => {
+    setImportState(ImportStatus.Loading);
     await handleFavoriteBase(id, categories);
   };
 

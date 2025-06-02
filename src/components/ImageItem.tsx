@@ -10,7 +10,7 @@ interface ImageItemProps {
   onDoubleClick: (e: React.MouseEvent) => void;
   onFavorite: (id: string) => void;
   onOpenInEditor: (path: string) => void;
-  showInFolder: (path: string) => void;
+  showInFolder?: (path: string) => void;
   viewMode: 'grid' | 'list';
   gridItemAppendButtonsProps: AppendButtonsProps[];
 }

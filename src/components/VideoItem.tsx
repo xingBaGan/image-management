@@ -7,7 +7,7 @@ import { useLocale } from '../contexts/LanguageContext';
 interface VideoItemProps {
   video: LocalImageData & { type: 'video'; duration?: number; thumbnail?: string };
   isSelected: boolean;
-  onSelect: (e: React.MouseEvent) => void;
+  onSelect: (id: string, e: boolean) => void | undefined;
   onDoubleClick?: (e: React.MouseEvent) => void;
   onFavorite: (id: string) => void;
   viewMode: 'grid' | 'list';

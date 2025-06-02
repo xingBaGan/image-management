@@ -1,3 +1,4 @@
+import { FetchDataResult } from 'electron/dao/type.cts';
 import { LocalImageData, Category, ImportFile, ImportStatus, SortDirection, FilterType, SortType, FilterOptions } from '../types/index.ts';
 import { processMedia, addImagesToCategory } from '../utils';
 export const toggleFavorite = async (
@@ -112,7 +113,8 @@ export const filterAndSortImages = async (
     filterColors,
     multiFilter,
     sortBy,
-    sortDirection
+    sortDirection,
+    limit
   }: {
     filter: FilterType;
     selectedCategory: FilterType | string;
@@ -122,9 +124,10 @@ export const filterAndSortImages = async (
     multiFilter: FilterOptions;
     sortBy: SortType;
     sortDirection: SortDirection;
+    limit?: number;
   }
-): Promise<LocalImageData[]> => {
-  return await window.electron.imageAPI.filterAndSortImages(mediaList, { filter, selectedCategory, categories, searchTags, filterColors, multiFilter, sortBy, sortDirection });
+): Promise<FetchDataResult> => {
+  return await window.electron.imageAPI.filterAndSortImages(mediaList, { filter, selectedCategory, categories, searchTags, filterColors, multiFilter, sortBy, sortDirection, limit });
 };
 
 export const bulkDeleteFromCategory = async (selectedImages: Set<string>, categories: Category[], currentSelectedCategory?: Category) => {
