@@ -22,7 +22,8 @@ export const useAppUI = (state: any) => {
     selectedCategory: filterCategory,
     setSelectedImages,
     setSelectedImageForInfo,
-    viewingMedia
+    viewingMedia,
+    preLoadSize,
   } = state;
 
   const fetchData = useCallback(async () => {

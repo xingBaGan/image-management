@@ -8,6 +8,7 @@ import { useInView } from 'react-intersection-observer';
 import { useThrottle } from '../hooks/useThrottle';
 import { useTranslation } from 'react-i18next';
 import { CopySlash } from 'lucide-react';
+import { useAppContext } from '../contexts/AppContext';
 type MediaItemProps = {
   media: LocalImageData;
   props: any;
@@ -128,9 +129,12 @@ const GridView: React.FC<ImageGridBaseProps & {
   gridItemAppendButtonsProps,
   columnCount = 4,
 }) => {
+    const {
+      setPreLoadSize
+    } = useAppContext();
+
     const [page, setPage] = useState(1);
     const displayImages = useMemo(() => images.slice(0, page * PAGE_SIZE), [images, page]);
-
     const hasMore = useMemo(() => images.length > displayImages.length, [images, displayImages]);
     const [currentViewIndex, setCurrentViewIndex] = useState(0);
     const renderMediaItem = useCallback((media: LocalImageData, index: number) => {
@@ -168,12 +172,17 @@ const GridView: React.FC<ImageGridBaseProps & {
       threshold: 0,
       rootMargin: '2000px', // 提前 200px 触发加载
     });
-
+    const cachedSize = 200;
+    const preLoadSize = useMemo(() => displayImages.length + cachedSize, [displayImages]);
     useEffect(() => {
       if (inView && hasMore) {
         setPage(prev => prev + 1);
       }
     }, [inView, hasMore]);
+    
+    useEffect(() => {
+      setPreLoadSize(preLoadSize);
+    }, [preLoadSize]);
 
     // Dynamically create breakpointColumns based on columnCount
     const breakpointColumns = useMemo(() => {

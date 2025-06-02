@@ -114,7 +114,6 @@ export const useAppState = () => {
   // Image server state
   const [isServerStarted, setIsServerStarted] = useState<boolean>(false);
   const [tunnelUrl, setTunnelUrl] = useState('');
-
   return {
     // UI state
     isMaximized,
@@ -202,6 +201,6 @@ export const useAppState = () => {
     isServerStarted,
     setIsServerStarted,
     tunnelUrl,
-    setTunnelUrl
+    setTunnelUrl,
   };
 }; 
