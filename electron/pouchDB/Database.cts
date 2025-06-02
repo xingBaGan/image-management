@@ -1,12 +1,17 @@
 import PouchDB from 'pouchdb';
 import PouchDBFind from 'pouchdb-find';
-import { LocalImageData, FilterType, FilterOptions, SortType, SortDirection } from '../dao/type.cjs';
+import { LocalImageData, FilterType, FilterOptions, SortType, SortDirection, FetchDataResult } from '../dao/type.cjs';
 import RelationalPouch from 'relational-pouch';
 import * as fs from 'fs/promises';
 import * as lodash from 'lodash';
+
+// 新增：可选引入 memory 适配器
+import MemoryAdapter from 'pouchdb-adapter-memory';
 // Register PouchDB plugins
 PouchDB.plugin(RelationalPouch);
 PouchDB.plugin(PouchDBFind);
+PouchDB.plugin(MemoryAdapter);
+
 export interface ColorInfo {
     color: string;
     percentage: number;
@@ -91,18 +96,33 @@ const isSimilarColor = (color1: string, color2: string, precision: number = 0.8)
     return similarity >= precision;
 };
 
+/**
+ * 工厂函数：创建 PouchDB 实例
+ * @param dbName 数据库名
+ * @param adapter 适配器类型（如 'memory'）
+ */
+export function createPouchDBInstance(dbName = 'images-db', adapter?: string) {
+    const opts: any = {};
+    if (adapter) opts.adapter = adapter;
+    return new PouchDB(dbName, opts);
+}
+
 export class ImageDatabase {
     private db: PouchDB.Database;
     private static instance: ImageDatabase;
 
-    private constructor() {
-        this.db = new PouchDB('images-db');
+    private constructor(isTest?: boolean) {
+        if (isTest) {
+            this.db = createPouchDBInstance('performance_test_db', 'memory');
+        } else {
+            this.db = new PouchDB('images-db');
+        }
         this.initSchema();
     }
 
-    public static getInstance(): ImageDatabase {
+    public static getInstance(isTest?: boolean): ImageDatabase {
         if (!ImageDatabase.instance) {
-            ImageDatabase.instance = new ImageDatabase();
+            ImageDatabase.instance = new ImageDatabase(isTest);
         }
         return ImageDatabase.instance;
     }
@@ -139,12 +159,24 @@ export class ImageDatabase {
     }
 
     async createImages(images: Image[]): Promise<Image[]> {
-        await Promise.all(images.map(async (image) => {
-            await this.createImage(image);
+        const timestamp = Date.now();
+        const docs = images.map(image => ({
+            _id: (this.db as any).rel.makeDocID({ type: 'image', id: image.id }),
+            data: {
+                ...image,
+                createdAt: timestamp,
+                updatedAt: timestamp
+            }
         }));
-        return images;
+        
+        try {
+            await this.db.bulkDocs(docs);
+            return images;
+        } catch (error) {
+            console.error('Error bulk creating images:', error);
+            return [];
+        }
     }
-
     async getImage(id: string): Promise<Image | null> {
         try {
             const result = await (this.db as any).rel.find('image', id);
@@ -210,10 +242,23 @@ export class ImageDatabase {
     }
 
     async createCategories(categories: Category[]): Promise<Category[]> {
-        await Promise.all(categories.map(async (category) => {
-            await this.createCategory(category);
+        const timestamp = Date.now();
+        const docs = categories.map(category => ({
+            _id: (this.db as any).rel.makeDocID({ type: 'category', id: category.id }),
+            data: {
+                ...category,
+                createdAt: timestamp,
+                updatedAt: timestamp
+            }
         }));
-        return categories;
+        
+        try {
+            await this.db.bulkDocs(docs);
+            return categories;
+        } catch (error) {
+            console.error('Error bulk creating categories:', error);
+            return [];
+        }
     }
 
     async getCategory(id: string): Promise<Category | null> {
@@ -377,7 +422,8 @@ export class ImageDatabase {
         filterColors,
         multiFilter,
         sortBy,
-        sortDirection
+        sortDirection,
+        limit = Infinity
     }: {
         filter: FilterType;
         selectedCategory: FilterType | string;
@@ -387,7 +433,8 @@ export class ImageDatabase {
         multiFilter: FilterOptions;
         sortBy: SortType;
         sortDirection: SortDirection;
-    }): Promise<LocalImageData[]> {
+        limit: number;
+    }): Promise<FetchDataResult> {
         try {
             const fields = [
                 'data.path',
@@ -450,12 +497,12 @@ export class ImageDatabase {
             }
 
             const allImages = await this.getAllImages();
-
+            limit = limit > allImages.length ? allImages.length : limit;
             //   // Perform the query
             const result = await this.db.find({
                 fields: fields,
                 selector,
-                limit: allImages.length
+                limit: limit
             });
 
             const images = result.docs.map((doc: any) => {
@@ -484,11 +531,24 @@ export class ImageDatabase {
             } else if (sortBy === SortType.Size) {
                 sortedImages = sortedImages.sort((a: LocalImageData, b: LocalImageData) => a.size - b.size);
             }
-            return sortDirection === 'asc' ? sortedImages : sortedImages.reverse();
+            const resultImages = sortDirection === 'asc' ? sortedImages : sortedImages.reverse();
+            return {
+                images: resultImages,
+                hasMore: resultImages.length != allImages.length,
+                limit: limit
+            };
         } catch (error) {
             console.error('Error querying images from DB:', error);
-            return [];
+            return {
+                images: [],
+                hasMore: false,
+                limit: limit
+            };
         }
     }
 
 } 
+
+export function getTestDBInstance() {
+    return ImageDatabase.getInstance(true);
+}

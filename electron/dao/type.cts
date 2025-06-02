@@ -22,6 +22,12 @@ export interface Image {
   colors: string[];
 }
 
+export interface FetchDataResult {
+  images: LocalImageData[];
+  limit: number;
+  hasMore: boolean;
+}
+
 export interface Category {
   _id?: string;          // PouchDB 主键
   rev?: string;         // PouchDB 版本号

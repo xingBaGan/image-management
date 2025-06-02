@@ -1,5 +1,5 @@
 // src/dao/ImageDAO.ts
-import { Category, LocalImageData, FilterType, FilterOptions, SortType, SortDirection } from './type.cjs';
+import { Category, LocalImageData, FilterType, FilterOptions, SortType, SortDirection, FetchDataResult } from './type.cjs';
 export interface IPCImageService {
   toggleFavorite(id: string, images: LocalImageData[], categories: Category[]): Promise<LocalImageData[]>;
   addImages(
@@ -59,8 +59,9 @@ export interface IPCImageService {
       multiFilter: FilterOptions;
       sortBy: SortType;
       sortDirection: SortDirection;
+      limit?: number;
     }
-  ): Promise<LocalImageData[]>;
+  ): Promise<FetchDataResult>;
   getImageById(imageId: string): Promise<LocalImageData>;
 }
 export interface ImageDAO extends IPCImageService {

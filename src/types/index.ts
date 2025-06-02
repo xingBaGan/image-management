@@ -1,3 +1,5 @@
+import { FetchDataResult } from "electron/dao/type.cts";
+
 // =============== 基础类型定义 ===============
 export type ViewMode = 'grid' | 'list';
 
@@ -102,6 +104,7 @@ export enum ImportStatus {
   Imported = 'imported',
   Failed = 'failed',
   Loading = 'loading',
+  Loaded = 'loaded',
 }
 
 export enum InstallStatus {
@@ -288,8 +291,9 @@ export interface IPCImageService {
       multiFilter: FilterOptions;
       sortBy: SortType;
       sortDirection: SortDirection;
+      limit?: number;
     }
-  ): LocalImageData[];
+  ): Promise<FetchDataResult>;
   getImageById(imageId: string): Promise<LocalImageData>;
 }
 

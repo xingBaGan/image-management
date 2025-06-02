@@ -10,7 +10,8 @@ interface DragOverlayProps {
 }
 
 const DragOverlay: React.FC<DragOverlayProps> = ({ isDragging, importState, installStatus }) => {
-  const { t } = useLocale();  
+  const { t } = useLocale();
+  if (importState === ImportStatus.Loaded) return null;
   if (installStatus === InstallStatus.Installing) {
     return (
       <div className="flex fixed inset-0 z-10 justify-center items-center w-full h-full bg-black bg-opacity-10 backdrop-blur-sm">

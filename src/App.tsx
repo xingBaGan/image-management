@@ -4,11 +4,12 @@ import { Trash2, FolderPlus, Tags, Tag, FolderX } from 'lucide-react';
 import './App.css';
 import { useLocale } from './contexts/LanguageContext';
 import { scan } from "react-scan";
-import { useAppState } from './hooks/useAppState';
+import { useAppContext } from './contexts/AppContext';
 import { useAppEventHandlers } from './hooks/useAppEventHandlers';
 import { useAppDialogs } from './hooks/useAppDialogs';
 import { useAppUI } from './hooks/useAppUI';
 import { AppUI } from './components/AppUI';
+import { AppProvider } from './contexts/AppContext';
 
 // Define BulkAction interface
 interface BulkAction {
@@ -26,9 +27,9 @@ if (isDev) {
   scan({ enabled: true, log: true, showToolbar: true });
 }
 
-const App = () => {
+const AppContent = () => {
   // Call hooks at the top level of the component
-  const state = useAppState();
+  const state = useAppContext();
   const { t } = useLocale();
   const eventHandlers = useAppEventHandlers(state);
   const dialogs = useAppDialogs(state, eventHandlers);
@@ -175,5 +176,13 @@ const App = () => {
     />
   );
 }
+
+const App = () => {
+  return (
+    <AppProvider>
+      <AppContent />
+    </AppProvider>
+  );
+};
 
 export default App;

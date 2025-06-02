@@ -13,6 +13,7 @@ import {
   SortType,
   SortDirection,
   ColorInfo,
+  FetchDataResult
 } from '../type.cjs';
 import { promises as fsPromises } from 'fs';
 import { app } from 'electron';
@@ -238,7 +239,8 @@ export default class FileSystemImageDAO implements ImageDAO {
       filterColors,
       multiFilter,
       sortBy,
-      sortDirection
+      sortDirection,
+      limit
     }: {
       filter: FilterType;
       selectedCategory: FilterType | string;
@@ -248,8 +250,9 @@ export default class FileSystemImageDAO implements ImageDAO {
       multiFilter: FilterOptions;
       sortBy: SortType;
       sortDirection: SortDirection;
+      limit: number;
     }
-  ): Promise<LocalImageData[]> {
+  ): Promise<FetchDataResult> {
     let filtered = mediaList.filter(img => img.type !== 'video') as LocalImageData[];
 
     if (selectedCategory === FilterType.Videos) {
@@ -303,7 +306,7 @@ export default class FileSystemImageDAO implements ImageDAO {
       );
     }
 
-    return [...filtered].sort((a, b) => {
+     [...filtered].sort((a, b) => {
       let comparison = 0;
 
       switch (sortBy) {
@@ -319,7 +322,12 @@ export default class FileSystemImageDAO implements ImageDAO {
       }
 
       return sortDirection === 'asc' ? comparison : -comparison;
-    });
+    }).slice(0, limit);
+    return {
+      images: filtered,
+      limit,
+      hasMore: filtered.length != mediaList.length
+    }
   }
 
   async saveImagesAndCategories(images: LocalImageData[], categories: Category[]): Promise<boolean> {

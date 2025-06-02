@@ -1,11 +1,10 @@
 import { useCallback, useEffect } from 'react';
 import { filterAndSortImages } from '../services/imageOperations';
 import { FilterType, ImportStatus } from '../types';
-
 /**
  * Hook to manage UI-related functionality and effects
  */
-export const useAppUI = (state: ReturnType<typeof import('./useAppState').useAppState>) => {
+export const useAppUI = (state: any) => {
   const {
     mediaList,
     sortBy,
@@ -23,30 +22,31 @@ export const useAppUI = (state: ReturnType<typeof import('./useAppState').useApp
     selectedCategory: filterCategory,
     setSelectedImages,
     setSelectedImageForInfo,
-    viewingMedia
+    viewingMedia,
+    preLoadSize,
   } = state;
 
   const fetchData = useCallback(async () => {
     if (await window.electron.isReadFromDB()) {
-      setImportState(importState => importState !== ImportStatus.Imported ? importState : ImportStatus.Loading);
+      setImportState((importState: any) => importState !== ImportStatus.Imported ? importState : ImportStatus.Loading);
     }
-    
-    filterAndSortImages(mediaList, {
-      filter,
-      selectedCategory,
-      categories,
-      searchTags,
-      filterColors,
-      multiFilter,
-      sortBy,
-      sortDirection
-    }).then(images => {
+    try {
+      const { images, hasMore } = await filterAndSortImages(mediaList, {
+        filter,
+        selectedCategory,
+        categories,
+        searchTags,
+        filterColors,
+        multiFilter,
+        sortBy,
+        sortDirection,
+      });
       // Apply random sorting if randomInspiration is greater than 0
       if (randomInspiration > 0) {
         // Use Fisher-Yates shuffle algorithm with a better seed-based random number generator
         const shuffledImages = [...images];
         const seed = randomInspiration;
-        
+
         // Simple but effective seed-based random number generator
         const random = (index: number) => {
           const x = Math.sin(seed * 1000 + index) * 10000;
@@ -62,11 +62,13 @@ export const useAppUI = (state: ReturnType<typeof import('./useAppState').useApp
       } else {
         setFilteredAndSortedImages(images);
       }
-    }).finally(async () => {
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
       if (await window.electron.isReadFromDB()) {
         setImportState(ImportStatus.Imported);
       }
-    });
+    }
   }, [
     mediaList,
     sortBy,
@@ -79,14 +81,14 @@ export const useAppUI = (state: ReturnType<typeof import('./useAppState').useApp
     filterColors,
     randomInspiration,
     setFilteredAndSortedImages,
-    setImportState
+    setImportState,
   ]);
 
   // Update filtered images whenever relevant states change
   useEffect(() => {
     fetchData();
   }, [
-    fetchData
+    fetchData,
   ]);
 
   // Reset selection when category changes
@@ -109,7 +111,7 @@ export const useAppUI = (state: ReturnType<typeof import('./useAppState').useApp
     } else {
       state.setFilter(FilterType.All);
     }
-  }, [selectedCategory, state]);
+  }, [selectedCategory, state.setFilter]);
 
   return {
     // Any UI-specific functions or state could be returned here

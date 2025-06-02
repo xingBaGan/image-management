@@ -156,6 +156,9 @@ export const useAppEventHandlers = (state: ReturnType<typeof import('./useAppSta
 
   // Wrapped favorite function
   const handleFavorite = async (id: string) => {
+    if (await window.electron.isReadFromDB()) {
+      setImportState(ImportStatus.Loading);
+    }
     await handleFavoriteBase(id, categories);
   };
 
