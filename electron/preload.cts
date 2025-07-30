@@ -75,6 +75,7 @@ contextBridge.exposeInMainWorld('electron', {
     filterAndSortImages: (mediaList: LocalImageData[], options: any) => 
       ipcRenderer.invoke('filter-and-sort-images', mediaList, options),
     getImageById: (imageId: string) => ipcRenderer.invoke('get-image-by-id', imageId),
+    getTagFrequency: (options?: any) => ipcRenderer.invoke('get-tag-frequency', options),
   },
   // =============== 设置相关 ===============
   loadSettings: () => ipcRenderer.invoke('load-settings'),

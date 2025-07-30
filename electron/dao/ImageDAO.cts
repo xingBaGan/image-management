@@ -63,8 +63,20 @@ export interface IPCImageService {
     }
   ): Promise<FetchDataResult>;
   getImageById(imageId: string): Promise<LocalImageData>;
+  getTagFrequency(options?: TagFrequencyOptions): Promise<TagFrequency[]>;
 }
+export interface TagFrequency {
+  name: string;
+  times: number;
+}
+
+export interface TagFrequencyOptions {
+  sortDirection?: 'asc' | 'desc';
+  limit?: number;
+}
+
 export interface ImageDAO extends IPCImageService {
   getImagesAndCategories(): Promise<{ images: LocalImageData[], categories: Category[] }>;
   saveImagesAndCategories(images: LocalImageData[], categories: Category[]): Promise<boolean>;
+  getTagFrequency(options?: TagFrequencyOptions): Promise<TagFrequency[]>;
 }
