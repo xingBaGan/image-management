@@ -1,6 +1,16 @@
 import { ImportStatus, LocalImageData } from '../types/index.ts';
 import { getMainColor } from '../utils';
 
+export interface TagFrequency {
+  name: string;
+  times: number;
+}
+
+export interface TagFrequencyOptions {
+  sortDirection?: 'asc' | 'desc';
+  limit?: number;
+}
+
 const baseUrl = 'http://localhost:3000';
 
 async function getLocalImagePath(imagePath: string): Promise<string> {
@@ -92,5 +102,14 @@ export async function addTagsToImages(
     };
   } catch (error) {
     throw error;
+  }
+}
+
+export async function getTagFrequency(options?: TagFrequencyOptions): Promise<TagFrequency[]> {
+  try {
+    return await window.electron.imageAPI.getTagFrequency(options);
+  } catch (error) {
+    console.error('Error getting tag frequency:', error);
+    return [];
   }
 }

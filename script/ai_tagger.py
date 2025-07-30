@@ -5,6 +5,9 @@ import onnxruntime as ort
 from PIL import Image
 from typing import List, Tuple
 import sys
+import io
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 class AITagger:
     def __init__(self, models_dir: str = "models"):

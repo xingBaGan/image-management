@@ -295,6 +295,7 @@ export interface IPCImageService {
     }
   ): Promise<FetchDataResult>;
   getImageById(imageId: string): Promise<LocalImageData>;
+  getTagFrequency(options?: { sortDirection?: 'asc' | 'desc'; limit?: number }): Promise<{ name: string; times: number }[]>;
 }
 
 // =============== Electron API 类型 ===============

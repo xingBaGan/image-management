@@ -1,4 +1,5 @@
 import { Category, LocalImageData, FilterType, FilterOptions, SortType, SortDirection } from '../dao/type.cjs';
+import { TagFrequency, TagFrequencyOptions } from '../dao/ImageDAO.cjs';
 import { DAOFactory } from '../dao/DAOFactory.cjs';
 import { imageCountManager } from './FileService.cjs';
 
@@ -92,5 +93,9 @@ export const filterAndSortImages = (
 
 export const getImageById = async (imageId: string) => {
   return await imageDAO.getImageById(imageId);
+};
+
+export const getTagFrequency = async (options?: TagFrequencyOptions): Promise<TagFrequency[]> => {
+  return await imageDAO.getTagFrequency(options);
 };
 

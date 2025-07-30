@@ -1,4 +1,4 @@
-import { ImageDAO } from '../ImageDAO.cjs';
+import { ImageDAO, TagFrequency, TagFrequencyOptions } from '../ImageDAO.cjs';
 import {
   loadImagesData,
   saveImagesAndCategories,
@@ -15,6 +15,7 @@ import {
   ColorInfo,
   FetchDataResult
 } from '../type.cjs';
+import { tagFrequencyCache } from '../../services/tagFrequencyCache.cjs';
 import { promises as fsPromises } from 'fs';
 import { app } from 'electron';
 import * as path from 'path';
@@ -92,6 +93,11 @@ export default class FileSystemImageDAO implements ImageDAO {
       updatedImages,
       categories,
     );
+
+    // Invalidate cache when images are added
+    if (newImagesData.length > 0) {
+      tagFrequencyCache.invalidateCache();
+    }
 
     return updatedImages;
   }
@@ -199,6 +205,8 @@ export default class FileSystemImageDAO implements ImageDAO {
     const ids = updatedImages.map(img => img.id);
     if (ids.includes(mediaId)) {
       await saveImagesAndCategories(updatedImages, categories);
+      // Invalidate cache when tags are updated
+      tagFrequencyCache.invalidateCache();
     }
     return updatedImages;
   }
@@ -361,5 +369,18 @@ export default class FileSystemImageDAO implements ImageDAO {
     }
 
     return true;
+  }
+
+  async getTagFrequency(options: TagFrequencyOptions = {}): Promise<TagFrequency[]> {
+    try {
+      // Load all images data
+      const { images } = await loadImagesData();
+      
+      // Use cached tag frequency calculation
+      return await tagFrequencyCache.getTagFrequency(images, options);
+    } catch (error) {
+      console.error("Error getting tag frequency:", error);
+      return [];
+    }
   }
 }

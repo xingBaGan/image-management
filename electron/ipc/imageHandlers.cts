@@ -37,4 +37,8 @@ export const registerImageHandlers = () => {
   ipcMain.handle('get-image-by-id', async (_, imageId: string) => {
     return await imageService.getImageById(imageId);
   });
+
+  ipcMain.handle('get-tag-frequency', async (_, options?: any) => {
+    return await imageService.getTagFrequency(options);
+  });
 }; 

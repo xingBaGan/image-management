@@ -1,9 +1,10 @@
-import { ImageDAO } from '../ImageDAO.cjs';
+import { ImageDAO, TagFrequency, TagFrequencyOptions } from '../ImageDAO.cjs';
 import { LocalImageData, Category, FilterType, FilterOptions, SortType, SortDirection, VideoData, FetchDataResult } from '../type.cjs';
 import { ImageDatabase, Image } from '../../pouchDB/Database.cjs';
 import {
   deletePhysicalFile,
 } from '../../services/FileService.cjs';
+import { tagFrequencyCache } from '../../services/tagFrequencyCache.cjs';
 
 // 颜色相似度比较函数
 const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
@@ -175,6 +176,11 @@ export default class DBImageDAO implements ImageDAO {
         }
       }
 
+      // Invalidate cache when images are added
+      if (imagesToAdd.length > 0) {
+        tagFrequencyCache.invalidateCache();
+      }
+
       return [...currentImages, ...imagesToAdd];
     } catch (error) {
       console.error('Error adding images:', error);
@@ -214,6 +220,11 @@ export default class DBImageDAO implements ImageDAO {
           count: newImages.length
         };
       });
+
+      // Invalidate cache when images are deleted
+      if (selectedImages.size > 0) {
+        tagFrequencyCache.invalidateCache();
+      }
 
       return {
         updatedImages,
@@ -284,6 +295,9 @@ export default class DBImageDAO implements ImageDAO {
   ): Promise<LocalImageData[]> {
     try {
       await this.db.updateImage(mediaId, { tags: newTags });
+
+      // Invalidate cache when tags are updated
+      tagFrequencyCache.invalidateCache();
 
       return images.map(img =>
         img.id === mediaId ? { ...img, tags: newTags } : img
@@ -436,5 +450,19 @@ export default class DBImageDAO implements ImageDAO {
     }));
 
     return true;
+  }
+
+  async getTagFrequency(options: TagFrequencyOptions = {}): Promise<TagFrequency[]> {
+    try {
+      // Get all images from database
+      const dbImages = await this.db.getAllImages();
+      const images = dbImages.map(convertToLocalImageData);
+      
+      // Use cached tag frequency calculation
+      return await tagFrequencyCache.getTagFrequency(images, options);
+    } catch (error) {
+      console.error("Error getting tag frequency:", error);
+      return [];
+    }
   }
 }
