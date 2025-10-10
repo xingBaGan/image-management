@@ -1,9 +1,15 @@
 #!/bin/bash
 cd "$(dirname "$0")"
 
-# 检查是否安装了 Python
+# --------------------------------------------------------
+# 1. Check Python environment
+# --------------------------------------------------------
+
+echo "Checking Python environment..."
+
+# Check Python3
 if ! command -v python3 &> /dev/null; then
-    echo "Python3 未安装，正在安装..."
+    echo "Python3 is not installed. Attempting to install..."
     if command -v apt-get &> /dev/null; then
         sudo apt-get update
         sudo apt-get install -y python3
@@ -12,45 +18,54 @@ if ! command -v python3 &> /dev/null; then
     elif command -v brew &> /dev/null; then
         brew install python3
     else
-        echo "无法自动安装 Python3，请手动安装后重试"
-        read -p "按任意键继续..."
+        echo "Unable to auto-install Python3. Please install manually and retry."
+        read -p "Press any key to continue..."
         exit 1
     fi
 fi
 
-# 检查是否安装了 pip
+# Check pip3
 if ! command -v pip3 &> /dev/null; then
-    echo "pip3 未安装，正在安装..."
+    echo "pip3 is not installed. Installing..."
     if command -v apt-get &> /dev/null; then
         sudo apt-get install -y python3-pip
     elif command -v yum &> /dev/null; then
         sudo yum install -y python3-pip
     elif command -v brew &> /dev/null; then
-        curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-        python3 get-pip.py
-        rm get-pip.py
+        curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python3 get-pip.py && rm get-pip.py
     else
-        echo "无法自动安装 pip3，请手动安装后重试"
-        read -p "按任意键继续..."
+        echo "Unable to auto-install pip3. Please install manually and retry."
+        read -p "Press any key to continue..."
         exit 1
     fi
 fi
 
-# 检查是否安装了 python3-venv
+# Check Python version (>= 3.10)
+python3 -c 'import sys as s; s.exit(0) if s.version_info >= (3,10) else s.exit(1)'
+if [ $? -ne 0 ]; then
+    echo "Please install Python 3.10 or a newer version."
+    read -p "Press any key to continue..."
+    exit 1
+fi
+
+# Check python3-venv
 if command -v apt-get &> /dev/null; then
     if ! dpkg -l | grep -q python3-venv; then
-        echo "正在安装 python3-venv..."
+        echo "Installing python3-venv..."
         sudo apt-get update
         sudo apt-get install -y python3-venv
     fi
 elif command -v yum &> /dev/null; then
     if ! rpm -qa | grep -q python3-venv; then
-        echo "正在安装 python3-venv..."
+        echo "Installing python3-venv..."
         sudo yum install -y python3-venv
     fi
 fi
 
-# 获取资源路径
+# --------------------------------------------------------
+# 2. Create and activate virtual environment, install base deps
+# --------------------------------------------------------
+
 RESOURCES_PATH="resources"
 if [[ -f "Image Management.AppImage" ]]; then
     # AppImage运行时会自动挂载到/tmp/.mount_*目录
@@ -60,26 +75,44 @@ if [[ -f "Image Management.AppImage" ]]; then
     fi
 fi
 
-echo "Creating virtual environment..."
+echo "Creating virtual environment and installing base dependencies..."
 if [ ! -d "venv" ]; then
     python3 -m venv venv
     source venv/bin/activate
     pip install -r "requirements.txt"
-    echo "Environment setup completed successfully!"
+    echo "Base environment setup completed successfully!"
 else
-    echo "Virtual environment already exists."
+    echo "Virtual environment already exists. Activating and updating dependencies..."
     source venv/bin/activate
     pip install -r "requirements.txt"
-    echo "Dependencies updated successfully!"
+    echo "Base dependencies updated successfully!"
 fi
 
+# --------------------------------------------------------
+# 3. Check GPU and install ONNX Runtime and CuPy
+# --------------------------------------------------------
+
+echo
+echo "Checking for NVIDIA GPU to install optimized libraries..."
 if command -v nvidia-smi &> /dev/null; then
-    echo "NVIDIA GPU detected."
-    source venv/bin/activate
-    pip install cupy-cuda12x
+    echo "NVIDIA GPU detected. Installing ONNX Runtime GPU version and CuPy..."
+    pip install onnxruntime-gpu
+    if [ $? -ne 0 ]; then
+        echo "WARNING: onnxruntime-gpu installation failed. Continuing with CPU version..."
+        pip install onnxruntime
+    else
+        echo "onnxruntime-gpu and CUDA dependencies installed."
+    fi
+
+    pip install cupy-cuda12x || echo "WARNING: CuPy installation failed. This might affect performance."
 else
-    echo "Skipping CuPy installation as no NVIDIA GPU is detected."
+    echo "No NVIDIA GPU detected. Installing CPU-only version of ONNX Runtime."
+    pip install onnxruntime || echo "INFO: onnxruntime may already be installed. Continuing..."
 fi
+
+# --------------------------------------------------------
+# 4. Download AI models
+# --------------------------------------------------------
 
 echo
 echo "Downloading AI model..."

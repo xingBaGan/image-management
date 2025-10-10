@@ -1,4 +1,5 @@
-onnxruntime-gpu>=1.15.0
+# ONNX Runtime is installed per-environment by install scripts (CPU or GPU)
+# Do not pin here to keep CPU-only and CUDA setups compatible
 Pillow>=10.0.0
 numpy>=1.24.0
 requests>=2.31.0
