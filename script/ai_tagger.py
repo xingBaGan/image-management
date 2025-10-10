@@ -1,27 +1,48 @@
 import os
 import csv
 import numpy as np
-import onnxruntime as ort
-from PIL import Image
-from typing import List, Tuple
 import sys
 import io
+from PIL import Image
+from typing import List, Tuple
+
+# Safe import for onnxruntime with actionable error message
+try:
+    import onnxruntime as ort
+except Exception as import_error:  # noqa: F401
+    ort = None
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 class AITagger:
     def __init__(self, models_dir: str = "models"):
         """
-        初始化AI图片标注器
+        Initialize AI image tagger
         
         Args:
-            models_dir: 模型文件存储目录
+            models_dir: Directory to store model files
         """
-        # 使用绝对路径
+        # Use absolute path for model directory
         self.models_dir = os.path.abspath(models_dir)
-        self.providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] 
         
-        # 确保模型目录存在
+        # Validate onnxruntime availability early with helpful guidance
+        if ort is None:
+            raise RuntimeError(
+                "Failed to import onnxruntime. Ensure your Python (64-bit) matches the installed onnxruntime, "
+                "and that the Microsoft Visual C++ Redistributable is installed. On Windows, prefer 'onnxruntime' "
+                "for CPU or 'onnxruntime-gpu' for CUDA builds."
+            )
+        
+        # Dynamically detect available providers and prefer GPU/accelerated backends when present
+        available = set(ort.get_available_providers())
+        preferred_order = ["CUDAExecutionProvider", "DmlExecutionProvider", "CPUExecutionProvider"]
+        self.providers = [p for p in preferred_order if p in available]
+        if not self.providers:
+            raise RuntimeError(
+                f"No ONNX Runtime execution providers are available. Detected: {list(available)}"
+            )
+        
+        # Ensure model directory exists
         if not os.path.exists(self.models_dir):
             os.makedirs(self.models_dir)
             print(f"创建模型目录: {self.models_dir}")
@@ -90,19 +111,30 @@ class AITagger:
         replace_underscore = replace_underscore if replace_underscore is not None else self.defaults["replace_underscore"]
         trailing_comma = trailing_comma if trailing_comma is not None else self.defaults["trailing_comma"]
 
-        # 加载模型
+        # Load model
         model_path = os.path.join(self.models_dir, f"{model_name}.onnx")
         if not os.path.exists(model_path):
             raise FileNotFoundError(f"模型文件不存在: {model_path}")
             
-        # 检查文件大小
+        # Validate file size
         if os.path.getsize(model_path) == 0:
             raise ValueError(f"模型文件损坏或为空: {model_path}")
             
         try:
             model = ort.InferenceSession(model_path, providers=self.providers)
         except Exception as e:
-            raise RuntimeError(f"加载模型失败: {str(e)}")
+            # Retry with CPU as a fallback if available and not already used
+            try:
+                if "CPUExecutionProvider" in ort.get_available_providers() and self.providers != ["CPUExecutionProvider"]:
+                    model = ort.InferenceSession(model_path, providers=["CPUExecutionProvider"])
+                else:
+                    raise
+            except Exception:
+                raise RuntimeError(
+                    "加载模型失败: "
+                    + str(e)
+                    + " | 提示: 检查 onnxruntime 安装是否匹配当前环境 (Python 位数/版本), 并确认 GPU 依赖 (如 CUDA/cuDNN 或 DML) 已正确安装。"
+                )
         
         # 加载和预处理图片
         image = Image.open(image_path)
