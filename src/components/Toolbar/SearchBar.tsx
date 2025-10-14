@@ -43,6 +43,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       setTags(Array.from(newTags));
       setInputValue('');
       onSearch(Array.from(newTags));
+      setSelectedTags([...newTags, ...selectedTags]);
     } else if (e.key === 'Escape') {
       setIsSearchOpen(false);
       setInputValue('');
@@ -84,8 +85,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
     <div ref={searchRef} className="relative">
       {isSearchOpen ? (
         <div className="flex items-center bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600 p-2 min-w-[300px]">
-          <div 
-            className="flex overflow-y-hidden overflow-x-auto flex-1 gap-2 max-h-[30px] max-w-[300px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-700 dark:scrollbar-track-transparent"
+          <div
+            className="no-scrollbar flex overflow-y-hidden overflow-x-auto flex-1 gap-2 max-h-[30px] max-w-[300px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-700 dark:scrollbar-track-transparent"
             onWheel={e => {
               e.preventDefault();
               const container = e.currentTarget;
@@ -129,7 +130,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           {/* flex流式布局建议列表，每行约4个，无横向滚动条 */}
           {showSuggestions && filteredOptions.length > 0 && (
             <ul
-              className="flex flex-wrap gap-2 overflow-y-auto absolute top-8 z-10 mt-1 w-[60vw] h-auto rounded-xl border-none shadow-none bg-white/70 dark:bg-gray-800/70 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-700 dark:scrollbar-track-transparent"
+              className="flex flex-wrap gap-2 overflow-y-auto absolute top-8 z-10 mt-1 p-2 w-[40vw] h-auto rounded-xl border-none shadow-none bg-white/70 dark:bg-gray-800/70 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-700 dark:scrollbar-track-transparent"
               style={{ minWidth: 200 }}
               tabIndex={-1}
               onMouseDown={e => e.preventDefault()}
@@ -151,6 +152,16 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   <span className="ml-2 text-xs text-gray-400">{option.times}</span>
                 </li>
               ))}
+              <span
+                title="Close"
+                onMouseDown={() => {
+                  setShowSuggestions(false)
+                  inputRef.current?.blur()
+                }}
+                className="absolute right-0 bottom-0 p-1 m-2 text-gray-600 rounded-full border border-gray-200 bg-white/80 dark:bg-gray-800/80 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-700 dark:text-gray-300"
+              >
+                <X size={14} />
+              </span>
             </ul>
           )}
         </div>

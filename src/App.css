@@ -34,6 +34,14 @@
   }
 }
 
+.no-scrollbar {
+  /* 对于 Firefox */
+  scrollbar-width: none;
+  /* 对于 WebKit 浏览器 (Chrome, Safari, new Edge, Opera) */
+  -ms-overflow-style: none;  /* 对于 IE 和 Edge (老版本) */
+}
+
+
 /* 当鼠标不在容器上时隐藏滚动条 */
 .scroll-smooth {
   scrollbar-gutter: stable;
