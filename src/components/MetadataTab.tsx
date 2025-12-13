@@ -31,13 +31,17 @@ const PromptTags: React.FC<PromptTagsProps> = ({ title, prompts }) => {
         const selectedText = Array.from(selectedPrompts).map((index: number) => prompts[index]);
         const selectedTextJson = JSON.stringify(selectedText);
         await navigator.clipboard.writeText(selectedTextJson);
-        toast.success(t('copyPromptsSuccess'));
+        toast.info(t('copyPromptsSuccess'), {
+          position: 'bottom-right',
+        });
     };
 
     const copyAll = async () => {
         const allText = JSON.stringify(prompts);
         await navigator.clipboard.writeText(allText);
-        toast.success(t('copyPromptsSuccess'));
+        toast.info(t('copyPromptsSuccess'), {
+          position: 'bottom-right',
+        });
     };
 
     return (
@@ -79,7 +83,6 @@ const PromptTags: React.FC<PromptTagsProps> = ({ title, prompts }) => {
                             onClick={() => togglePrompt(index)}
                             title={prompt}
                         >
-                            {isSelected && <CheckSquare className="w-3 h-3 flex-shrink-0" />}
                             <span className="truncate max-w-32">{prompt}</span>
                         </div>
                     );

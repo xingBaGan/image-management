@@ -63,7 +63,9 @@ const MediaTags: React.FC<MediaTagsProps> = ({
         const newTags = new Set([...selectedTags, ...parsedTags]);
         setSelectedTags(Array.from(newTags));
         onTagsUpdate(mediaId, Array.from(newTags));
-        toast.success(t('pasteTagsSuccess'));
+        toast.info(t('pasteTagsSuccess'), {
+          position: 'bottom-right',
+        });
         setInputValue('');
       }
     } catch (error) {
@@ -93,7 +95,9 @@ const MediaTags: React.FC<MediaTagsProps> = ({
         <button
           onClick={() => {
             navigator.clipboard.writeText(JSON.stringify(selectedTags));
-            toast.success(t('copyTagsSuccess'));
+            toast.info(t('copyTagsSuccess'), {
+              position: 'bottom-right',
+            });
           }}
           className="fixed z-10 top-1 right-1 p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
           aria-label={t('copyTags')}
