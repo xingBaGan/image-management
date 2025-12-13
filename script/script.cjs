@@ -21,6 +21,15 @@ let options = {
     args: []
 };
 const delimiter = ', ';
+const normalizeImagePath = (inputPath) => {
+    if (!inputPath) {
+        throw new Error("Image path is required");
+    }
+    if (inputPath.startsWith("file://")) {
+        return inputPath.replace("file://", "");
+    }
+    return inputPath;
+};
 async function tagImage(imagePath, modelName) {
     const model_dir_path = isDev ? path.join(__dirname, '../models') : path.join(process.resourcesPath, 'models');
     const tag_path = isDev ? path.join(__dirname, './ai_tagger.py') : path.join(process.resourcesPath, 'script', 'ai_tagger.py');
@@ -251,9 +260,37 @@ async function installEnvironment() {
         process.unref();
     });
 }
+async function readImageMetadata(imagePath) {
+    const metadata_path = isDev ? path.join(__dirname, './read_image_metadata.py') : path.join(process.resourcesPath, 'script', 'read_image_metadata.py');
+    options.scriptPath = path.dirname(metadata_path);
+    try {
+        const normalizedPath = normalizeImagePath(imagePath);
+        options.args = [normalizedPath];
+        const result = await PythonShell.run(path.basename(metadata_path), options);
+        if (result && result.length > 0) {
+            // 解析 JSON 输出
+            const jsonStr = result.join('');
+            const metadata = JSON.parse(jsonStr);
+            // 如果返回的是错误对象，返回 null
+            if (metadata && metadata.error) {
+                console.log("Image metadata parsing failed:", metadata.error);
+                return null;
+            }
+            return metadata;
+        }
+        return null;
+    }
+    catch (error) {
+        // 如果解析失败（例如图片没有特定格式的元数据），返回 null 而不是抛出错误
+        // 这样可以避免影响其他处理流程
+        console.log("Image metadata parsing failed (this is normal for images without specific metadata formats):", imagePath);
+        return null;
+    }
+}
 module.exports = {
     tagImage,
     getMainColor,
     installEnvironment,
-    checkEnvironment
+    checkEnvironment,
+    readImageMetadata
 };

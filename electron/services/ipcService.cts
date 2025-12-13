@@ -18,7 +18,7 @@ import {
   generateVideoThumbnail,
   processDirectoryFiles 
 } from './mediaService.cjs';
-import { tagImage, getMainColor, checkEnvironment, installEnvironment } from '../../script/script.cjs';
+import { tagImage, getMainColor, checkEnvironment, installEnvironment, readImageMetadata } from '../../script/script.cjs';
 import { tagQueue, colorQueue } from './queueService.cjs';
 import { logger } from './logService.cjs';
 import { MAX_IMAGE_COUNT } from '../services/checkImageCount.cjs';
@@ -201,6 +201,18 @@ const init = (): void => {
       }, taskId);
     } catch (error) {
       logger.error('图片标签分析失败:', { error } as LogMeta);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("read-image-metadata", async (event, imagePath: string) => {
+    try {
+      imagePath = decodeURIComponent(imagePath);
+      imagePath = imagePath.replace("local-image://", "");
+      const metadata = await readImageMetadata(imagePath);
+      return metadata;
+    } catch (error) {
+      logger.error("读取图片元数据失败:", { error } as LogMeta);
       throw error;
     }
   });

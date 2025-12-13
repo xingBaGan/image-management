@@ -121,6 +121,7 @@ export const translations = {
     confirmTagTitle: 'Confirm Tag',
     confirmTagMessage: 'Are you sure you want to add the same tags to these {{count}} images?',
     copyTagsSuccess: 'Tags copied to clipboard',
+    copyPromptsSuccess: 'Prompts copied to clipboard',
     pasteTagsSuccess: 'Tags pasted',
 
     // Colors
@@ -224,6 +225,23 @@ export const translations = {
     tunnelStopped: 'Image server stopped',
     copy_url_success: 'URL copied to clipboard',
     scan_to_upload: 'Scan QR code to upload image',
+
+    // Metadata Tab
+    positivePrompt: 'Positive Prompt',
+    negativePrompt: 'Negative Prompt',
+    model: 'Model',
+    name: 'Name',
+    hash: 'Hash',
+    id: 'ID',
+    generator: 'Generator',
+    sampler: 'Sampler',
+    scheduler: 'Scheduler',
+    cfgScale: 'CFG Scale',
+    seed: 'Seed',
+    steps: 'Steps',
+    noMetadataAvailable: 'No metadata available',
+    copySelectedPrompts: 'Copy selected prompts',
+    copyAllPrompts: 'Copy all prompts',
   },
   zh: {
     // 工具栏
@@ -292,6 +310,7 @@ export const translations = {
     confirmTagTitle: '确认添加标签',
     confirmTagMessage: '确定要这{{count}}张图片添加相同的标签吗？',
     copyTagsSuccess: '标签已复制到剪贴板',
+    copyPromptsSuccess: '提示词已复制到剪贴板',
     pasteTagsSuccess: '标签已粘贴',
 
     // 搜索
@@ -451,5 +470,22 @@ export const translations = {
     tunnelStopped: '图片服务器已停止',
     copy_url_success: 'URL已复制到剪贴板',
     scan_to_upload: '扫描二维码上传图片',
+
+    // Metadata Tab
+    positivePrompt: '正向提示词',
+    negativePrompt: '反向提示词',
+    model: '模型',
+    name: '名称',
+    hash: '哈希',
+    id: 'ID',
+    generator: '图片工具',
+    sampler: '采样器',
+    scheduler: '调度器',
+    cfgScale: 'CFG比例',
+    seed: '种子',
+    steps: '步数',
+    noMetadataAvailable: '无可用元数据',
+    copySelectedPrompts: '复制选中内容',
+    copyAllPrompts: '复制所有内容',
   }
 }; 

@@ -64,6 +64,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
         setSelectedTags(Array.from(newTags));
         onTagsUpdate(mediaId, Array.from(newTags));
         toast.success(t('pasteTagsSuccess'));
+        setInputValue('');
       }
     } catch (error) {
       // Invalid JSON, do nothing
@@ -87,34 +88,34 @@ const MediaTags: React.FC<MediaTagsProps> = ({
             </button>
           </div>
         ))}
-        {showCopyButton && (
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(JSON.stringify(selectedTags));
-              toast.success(t('copyTagsSuccess'));
-            }}
-          className="fixed right-1 bottom-1 p-1 text-gray-500 hover:text-gray-700 focus:outline-none"
+      </div>
+      {showCopyButton && (
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(JSON.stringify(selectedTags));
+            toast.success(t('copyTagsSuccess'));
+          }}
+          className="fixed z-10 top-1 right-1 p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
           aria-label={t('copyTags')}
           title={t('copyTags')}
         >
           <Copy size={16} />
-          </button>
-        )}
-        {showClearButton && (
-          <button
-            onClick={() => {
-              setSelectedTags([]);
-              onTagsUpdate(mediaId, []);
-            }}
-            className="fixed right-1 bottom-1 p-1 text-gray-500 hover:text-gray-700 focus:outline-none"
-            aria-label={t('clearTags')}
-            title={t('clearTags')}
-          >
-            <Trash size={16} />
-          </button>
-        )}
-      </div>
-      <input
+        </button>
+      )}
+      {showClearButton && (
+        <button
+          onClick={() => {
+            setSelectedTags([]);
+            onTagsUpdate(mediaId, []);
+          }}
+          className="fixed right-1 bottom-1 p-1 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+          aria-label={t('clearTags')}
+          title={t('clearTags')}
+        >
+          <Trash size={16} />
+        </button>
+      )}
+     <input
         type="text"
         value={inputValue}
         onChange={handleInputChange}
