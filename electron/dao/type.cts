@@ -41,7 +41,7 @@ export interface Category {
   children?: Category['id'][];
   father?: Category['id'] | null; // 新增父分类属性
   level?: number;
-  }
+}
 
 export interface QueryOptions {
   limit?: number;
@@ -86,8 +86,33 @@ export interface BaseMediaData extends MediaInfo {
   isDirty?: boolean;
 }
 
+export interface Sampler {
+  name: string;
+  parameters: {
+    scheduler: string;
+    cfg_scale: number;
+    seed: number;
+    steps: number;
+  };
+}
+
+export interface Model {
+  name: string;
+  hash: string;
+  model_id: string;
+  metadata: Record<string, unknown>;
+}
+export interface ImageMetadata {
+  generator: string;
+  positive_prompts: string[];
+  negative_prompts: string[];
+  model: Model|string;
+  samplers: Sampler;
+}
+
 export interface ImageData extends BaseMediaData {
   type: 'image';
+  metadata?: ImageMetadata;
 }
 
 export interface VideoData extends BaseMediaData {

@@ -1,0 +1,12 @@
+ignoredBuiltDependencies:
+  - esbuild
+  - leveldown
+  - phantomjs-prebuilt
+  - sharp
+
+onlyBuiltDependencies:
+  - electron
+  - esbuild
+  - leveldown
+  - phantomjs-prebuilt
+  - sharp

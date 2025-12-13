@@ -33,6 +33,7 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.invoke('save-image-to-local', imageBuffer, fileName, ext),
   tagImage: (imagePath: string, modelName: string) => ipcRenderer.invoke('tag-image', imagePath, modelName),
   getMainColor: (imagePath: string) => ipcRenderer.invoke('get-main-color', imagePath),
+  readImageMetadata: (imagePath: string) => ipcRenderer.invoke('read-image-metadata', imagePath),
   downloadUrlImage: (url: string) => ipcRenderer.invoke('download-url-image', url),
 
   // =============== 分类管理相关 ===============

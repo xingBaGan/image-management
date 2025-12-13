@@ -1,4 +1,4 @@
-import { LocalImageData, Category, ImportFile, ImportStatus } from './types/index.ts';
+import { LocalImageData, Category, ImportFile, ImportStatus, ImageMetadata } from './types/index.ts';
 import { defaultModel } from './config.mts';
 
 export const generateHashId = (filePath: string, fileSize: number): string => {
@@ -134,6 +134,14 @@ export const processMedia = async (
       colors = await getMainColor(file);
     }
     const ratio = await getRatio(width || imageSize.width, height || imageSize.height);
+    let metadata: ImageMetadata = null;
+    if (isImage) {
+      try {
+        metadata = await window.electron.readImageMetadata(file.path);
+      } catch (error) {
+        console.error('读取图片元数据失败', error);
+      }
+    }
     return {
       id: newId,
       ratio: ratio,
@@ -153,6 +161,7 @@ export const processMedia = async (
       height: isImage ? imageSize.height : height,
       rating: 0,
       colors: colors,
+      ...(isImage && { metadata }),
     };
   }));
 

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Category } from './types/index.ts';
 import { Trash2, FolderPlus, Tags, Tag, FolderX } from 'lucide-react';
 import './App.css';

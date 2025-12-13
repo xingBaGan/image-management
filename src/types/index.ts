@@ -53,6 +53,7 @@ export interface BaseMediaData extends MediaInfo {
 
 export interface ImageData extends BaseMediaData {
   type: 'image';
+  metadata?: ImageMetadata;
 }
 
 export interface VideoData extends BaseMediaData {
@@ -204,6 +205,31 @@ export enum FolderContentChangeType {
   Remove = 'remove',
 }
 
+export interface Sampler {
+  name: string;
+  parameters: {
+    scheduler: string;
+    cfg_scale: number;
+    seed: number;
+    steps: number;
+  };
+}
+
+export interface Model {
+  name: string;
+  hash: string;
+  model_id: string;
+  metadata: Record<string, unknown>;
+}
+export interface ImageMetadata {
+  generator: string;
+  positive_prompts: string[];
+  negative_prompts: string[];
+  model: Model|string;
+  samplers: Sampler;
+}
+
+
 export interface ipcCategoryAPI {
   // Category Service Methods
   addCategory: (newCategory: Category, images: LocalImageData[], categories: Category[]) => Promise<Category[]>;
@@ -320,6 +346,7 @@ export interface ElectronAPI {
   isRemoteComfyUI: () => Promise<boolean>;
   readFile: (filePath: string) => Promise<Buffer>;
   tagImage: (imagePath: string, modelName: string) => Promise<string[]>;
+  readImageMetadata: (imagePath: string) => Promise<ImageMetadata>;
   processDirectoryFiles: (dirPath: string| string[],currentCategory?: null | Category) => Promise<[LocalImageData[], Category]>;
   openInEditor: (filePath: string) => Promise<{ success: boolean; error?: string }>;
   downloadUrlImage: (url: string) => Promise<DownloadUrlImageResult>;
