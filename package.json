@@ -27,7 +27,7 @@
     "test:coverage": "yarn build && jest --coverage",
     "view-db": "node scripts/view-db.cjs",
     "download:cloudflared": "node script/download-cloudflared.cjs",
-    "build:image-management": "cd image-management && npm install && npm build",
+    "build:image-management": "cd image-management && npm install && npm run build",
     "prepare:cloudflared": "npm run download:cloudflared",
     "benchmark:database": "node electron/pouchDB/database.performance.cjs"
   },
