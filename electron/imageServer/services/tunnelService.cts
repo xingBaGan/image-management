@@ -9,9 +9,13 @@ export class TunnelService {
     static async startTunnel(port: number): Promise<string> {
         return new Promise((resolve, reject) => {
             try {
+                // 根据操作系统选择正确的 cloudflared 可执行文件名
+                const platform = process.platform;
+                const cloudflaredExecutable = platform === 'win32' ? 'cloudflared.exe' : 'cloudflared';
+                
                 const cloudflaredPath = this.isDev
-                    ? path.join(__dirname, '..', '..', '..', 'bin', 'cloudflared.exe')
-                    : path.join(process.resourcesPath, 'bin', 'cloudflared.exe');
+                    ? path.join(__dirname, '..', '..', '..', 'bin', cloudflaredExecutable)
+                    : path.join(process.resourcesPath, 'bin', cloudflaredExecutable);
 
                 if (!require('fs').existsSync(cloudflaredPath)) {
                     throw new Error('cloudflared 未安装，请先下载安装 cloudflared');
