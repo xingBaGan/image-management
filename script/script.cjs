@@ -84,18 +84,24 @@ async function checkEnvironment() {
         models: false,
         venvPackages: false
     };
+    let pythonPath = 'python';
+    let pipPath = 'pip';
+    if (isMac) {
+        pythonPath = 'python3';
+        pipPath = 'pip3';
+    }
     try {
         // 检查 Python 是否安装
         try {
-            const pythonVersion = execSync('python --version').toString();
-            checks.python = pythonVersion.includes('Python 3');
+            const pythonVersion = execSync(`${pythonPath} --version`).toString();
+            checks.python = pythonVersion.includes('Python');
         }
         catch (err) {
             console.error('Python check failed:', err.message);
         }
         // 检查 pip 是否安装
         try {
-            const pipVersion = execSync('pip --version').toString();
+            const pipVersion = execSync(`${pipPath} --version`).toString();
             checks.pip = pipVersion.includes('pip');
         }
         catch (err) {
@@ -103,7 +109,7 @@ async function checkEnvironment() {
         }
         // 检查 venv 是否可用
         try {
-            const venvCheck = execSync('python -c "import venv"').toString();
+            const venvCheck = execSync(`${pythonPath} -c "import venv"`).toString();
             checks.venv = true;
         }
         catch (err) {
@@ -184,27 +190,24 @@ async function installEnvironment() {
         throw new Error(`Installation script not found: ${scriptPath}`);
     }
     return new Promise((resolve, reject) => {
-        let process;
+        let child;
         // 根据不同平台使用不同的终端打开方式
         if (platform === 'win32') {
             // Windows: 使用 start cmd.exe 并在脚本执行完后自动退出
-            process = spawn('cmd.exe', ['/c', 'start', 'cmd.exe', '/c', `${scriptPath} && exit`], {
+            child = spawn('cmd.exe', ['/c', 'start', 'cmd.exe', '/c', `${scriptPath} && exit`], {
                 shell: true,
                 detached: true
             });
         }
         else if (platform === 'darwin') {
-            // macOS: 使用 osascript 来控制 Terminal
-            const script = `
+            // 优化后的 AppleScript：先打开终端，再执行脚本，执行完后退出终端窗口
+            const appleScript = `
                 tell application "Terminal"
-                    do script "\"${scriptPath}\" && exit"
+                    do script (quoted form of "${scriptPath}") & " && exit"
                     activate
                 end tell
             `;
-            process = spawn('osascript', ['-e', script], {
-                shell: true,
-                detached: true
-            });
+            child = spawn('osascript', ['-e', appleScript], { detached: true, stdio: 'ignore' });
         }
         else {
             // Linux: 使用 x-terminal-emulator 或其他终端模拟器
@@ -232,32 +235,33 @@ async function installEnvironment() {
             }
             // 根据不同的终端使用不同的命令
             if (terminalCmd === 'gnome-terminal') {
-                process = spawn(terminalCmd, ['--', 'bash', '-c', `${scriptPath}; read -p "Installation complete. Press enter to exit..." && exit`], {
+                child = spawn(terminalCmd, ['--', 'bash', '-c', `${scriptPath}; read -p "Installation complete. Press enter to exit..." && exit`], {
                     shell: true,
                     detached: true
                 });
             }
             else if (terminalCmd === 'konsole') {
-                process = spawn(terminalCmd, ['-e', 'bash', '-c', `${scriptPath}; read -p "Installation complete. Press enter to exit..." && exit`], {
+                child = spawn(terminalCmd, ['-e', 'bash', '-c', `${scriptPath}; read -p "Installation complete. Press enter to exit..." && exit`], {
                     shell: true,
                     detached: true
                 });
             }
             else {
-                process = spawn(terminalCmd, ['-e', `bash -c "${scriptPath}; read -p 'Installation complete. Press enter to exit...' && exit"`], {
+                child = spawn(terminalCmd, ['-e', `bash -c "${scriptPath}; read -p 'Installation complete. Press enter to exit...' && exit"`], {
                     shell: true,
                     detached: true
                 });
             }
         }
         // 分离子进程，让它在新窗口中独立运行
-        process.on('error', (err) => {
+        child.on('error', (err) => {
             reject(new Error(`Failed to start installation process: ${err.message}`));
         });
-        process.on('close', (code) => {
+        child.on('close', (code) => {
             resolve(true);
         });
-        process.unref();
+        if (child.unref)
+            child.unref();
     });
 }
 async function readImageMetadata(imagePath) {

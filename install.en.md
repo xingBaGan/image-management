@@ -1,7 +1,7 @@
 ## Environment Installation
 [Chinese Version](install.zh.md)
 
-requirement: python 3.10+
+requirement: python 3.10-3.13
 
 Run the appropriate installation script [in the resources directory] according to your operating system:
 
