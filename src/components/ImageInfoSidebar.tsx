@@ -75,9 +75,9 @@ const ImageInfoSidebar: React.FC<ImageInfoSidebarProps> = ({
             }}
         >
             {/* Tab Navigation */}
-            <div className={`flex mb-4 border-b border-gray-200 dark:border-gray-700 ${hasMetadata ? '' : 'justify-center'}`}>
+            <div className={`flex mb-4 border-b border-gray-200 dark:border-gray-700 ${hasMetadata ? '' : 'justify-start pl-4'}`}>
                 <button
-                    className={`${hasMetadata ? 'flex-1' : 'w-full'} py-2 px-4 text-sm font-medium text-center transition-colors ${
+                    className={`${hasMetadata ? 'flex-1' : 'w-full'} max-w-[100px] py-2 px-4 text-sm font-medium text-center transition-colors ${
                         activeTab === 'basic'
                             ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
                             : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'

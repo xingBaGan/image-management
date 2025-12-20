@@ -99,7 +99,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
               position: 'bottom-right',
             });
           }}
-          className="fixed z-10 top-1 right-1 p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          className="fixed z-10 bottom-1 right-1 p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
           aria-label={t('copyTags')}
           title={t('copyTags')}
         >
@@ -125,7 +125,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
         onChange={handleInputChange}
         onKeyDown={handleInputKeyDown}
         placeholder={t('tagInput')}
-        className="p-1 mt-2 w-full text-sm placeholder-gray-500 text-gray-700 bg-transparent outline-none border-t-1 dark:text-blue-300 dark:placeholder-gray-400"
+        className="p-1 mt-1 w-full text-sm placeholder-gray-500 text-gray-700 bg-transparent outline-none border-t-1 dark:text-blue-300 dark:placeholder-gray-400"
       />
     </div>
   );

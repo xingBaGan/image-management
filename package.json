@@ -197,6 +197,10 @@
     "asar": {
       "smartUnpack": true
     },
+    "asarUnpack": [
+      "node_modules/sharp/**/*",
+      "node_modules/@img/**/*"
+    ],
     "mac": {
       "category": "public.app-category.developer-tools",
       "target": [

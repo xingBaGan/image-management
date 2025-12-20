@@ -8,6 +8,7 @@ import { DAOFactory } from '../../dao/DAOFactory.cjs';
 import { noticeDataChanged } from '../../main.cjs';
 import { LocalImageData } from '../../dao/type.cjs';
 import { ImagesResponse } from '../models/types';
+const isMac = process.platform === 'darwin';
 
 const imageDAO = DAOFactory.getImageDAO();
 
@@ -87,13 +88,19 @@ export class ImageService {
         const allImagesData = await imageDAO.getImagesAndCategories();
         const filteredImages = (allImagesData.images as LocalImageData[])
             .filter(img => img.type === 'image' && img.path && img.id && typeof img.width === 'number' && typeof img.height === 'number')
-            .map(img => ({
-                ...img,
-                name: img.name ? `${img.name}${img.extension ? '.' + img.extension : ''}` : `image_${img.id}`,
-                id: img.id,
-                width: img.width,
-                height: img.height,
-            }));
+            .map(img => {
+                let imgName  = img.name;
+                if (!imgName.includes(img.extension)) {
+                    imgName = `${imgName}.${img.extension}`;
+                }
+                return ({
+                    ...img,
+                    name: imgName,
+                    id: img.id,
+                    width: img.width,
+                    height: img.height,
+                })
+            });
 
         const totalImages = filteredImages.length;
         const totalPages = Math.ceil(totalImages / pageSize);
@@ -123,8 +130,10 @@ export class ImageService {
         }
 
         const localPath = image.path.replace('local-image://', '');
-        const filePath = decodeURIComponent(localPath.replace(/^\//, ''));
-
+        let filePath = decodeURIComponent(localPath.replace(/^\//, ''));
+        if (isMac) {
+            filePath = '/' + filePath;
+        }
         if (!fs.existsSync(filePath)) {
             throw new Error('图片文件不存在');
         }

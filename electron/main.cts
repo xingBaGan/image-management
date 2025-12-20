@@ -160,11 +160,14 @@ async function _startComfyUIServer(comfyUI_url: string): Promise<ChildProcess> {
   console.log('----ComfyUI_URL----', comfyUI_url);
   console.log('ComfyUI 服务器路径:', serverPath);
 
-  const serverProcess = spawn('node', [serverPath, comfyUI_url], {
+  // Use Electron's built-in Node.js path instead of 'node' command
+  const nodePath = process.execPath;
+  const serverProcess = spawn(nodePath, [serverPath, comfyUI_url], {
     stdio: 'pipe',
     env: {
       ...process.env,
-      NODE_NO_WARNINGS: '1'
+      NODE_NO_WARNINGS: '1',
+      ELECTRON_RUN_AS_NODE: '1'
     }
   });
 
@@ -432,4 +435,10 @@ export async function noticeDataChanged() {
     window.webContents.send('image-data-changed');
   });
 }
-startAPIServer(port);
+
+// 确保只有主进程才启动图片服务器
+// 检查是否是子进程启动（通过查看process.argv）
+const isChildProcess = process.argv.some(arg => arg.includes('comfyui_client'));
+if (!isChildProcess) {
+  startAPIServer(port);
+}
