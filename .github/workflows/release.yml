@@ -66,13 +66,13 @@ jobs:
           packageManager: pnpm
 
       - name: Build Electron App
-        run: npm run electron:build
+        run: pnpm electron:build
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          NODE_ENV: production
 
-      - name: Upload Artifacts
-        uses: softprops/action-gh-release@v1
-        with:
-          files: dist-electron/${{ matrix.output }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }} 
+      - name: Verify Build Artifacts
+        run: |
+          echo "Verifying build artifacts..."
+          ls -la dist-electron/
+          du -sh dist-electron/${{ matrix.output }}
