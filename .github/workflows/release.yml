@@ -74,5 +74,16 @@ jobs:
       - name: Verify Build Artifacts
         run: |
           echo "Verifying build artifacts..."
-          ls -la dist-electron/
-          du -sh dist-electron/${{ matrix.output }}
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            Get-ChildItem -Path dist-electron
+            Get-ChildItem -Path dist-electron/*.exe -ErrorAction SilentlyContinue | Select-Object Name,Length
+          else
+            ls -la dist-electron/
+            du -sh dist-electron/${{ matrix.output }}
+          fi
+      - name: Upload Artifacts
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist-electron/${{ matrix.output }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
