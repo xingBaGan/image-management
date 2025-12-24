@@ -220,6 +220,9 @@
       ],
       "icon": "build/icons/icon.ico"
     },
+    "beforeBuild": null,
+    "npmRebuild": false,
+    "nodeGypRebuild": false,
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
