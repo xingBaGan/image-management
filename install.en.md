@@ -9,6 +9,31 @@ Run the appropriate installation script [in the resources directory] according t
 - Linux: Run `install.sh`
 - macOS: Run `install.command`
 
+### macOS Gatekeeper Issue
+
+If you see an error like "'atujii' is damaged and can't be opened" or "Apple can't check app for malicious software", this is due to macOS Gatekeeper security settings.
+
+#### Solution 1 (Recommended): Use the Install Script
+
+The `install.command` script now automatically fixes this issue by removing the quarantine attribute from the application bundle.
+
+#### Solution 2 (Manual Fix):
+
+If you still encounter the error, you can fix it manually by running this command in Terminal:
+
+```bash
+sudo xattr -rd com.apple.quarantine /path/to/atujii.app
+```
+
+Replace `/path/to/atujii.app` with the actual path to the atujii application bundle.
+
+#### Solution 3: Allow in Security & Privacy
+
+1. Go to System Settings → Privacy & Security
+2. Scroll down to see the warning about atujii
+3. Click "Open Anyway"
+4. Confirm when prompted
+
 
 The installation process will automatically:
 1. Create Python virtual environment
