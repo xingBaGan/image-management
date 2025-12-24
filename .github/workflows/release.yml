@@ -71,16 +71,20 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           NODE_ENV: production
 
-      - name: Verify Build Artifacts
+      - name: Verify Build Artifacts (Windows)
+        if: matrix.os == 'windows-latest'
         run: |
           echo "Verifying build artifacts..."
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            Get-ChildItem -Path dist-electron
-            Get-ChildItem -Path dist-electron/*.exe -ErrorAction SilentlyContinue | Select-Object Name,Length
-          else
-            ls -la dist-electron/
-            du -sh dist-electron/${{ matrix.output }}
-          fi
+          Get-ChildItem -Path dist-electron
+          Get-ChildItem -Path dist-electron/*.exe -ErrorAction SilentlyContinue | Select-Object Name,Length
+        shell: pwsh
+        
+      - name: Verify Build Artifacts (Non-Windows)
+        if: matrix.os != 'windows-latest'
+        run: |
+          echo "Verifying build artifacts..."
+          ls -la dist-electron/
+          du -sh dist-electron/${{ matrix.output }}
       - name: Upload Artifacts
         uses: softprops/action-gh-release@v1
         with:
