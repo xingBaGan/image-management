@@ -16,6 +16,10 @@ export interface ColorInfo {
     color: string;
     percentage: number;
 }
+
+export interface TagTranslations {
+    zh?: string[];
+}
 // Types
 export interface Image {
     _id?: string;          // PouchDB 主键
@@ -28,6 +32,7 @@ export interface Image {
     dateCreated: string;
     dateModified: string;
     tags: string[];
+    tagTranslations?: TagTranslations;
     favorite: boolean;
     categories: string[];
     type: 'video' | 'image';

@@ -41,10 +41,15 @@ export interface ColorInfo {
   percentage: number;
 }
 
+export interface TagTranslations {
+  zh?: string[];
+}
+
 export interface BaseMediaData extends MediaInfo {
   url?: string;
   favorite?: boolean;
   tags: string[];
+  tagTranslations?: TagTranslations;
   categories?: string[];
   colors: (string | ColorInfo)[];
   isBindInFolder?: boolean | Category;

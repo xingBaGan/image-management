@@ -200,7 +200,7 @@ export default class FileSystemImageDAO implements ImageDAO {
     categories: Category[]
   ): Promise<LocalImageData[]> {
     const updatedImages = images.map(img =>
-      img.id === mediaId ? { ...img, tags: newTags } : img
+      img.id === mediaId ? { ...img, tags: newTags, tagTranslations: undefined } : img
     );
     const ids = updatedImages.map(img => img.id);
     if (ids.includes(mediaId)) {
@@ -208,6 +208,32 @@ export default class FileSystemImageDAO implements ImageDAO {
       // Invalidate cache when tags are updated
       tagFrequencyCache.invalidateCache();
     }
+    return updatedImages;
+  }
+
+  async updateTagTranslation(
+    mediaId: string,
+    lang: string,
+    translatedTags: string[],
+    images: LocalImageData[],
+    categories: Category[]
+  ): Promise<LocalImageData[]> {
+    const updatedImages = images.map(img =>
+      img.id === mediaId
+        ? {
+            ...img,
+            tagTranslations: {
+              ...img.tagTranslations,
+              [lang]: translatedTags
+            }
+          }
+        : img
+    );
+
+    if (updatedImages.some(img => img.id === mediaId)) {
+      await saveImagesAndCategories(updatedImages, categories);
+    }
+
     return updatedImages;
   }
 
@@ -314,7 +340,7 @@ export default class FileSystemImageDAO implements ImageDAO {
       );
     }
 
-     [...filtered].sort((a, b) => {
+    filtered = [...filtered].sort((a, b) => {
       let comparison = 0;
 
       switch (sortBy) {

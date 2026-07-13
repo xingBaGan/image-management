@@ -38,6 +38,13 @@ export interface IPCImageService {
     images: LocalImageData[],
     categories: Category[]
   ): Promise<LocalImageData[]>;
+  updateTagTranslation(
+    mediaId: string,
+    lang: string,
+    translatedTags: string[],
+    images: LocalImageData[],
+    categories: Category[]
+  ): Promise<LocalImageData[]>;
   updateRating(
     mediaId: string,
     rate: number,
