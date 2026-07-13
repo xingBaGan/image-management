@@ -339,7 +339,7 @@ export default class FileSystemImageDAO implements ImageDAO {
       );
     }
 
-    filtered = [...filtered].sort((a, b) => {
+     [...filtered].sort((a, b) => {
       let comparison = 0;
 
       switch (sortBy) {

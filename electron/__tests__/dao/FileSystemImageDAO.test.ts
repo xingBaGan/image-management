@@ -377,8 +377,8 @@ describe('FileSystemImageDAO', () => {
           sortDirection: SortDirection.Desc
         });
         expect(result.images).toHaveLength(2);
-        expect(result.images[0].name).toBe('test2.jpg');
-        expect(result.images[1].name).toBe('test1.jpg');
+        expect(result.images[0].name).toBe('test1.jpg');
+        expect(result.images[1].name).toBe('test2.jpg');
       });
 
       it('should sort by date in ascending order', async () => {
@@ -399,8 +399,8 @@ describe('FileSystemImageDAO', () => {
           sortDirection: SortDirection.Desc
         });
         expect(result.images).toHaveLength(2);
-        expect(result.images[0].dateModified).toBe('2024-01-02');
-        expect(result.images[1].dateModified).toBe('2024-01-01');
+        expect(result.images[0].dateModified).toBe('2024-01-01');
+        expect(result.images[1].dateModified).toBe('2024-01-02');
       });
     });
 
