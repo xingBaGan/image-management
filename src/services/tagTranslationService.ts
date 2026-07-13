@@ -5,9 +5,18 @@ const hasCompleteChineseTagTranslation = (media: LocalImageData): boolean =>
   !!media.tags.length &&
   !!media.tagTranslations?.zh?.length &&
   media.tagTranslations.zh.length === media.tags.length;
+const englishTagPattern = /^[A-Za-z0-9][A-Za-z0-9 _.,:'"()&/+\-]*$/;
+
+export function hasLikelyEnglishTags(tags: string[]): boolean {
+  return tags.length > 0 && tags.every(tag => englishTagPattern.test(tag.trim()));
+}
 
 export function needsChineseTagTranslation(media: LocalImageData, language: string): boolean {
-  return isChineseLanguage(language) && media.tags.length > 0 && !hasCompleteChineseTagTranslation(media);
+  return (
+    isChineseLanguage(language) &&
+    hasLikelyEnglishTags(media.tags) &&
+    !hasCompleteChineseTagTranslation(media)
+  );
 }
 
 export function getDisplayTags(media: LocalImageData, language: string): string[] {

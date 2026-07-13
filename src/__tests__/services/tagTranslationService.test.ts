@@ -1,5 +1,6 @@
 import {
   getDisplayTags,
+  hasLikelyEnglishTags,
   needsChineseTagTranslation,
   persistTagTranslation,
   requestChineseTagTranslation,
@@ -82,6 +83,22 @@ describe('tagTranslationService', () => {
 
   it('returns false when the current language is not Chinese', () => {
     expect(needsChineseTagTranslation(baseImage, 'en')).toBe(false);
+  });
+
+  it('treats ASCII-style canonical tags as likely English for MVP translation gating', () => {
+    expect(hasLikelyEnglishTags(['1girl', 'blue_eyes', 'outdoors'])).toBe(true);
+  });
+
+  it('returns false when canonical tags are obviously not English', () => {
+    expect(
+      needsChineseTagTranslation(
+        {
+          ...baseImage,
+          tags: ['猫', '树'],
+        },
+        'zh'
+      )
+    ).toBe(false);
   });
 
   it('prefers zh display tags when available', () => {
