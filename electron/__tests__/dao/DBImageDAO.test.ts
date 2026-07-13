@@ -88,6 +88,30 @@ describe('DBImageDAO', () => {
     });
   });
 
+  describe('updateTags', () => {
+    it('should clear zh tag translations when English tags are updated', async () => {
+      mockImages[0] = {
+        ...mockImages[0],
+        tagTranslations: {
+          zh: ['标签1']
+        }
+      };
+
+      const newTags = ['newTag1', 'newTag2'];
+      const result = await dao.updateTags('1', newTags, mockImages, mockCategories);
+
+      expect(mockDb.updateImage).toHaveBeenCalledWith('1', {
+        tags: newTags,
+        tagTranslations: undefined
+      });
+      expect(result.find((img: LocalImageData) => img.id === '1')).toMatchObject({
+        id: '1',
+        tags: newTags,
+        tagTranslations: undefined
+      });
+    });
+  });
+
   describe('getImagesAndCategories', () => {
     it('should preserve tag translations when converting DB records', async () => {
       mockDb.getAllImages.mockResolvedValue([
