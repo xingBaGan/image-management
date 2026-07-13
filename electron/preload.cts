@@ -32,6 +32,7 @@ contextBridge.exposeInMainWorld('electron', {
   saveImageToLocal: (imageBuffer: Buffer, fileName: string, ext: string) => 
     ipcRenderer.invoke('save-image-to-local', imageBuffer, fileName, ext),
   tagImage: (imagePath: string, modelName: string) => ipcRenderer.invoke('tag-image', imagePath, modelName),
+  translateTags: (tags: string[], targetLang: string) => ipcRenderer.invoke('translate-tags', tags, targetLang),
   getMainColor: (imagePath: string) => ipcRenderer.invoke('get-main-color', imagePath),
   readImageMetadata: (imagePath: string) => ipcRenderer.invoke('read-image-metadata', imagePath),
   downloadUrlImage: (url: string) => ipcRenderer.invoke('download-url-image', url),
@@ -71,6 +72,8 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.invoke('bulk-delete-from-category', selectedImages, categories, currentSelectedCategory),
     updateTags: (mediaId: string, newTags: string[], images: LocalImageData[], categories: Category[]) => 
       ipcRenderer.invoke('update-tags', mediaId, newTags, images, categories),
+    updateTagTranslation: (mediaId: string, lang: 'zh', translatedTags: string[], images: LocalImageData[], categories: Category[]) =>
+      ipcRenderer.invoke('update-tag-translation', mediaId, lang, translatedTags, images, categories),
     updateRating: (mediaId: string, rate: number, images: LocalImageData[], categories: Category[]) => 
       ipcRenderer.invoke('update-rating', mediaId, rate, images, categories),
     filterAndSortImages: (mediaList: LocalImageData[], options: any) => 

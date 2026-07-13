@@ -55,6 +55,26 @@ async function tagImage(imagePath, modelName) {
         return ['AI标注出错: ' + err.message];
     }
 }
+async function translateTags(tags, targetLang) {
+    const translator_path = isDev ? path.join(__dirname, './tag_translator.py') : path.join(process.resourcesPath, 'script', 'tag_translator.py');
+    options.scriptPath = path.dirname(translator_path);
+    options.args = [JSON.stringify(tags), targetLang];
+    try {
+        const result = await PythonShell.run(path.basename(translator_path), options);
+        if (!result.length) {
+            return [];
+        }
+        const payload = JSON.parse(result[result.length - 1]);
+        if (!payload.success || !Array.isArray(payload.tags)) {
+            return [];
+        }
+        return payload.tags;
+    }
+    catch (err) {
+        console.error('标签翻译出错:', err);
+        return [];
+    }
+}
 async function ensureModelDownloaded(modelName, onProgress = () => { }) {
     if (hasModelFiles(modelName)) {
         onProgress({ modelName, percentage: 100, status: 'exists' });
@@ -337,6 +357,7 @@ async function readImageMetadata(imagePath) {
 }
 module.exports = {
     tagImage,
+    translateTags,
     getMainColor,
     getModelDownloadStatus,
     ensureModelDownloaded,

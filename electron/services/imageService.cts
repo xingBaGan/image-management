@@ -63,6 +63,16 @@ export const updateTags = async (
   return await imageDAO.updateTags(mediaId, newTags, images, categories);
 };
 
+export const updateTagTranslation = async (
+  mediaId: string,
+  lang: 'zh',
+  translatedTags: string[],
+  images: LocalImageData[],
+  categories: Category[]
+): Promise<LocalImageData[]> => {
+  return await imageDAO.updateTagTranslation(mediaId, lang, translatedTags, images, categories);
+};
+
 export const updateRating = async (
   mediaId: string,
   rate: number,
@@ -98,4 +108,3 @@ export const getImageById = async (imageId: string) => {
 export const getTagFrequency = async (options?: TagFrequencyOptions): Promise<TagFrequency[]> => {
   return await imageDAO.getTagFrequency(options);
 };
-

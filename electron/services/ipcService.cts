@@ -18,7 +18,7 @@ import {
   generateVideoThumbnail,
   processDirectoryFiles 
 } from './mediaService.cjs';
-import { tagImage, getMainColor, getModelDownloadStatus, ensureModelDownloaded, checkEnvironment, installEnvironment, readImageMetadata } from '../../script/script.cjs';
+import { tagImage, translateTags, getMainColor, getModelDownloadStatus, ensureModelDownloaded, checkEnvironment, installEnvironment, readImageMetadata } from '../../script/script.cjs';
 import { tagQueue, colorQueue } from './queueService.cjs';
 import { logger } from './logService.cjs';
 import { MAX_IMAGE_COUNT } from '../services/checkImageCount.cjs';
@@ -201,6 +201,15 @@ const init = (): void => {
       }, taskId);
     } catch (error) {
       logger.error('图片标签分析失败:', { error } as LogMeta);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('translate-tags', async (event, tags: string[], targetLang: string) => {
+    try {
+      return await translateTags(tags, targetLang);
+    } catch (error) {
+      logger.error('标签翻译失败:', { error } as LogMeta);
       throw error;
     }
   });
