@@ -206,6 +206,11 @@ const init = (): void => {
   });
 
   ipcMain.handle('translate-tags', async (event, tags: string[], targetLang: string) => {
+    if (targetLang !== 'zh') {
+      logger.error('不支持的标签翻译目标语言:', { targetLang } as LogMeta);
+      return [];
+    }
+
     try {
       return await translateTags(tags, targetLang);
     } catch (error) {

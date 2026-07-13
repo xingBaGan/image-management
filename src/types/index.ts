@@ -358,7 +358,7 @@ export interface ElectronAPI {
   isRemoteComfyUI: () => Promise<boolean>;
   readFile: (filePath: string) => Promise<Buffer>;
   tagImage: (imagePath: string, modelName: string) => Promise<string[]>;
-  translateTags: (tags: string[], targetLang: string) => Promise<string[]>;
+  translateTags: (tags: string[], targetLang: 'zh') => Promise<string[]>;
   readImageMetadata: (imagePath: string) => Promise<ImageMetadata>;
   processDirectoryFiles: (dirPath: string| string[],currentCategory?: null | Category) => Promise<[LocalImageData[], Category]>;
   openInEditor: (filePath: string) => Promise<{ success: boolean; error?: string }>;

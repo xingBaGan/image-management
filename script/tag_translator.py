@@ -4,13 +4,29 @@ import sys
 import argostranslate.package
 import argostranslate.translate
 
+SUPPORTED_TARGET_LANGUAGE = "zh"
+
+
+def get_installed_language(language_code: str):
+    return next(
+        (
+            language
+            for language in argostranslate.translate.get_installed_languages()
+            if language.code == language_code
+        ),
+        None,
+    )
+
 
 def ensure_package_available(from_code: str, to_code: str) -> None:
-    installed_languages = argostranslate.translate.get_installed_languages()
-    from_language = next((language for language in installed_languages if language.code == from_code), None)
+    if to_code != SUPPORTED_TARGET_LANGUAGE:
+        raise RuntimeError(f"Unsupported target language: {to_code}")
 
-    if from_language:
-        translation = from_language.get_translation(to_code)
+    from_language = get_installed_language(from_code)
+    to_language = get_installed_language(to_code)
+
+    if from_language and to_language:
+        translation = from_language.get_translation(to_language)
         if translation:
             return
 
@@ -29,6 +45,12 @@ def ensure_package_available(from_code: str, to_code: str) -> None:
 
     download_path = package.download()
     argostranslate.package.install_from_path(download_path)
+
+    from_language = get_installed_language(from_code)
+    to_language = get_installed_language(to_code)
+
+    if from_language is None or to_language is None or from_language.get_translation(to_language) is None:
+        raise RuntimeError(f"Argos package {from_code}->{to_code} did not install correctly")
 
 
 def main() -> None:

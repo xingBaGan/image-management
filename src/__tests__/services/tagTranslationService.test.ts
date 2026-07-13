@@ -66,6 +66,20 @@ describe('tagTranslationService', () => {
     ).toBe(false);
   });
 
+  it('returns true when Chinese translations are only partially populated', () => {
+    expect(
+      needsChineseTagTranslation(
+        {
+          ...baseImage,
+          tagTranslations: {
+            zh: ['猫'],
+          },
+        },
+        'zh'
+      )
+    ).toBe(true);
+  });
+
   it('returns false when the current language is not Chinese', () => {
     expect(needsChineseTagTranslation(baseImage, 'en')).toBe(false);
   });
@@ -87,6 +101,20 @@ describe('tagTranslationService', () => {
   it('falls back to English tags when zh translations are unavailable', () => {
     expect(getDisplayTags(baseImage, 'zh')).toEqual(['cat', 'tree']);
     expect(getDisplayTags(baseImage, 'en')).toEqual(['cat', 'tree']);
+  });
+
+  it('falls back to English tags when zh translations are incomplete', () => {
+    expect(
+      getDisplayTags(
+        {
+          ...baseImage,
+          tagTranslations: {
+            zh: ['猫'],
+          },
+        },
+        'zh'
+      )
+    ).toEqual(['cat', 'tree']);
   });
 
   it('requests zh tag translations through Electron', async () => {

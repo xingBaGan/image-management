@@ -1,14 +1,18 @@
 import { Category, LocalImageData } from '@/types/index';
 
 const isChineseLanguage = (language: string): boolean => language.toLowerCase().startsWith('zh');
+const hasCompleteChineseTagTranslation = (media: LocalImageData): boolean =>
+  !!media.tags.length &&
+  !!media.tagTranslations?.zh?.length &&
+  media.tagTranslations.zh.length === media.tags.length;
 
 export function needsChineseTagTranslation(media: LocalImageData, language: string): boolean {
-  return isChineseLanguage(language) && media.tags.length > 0 && !(media.tagTranslations?.zh?.length);
+  return isChineseLanguage(language) && media.tags.length > 0 && !hasCompleteChineseTagTranslation(media);
 }
 
 export function getDisplayTags(media: LocalImageData, language: string): string[] {
-  if (isChineseLanguage(language) && media.tagTranslations?.zh?.length) {
-    return media.tagTranslations.zh;
+  if (isChineseLanguage(language) && hasCompleteChineseTagTranslation(media)) {
+    return media.tagTranslations?.zh ?? media.tags;
   }
 
   return media.tags;
