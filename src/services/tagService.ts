@@ -51,13 +51,24 @@ export async function addTagsToImages(
   allImages: LocalImageData[],
   categories: any[],
   modelName: string,
-  setImportState: (importState: ImportStatus) => void
+  setImportState: (importState: ImportStatus) => void,
+  ensureModelReady?: () => Promise<boolean>
 ): Promise<{
   updatedImages: LocalImageData[],
   success: boolean
 }> {
   let finalImages: LocalImageData[] = allImages;
   try {
+    if (ensureModelReady) {
+      const canTag = await ensureModelReady();
+      if (!canTag) {
+        return {
+          updatedImages: finalImages,
+          success: false
+        };
+      }
+    }
+
     setImportState(ImportStatus.Tagging);
     // 对每个选中的图片调用 tagger API
     const tagsImages: LocalImageData[] = [];

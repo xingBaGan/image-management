@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useLocale } from '../contexts/LanguageContext';
 import { useCategoryOperations } from './useCategoryOperations';
@@ -23,6 +23,18 @@ import { toast } from 'react-toastify';
 export const useAppEventHandlers = (state: ReturnType<typeof import('./useAppState').useAppState>) => {
   const { settings } = useSettings();
   const { t } = useLocale();
+  const modelDownloadResolver = useRef<((downloaded: boolean) => void) | null>(null);
+  const [modelDownloadConfirm, setModelDownloadConfirm] = useState<{
+    isOpen: boolean;
+    modelName: string;
+  } | null>(null);
+  const [modelDownloadProgress, setModelDownloadProgress] = useState<{
+    modelName: string;
+    percentage: number;
+    status: string;
+    file?: string;
+  } | null>(null);
+  const [isModelDownloading, setIsModelDownloading] = useState(false);
   
   const {
     selectedCategory,
@@ -78,6 +90,90 @@ export const useAppEventHandlers = (state: ReturnType<typeof import('./useAppSta
 
   // Current selected category
   const currentSelectedCategory = categories.find(cat => cat.id === selectedCategory);
+
+  useEffect(() => {
+    const handleProgress = (status: {
+      modelName: string;
+      percentage: number;
+      status: string;
+      file?: string;
+    }) => {
+      setModelDownloadProgress(status);
+    };
+
+    window.electron.onModelDownloadProgress(handleProgress);
+    return () => {
+      window.electron.removeModelDownloadProgressListener(handleProgress);
+    };
+  }, []);
+
+  const requestModelDownload = (modelName: string): Promise<boolean> => {
+    setModelDownloadConfirm({ isOpen: true, modelName });
+    setModelDownloadProgress({ modelName, percentage: 0, status: 'waiting' });
+
+    return new Promise(resolve => {
+      modelDownloadResolver.current = resolve;
+    });
+  };
+
+  const handleCancelModelDownload = () => {
+    setModelDownloadConfirm(null);
+    setModelDownloadProgress(null);
+    setIsModelDownloading(false);
+    modelDownloadResolver.current?.(false);
+    modelDownloadResolver.current = null;
+  };
+
+  const handleConfirmModelDownload = async () => {
+    if (!modelDownloadConfirm) return;
+
+    try {
+      setIsModelDownloading(true);
+      await window.electron.ensureModelDownloaded(modelDownloadConfirm.modelName);
+      setModelDownloadConfirm(null);
+      setModelDownloadProgress(null);
+      setIsModelDownloading(false);
+      modelDownloadResolver.current?.(true);
+      modelDownloadResolver.current = null;
+    } catch (error) {
+      setModelDownloadConfirm(null);
+      setModelDownloadProgress(null);
+      setIsModelDownloading(false);
+      modelDownloadResolver.current?.(false);
+      modelDownloadResolver.current = null;
+      setMessageBox({
+        isOpen: true,
+        message: t('modelDownloadFailed', { error: String(error) }),
+        type: 'error'
+      });
+    }
+  };
+
+  const ensureModelForTagging = useCallback(async (modelName: string) => {
+    let downloaded = false;
+    try {
+      const status = await window.electron.getModelDownloadStatus(modelName);
+      downloaded = status.downloaded;
+    } catch (error) {
+      downloaded = false;
+    }
+
+    if (downloaded) return true;
+
+    const didDownload = await requestModelDownload(modelName);
+    if (!didDownload) {
+      setMessageBox({
+        isOpen: true,
+        message: t('tagModelMissingMessage'),
+        type: 'warning'
+      });
+    }
+    return didDownload;
+  }, [setMessageBox, t]);
+
+  const ensureSelectedModelForTagging = useCallback(async () => {
+    return ensureModelForTagging(settings.modelName);
+  }, [ensureModelForTagging, settings.modelName]);
 
   // Wrapped functions to provide correct parameters
   const handleAddCategory = async (category: Category) => {
@@ -217,6 +313,7 @@ export const useAppEventHandlers = (state: ReturnType<typeof import('./useAppSta
        categories,
        settings.modelName,
        setImportState,
+       ensureSelectedModelForTagging,
      );
 
      if (success) {
@@ -229,11 +326,11 @@ export const useAppEventHandlers = (state: ReturnType<typeof import('./useAppSta
      setIsDragging(false);
      console.error('添加标签失败', error);
     }
-  }, [selectedImagesList, mediaList, categories, settings.modelName, setImportState, setSelectedImages, selectedCategory, setMessageBox]);
+  }, [selectedImagesList, mediaList, categories, settings.modelName, setImportState, setSelectedImages, selectedCategory, setMessageBox, ensureSelectedModelForTagging]);
 
   // Import images
   const handleImportImages = async () => {
-    await handleImportImagesBase(categories, currentSelectedCategory);
+    await handleImportImagesBase(categories, currentSelectedCategory, ensureModelForTagging);
   };
 
   // Add images 
@@ -411,7 +508,9 @@ export const useAppEventHandlers = (state: ReturnType<typeof import('./useAppSta
           mediaList,
           categories,
           setImportState,
-          currentSelectedCategory
+          currentSelectedCategory,
+          true,
+          ensureModelForTagging
         );
         updatedImages = await addImagesToCategory(updatedImages, categories, currentSelectedCategory);
         setMediaList([...mediaList, ...updatedImages]);
@@ -434,7 +533,7 @@ export const useAppEventHandlers = (state: ReturnType<typeof import('./useAppSta
 
     document.addEventListener('paste', handlePaste);
     return () => document.removeEventListener('paste', handlePaste);
-  }, [mediaList, categories, t, currentSelectedCategory, setImportState, setMessageBox, setMediaList]);
+  }, [mediaList, categories, t, currentSelectedCategory, setImportState, setMessageBox, setMediaList, ensureModelForTagging]);
 
   // Listen for cancel effects
   useEffect(() => {
@@ -550,6 +649,12 @@ export const useAppEventHandlers = (state: ReturnType<typeof import('./useAppSta
     // Cancellation handlers
     handleCancelTagging,
     handleCancelColor,
+    modelDownloadConfirm,
+    modelDownloadProgress,
+    isModelDownloading,
+    handleConfirmModelDownload,
+    handleCancelModelDownload,
+    ensureModelForTagging,
     
     // Locale helper
     t

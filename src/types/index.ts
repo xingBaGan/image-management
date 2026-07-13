@@ -373,6 +373,20 @@ export interface ElectronAPI {
     needsInstall: boolean;
   }>;
   installEnvironment: () => Promise<boolean>;
+  getModelDownloadStatus: (modelName: string) => Promise<{ modelName: string; downloaded: boolean }>;
+  ensureModelDownloaded: (modelName: string) => Promise<{ success: boolean; alreadyInstalled: boolean }>;
+  onModelDownloadProgress: (callback: (status: {
+    modelName: string;
+    file?: string;
+    percentage: number;
+    status: string;
+  }) => void) => void;
+  removeModelDownloadProgressListener: (callback: (status: {
+    modelName: string;
+    file?: string;
+    percentage: number;
+    status: string;
+  }) => void) => void;
   onImageServerStatusChange: (callback: (status: { success: boolean, tunnelUrl: string | null }) => void) => void;
   removeImageServerStartedListener: (callback: (status: { success: boolean, tunnelUrl: string | null }) => void) => void;
   openExternal: (url: string) => Promise<void>;

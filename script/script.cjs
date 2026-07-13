@@ -21,6 +21,15 @@ let options = {
     args: []
 };
 const delimiter = ', ';
+const model_dir_path = isDev ? path.join(__dirname, '../models') : path.join(process.resourcesPath, 'models');
+const hasModelFiles = (modelName) => {
+    return fs.existsSync(path.join(model_dir_path, `${modelName}.onnx`)) &&
+        fs.existsSync(path.join(model_dir_path, `${modelName}.csv`));
+};
+const getModelDownloadStatus = (modelName) => ({
+    modelName,
+    downloaded: hasModelFiles(modelName)
+});
 const normalizeImagePath = (inputPath) => {
     if (!inputPath) {
         throw new Error("Image path is required");
@@ -31,7 +40,6 @@ const normalizeImagePath = (inputPath) => {
     return inputPath;
 };
 async function tagImage(imagePath, modelName) {
-    const model_dir_path = isDev ? path.join(__dirname, '../models') : path.join(process.resourcesPath, 'models');
     const tag_path = isDev ? path.join(__dirname, './ai_tagger.py') : path.join(process.resourcesPath, 'script', 'ai_tagger.py');
     options.scriptPath = path.dirname(tag_path);
     options.args = [imagePath, modelName, model_dir_path];
@@ -46,6 +54,48 @@ async function tagImage(imagePath, modelName) {
         console.error('AI标注出错:', err);
         return ['AI标注出错: ' + err.message];
     }
+}
+async function ensureModelDownloaded(modelName, onProgress = () => { }) {
+    if (hasModelFiles(modelName)) {
+        onProgress({ modelName, percentage: 100, status: 'exists' });
+        return { success: true, alreadyInstalled: true };
+    }
+    const downloadPath = isDev ? path.join(__dirname, './download_models.py') : path.join(process.resourcesPath, 'script', 'download_models.py');
+    return new Promise((resolve, reject) => {
+        const child = spawn(pythonPath, [downloadPath, modelName, '--models-dir', model_dir_path, '--progress-json'], {
+            stdio: ['ignore', 'pipe', 'pipe']
+        });
+        let stdoutBuffer = '';
+        let stderr = '';
+        child.stdout?.on('data', (data) => {
+            stdoutBuffer += data.toString();
+            const lines = stdoutBuffer.split(/\r?\n/);
+            stdoutBuffer = lines.pop() || '';
+            for (const line of lines) {
+                try {
+                    const event = JSON.parse(line);
+                    if (event.event === 'download_progress') {
+                        onProgress(event);
+                    }
+                }
+                catch (error) {
+                    // Ignore normal human-readable downloader output.
+                }
+            }
+        });
+        child.stderr?.on('data', (data) => {
+            stderr += data.toString();
+        });
+        child.on('error', reject);
+        child.on('close', (code) => {
+            if (code === 0 && hasModelFiles(modelName)) {
+                onProgress({ modelName, percentage: 100, status: 'complete' });
+                resolve({ success: true, alreadyInstalled: false });
+                return;
+            }
+            reject(new Error(stderr || `Model download failed with exit code ${code}`));
+        });
+    });
 }
 async function getMainColor(imagePath) {
     const color_path = isDev ? path.join(__dirname, './get_main_color.py') : path.join(process.resourcesPath, 'script', 'get_main_color.py');
@@ -136,14 +186,8 @@ async function checkEnvironment() {
             }
         }
         // 检查模型文件是否存在
-        const modelPath = isDev ? path.join(__dirname, '../models') : path.join(process.resourcesPath, 'models');
-        const requiredModels = [
-            'wd-v1-4-convnext-tagger-v2',
-            'wd-v1-4-convnextv2-tagger-v2'
-        ];
         try {
-            const modelFiles = fs.readdirSync(modelPath);
-            checks.models = requiredModels.every(model => modelFiles.some(file => file.includes(model)));
+            checks.models = hasModelFiles('wd-v1-4-moat-tagger-v2');
         }
         catch (err) {
             console.error('models check failed:', err.message);
@@ -294,6 +338,8 @@ async function readImageMetadata(imagePath) {
 module.exports = {
     tagImage,
     getMainColor,
+    getModelDownloadStatus,
+    ensureModelDownloaded,
     installEnvironment,
     checkEnvironment,
     readImageMetadata

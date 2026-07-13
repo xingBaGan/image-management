@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { handleDrop as handleDropUtil } from '../utils';
+import type { EnsureModelReady } from '../utils';
 import DragOverlay from './DragOverlay';
 import MediaViewer from './MediaViewer';
 import SubfolderBar from './SubfolderBar';
@@ -22,6 +23,7 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
   isDragging: boolean;
   setIsDragging: (isDragging: boolean) => void;
   columnCount?: number;
+  ensureModelReady?: EnsureModelReady;
 }> = ({
   images,
   onFavorite,
@@ -41,7 +43,8 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
   isZenMode,
   isDragging,
   setIsDragging,
-  columnCount = 4
+  columnCount = 4,
+  ensureModelReady
 }) => {
     const [viewingMedia, setViewingMedia] = useState<LocalImageData | null>(null);
    
@@ -273,7 +276,7 @@ const MediaGrid: React.FC<ImageGridBaseProps & {
           onDragEnter={() => setIsDragging(true)}
           onDragOver={(e) => e.preventDefault()}
           onDrop={async (e) => {
-            await handleDropUtil(e, addImages, existingImages, categories, setImportState, currentSelectedCategory);
+            await handleDropUtil(e, addImages, existingImages, categories, setImportState, currentSelectedCategory, ensureModelReady);
             setIsDragging(false);
           }}
           onDragLeave={(e) => {

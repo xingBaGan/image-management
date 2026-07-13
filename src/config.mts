@@ -3,6 +3,8 @@ export const supportModes = [
   'wd-v1-4-moat-tagger-v2',
   'wd-v1-4-convnext-tagger-v2',
   'wd-v1-4-convnextv2-tagger-v2',
+  'wd-swinv2-tagger-v3',
+  'wd-eva02-large-tagger-v3',
 ];
 export const supportedImageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
 export const supportedVideoExtensions = ['.mp4', '.mov', '.avi', '.webm'];

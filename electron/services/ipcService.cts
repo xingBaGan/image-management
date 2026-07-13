@@ -1,6 +1,6 @@
 import { ipcMain, dialog, shell } from 'electron';
 import { promises as fsPromises } from 'fs';
-import { generateHashId } from '../utils/index.cjs';
+import { generateHashId, notifyAllWindows } from '../utils/index.cjs';
 import { getComfyURL } from './settingService.cjs';
 import { isReadFromDB } from './checkImageCount.cjs';
 import { 
@@ -18,7 +18,7 @@ import {
   generateVideoThumbnail,
   processDirectoryFiles 
 } from './mediaService.cjs';
-import { tagImage, getMainColor, checkEnvironment, installEnvironment, readImageMetadata } from '../../script/script.cjs';
+import { tagImage, getMainColor, getModelDownloadStatus, ensureModelDownloaded, checkEnvironment, installEnvironment, readImageMetadata } from '../../script/script.cjs';
 import { tagQueue, colorQueue } from './queueService.cjs';
 import { logger } from './logService.cjs';
 import { MAX_IMAGE_COUNT } from '../services/checkImageCount.cjs';
@@ -238,6 +238,17 @@ const init = (): void => {
   ipcMain.handle('install-environment', async () => {
     return await installEnvironment();
   });
+
+  ipcMain.handle('get-model-download-status', async (event, modelName: string) => {
+    return await (getModelDownloadStatus as any)(modelName);
+  });
+
+  ipcMain.handle('ensure-model-downloaded', async (event, modelName: string) => {
+    return await (ensureModelDownloaded as any)(modelName, (progress: any) => {
+      notifyAllWindows('model-download-progress', progress);
+    });
+  });
+
   // =============== 队列 ===============
   ipcMain.handle('get-queue-status', async () => {
     return {

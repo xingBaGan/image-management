@@ -1,4 +1,5 @@
 ## Environment Installation
+
 [Chinese Version](install.zh.md)
 
 requirement: python 3.10-3.13
@@ -17,7 +18,7 @@ If you see an error like "'atujii' is damaged and can't be opened" or "Apple can
 
 The `install.command` script now automatically fixes this issue by removing the quarantine attribute from the application bundle.
 
-#### Solution 2 (Manual Fix):
+#### Solution 2 (Manual Fix)
 
 If you still encounter the error, you can fix it manually by running this command in Terminal:
 
@@ -34,28 +35,44 @@ Replace `/path/to/atujii.app` with the actual path to the atujii application bun
 3. Click "Open Anyway"
 4. Confirm when prompted
 
-
 The installation process will automatically:
 1. Create Python virtual environment
 2. Install required dependencies
 3. Download AI models (download progress will be displayed, likely to fail. You can try multiple times if persistent)
 
+### Supported Tag Models
+
+- `wd-v1-4-moat-tagger-v2`
+- `wd-v1-4-convnext-tagger-v2`
+- `wd-v1-4-convnextv2-tagger-v2`
+- `wd-swinv2-tagger-v3`
+- `wd-eva02-large-tagger-v3`
+
+Notes:
+- `v3` models require `onnxruntime >= 1.17.0`.
+- `wd-eva02-large-tagger-v3` is much larger and slower to download and load, but it can improve tagging quality.
+
 ### Manual Model Download
 
 If the automatic download fails, you can choose the following methods to download the models manually:
 
-1. Download from HuggingFace:
+1. Download v2 models from HuggingFace:
    - Visit https://huggingface.co/honmo/wd14-collection/tree/main
-   - Download `wd-v1-4-moat-tagger-v2.onnx` and `wd-v1-4-moat-tagger-v2.csv` files
+   - Download the `.onnx` and `.csv` files for the model you want, such as `wd-v1-4-moat-tagger-v2.onnx` and `wd-v1-4-moat-tagger-v2.csv`
    - Place the downloaded files in the models directory under resources
 
-2. Download from Alternative Source:
+2. Download v3 models from HuggingFace:
+   - Visit https://huggingface.co/SmilingWolf/wd-swinv2-tagger-v3/tree/main or https://huggingface.co/SmilingWolf/wd-eva02-large-tagger-v3/tree/main
+   - Download `model.onnx` and `selected_tags.csv`
+   - Rename them to `wd-swinv2-tagger-v3.onnx` / `wd-swinv2-tagger-v3.csv`, or `wd-eva02-large-tagger-v3.onnx` / `wd-eva02-large-tagger-v3.csv`
+   - Place the renamed files in the models directory under resources
+
+3. Download from Alternative Source:
    - Quark Network Disk Link: https://pan.quark.cn/s/c1a5c5876679
    - After downloading, extract the files to the `models` directory under the program's resources directory
 
-3. Download from Alternative Source:
+4. Download from Alternative Source:
    - Google Drive Link: https://drive.google.com/drive/folders/1UaAV0LF4xOB6h384XFQyxzeMyUa830Q2?usp=sharing
    - After downloading, extract the files to the `models` directory under the program's resources directory
 
-
-Note: If the models directory under resources doesn't exist, you need to create it manually. 
+Note: If the models directory under resources doesn't exist, you need to create it manually.

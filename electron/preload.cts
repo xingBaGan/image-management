@@ -143,6 +143,14 @@ contextBridge.exposeInMainWorld('electron', {
   // =============== 环境检查相关 ===============
   checkEnvironment: () => ipcRenderer.invoke('check-environment'),
   installEnvironment: () => ipcRenderer.invoke('install-environment'),
+  getModelDownloadStatus: (modelName: string) => ipcRenderer.invoke('get-model-download-status', modelName),
+  ensureModelDownloaded: (modelName: string) => ipcRenderer.invoke('ensure-model-downloaded', modelName),
+  onModelDownloadProgress: (callback: (status: any) => void) => {
+    ipcRenderer.on('model-download-progress', (event, status) => callback(status));
+  },
+  removeModelDownloadProgressListener: (callback: (status: any) => void) => {
+    ipcRenderer.removeListener('model-download-progress', callback);
+  },
 
   // 添加 openExternal 方法，在默认浏览器中打开链接
   openExternal: (url: string) => ipcRenderer.invoke('open-external', url)
