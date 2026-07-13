@@ -73,9 +73,9 @@ const MediaTags: React.FC<MediaTagsProps> = ({
     } catch (error) {
       // Invalid JSON, do nothing
     }
-  }
+  };
   return (
-    <div className="w-full p-2 bg-gray-50 dark:bg-gray-800 rounded-lg min-h-[8rem] bg-white/30 backdrop-blur-md dark:bg-gray-800/30 " onPaste={handlePaste}>
+    <div className="w-full p-2 bg-gray-50 rounded-lg min-h-[8rem] bg-white/30 backdrop-blur-md dark:bg-gray-800 dark:bg-gray-800/30" onPaste={handlePaste}>
       <div className="flex overflow-y-auto relative flex-wrap gap-2 mb-2 h-40 tags-container">
         {selectedTags.map((tag, index) => (
           <div
@@ -121,7 +121,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
           <Trash size={16} />
         </button>
       )}
-     <input
+      <input
         type="text"
         value={inputValue}
         onChange={handleInputChange}
@@ -133,4 +133,4 @@ const MediaTags: React.FC<MediaTagsProps> = ({
   );
 };
 
-export default MediaTags; 
+export default MediaTags;

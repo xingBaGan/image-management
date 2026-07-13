@@ -22,6 +22,13 @@ export function useTagTranslation({
   setImages,
 }: UseTagTranslationParams): void {
   const inFlightImageIdsRef = useRef<Set<string>>(new Set());
+  const latestImageRef = useRef<LocalImageData | null>(image);
+  const latestImagesRef = useRef<LocalImageData[]>(images);
+  const latestCategoriesRef = useRef<Category[]>(categories);
+
+  latestImageRef.current = image;
+  latestImagesRef.current = images;
+  latestCategoriesRef.current = categories;
 
   useEffect(() => {
     if (!image || !needsChineseTagTranslation(image, language)) {
@@ -35,14 +42,32 @@ export function useTagTranslation({
     inFlightImageIdsRef.current.add(image.id);
 
     const translateTags = async () => {
-      try {
-        const translatedTags = await requestChineseTagTranslation(image.tags);
+      const sourceTags = [...image.tags];
 
-        if (!translatedTags.length) {
+      try {
+        const translatedTags = await requestChineseTagTranslation(sourceTags);
+
+        if (!translatedTags.length || translatedTags.length !== sourceTags.length) {
           return;
         }
 
-        const updatedImages = await persistTagTranslation(image.id, translatedTags, images, categories);
+        const latestImage = latestImageRef.current;
+        const tagsChanged =
+          !latestImage ||
+          latestImage.id !== image.id ||
+          latestImage.tags.length !== sourceTags.length ||
+          latestImage.tags.some((tag, index) => tag !== sourceTags[index]);
+
+        if (tagsChanged) {
+          return;
+        }
+
+        const updatedImages = await persistTagTranslation(
+          image.id,
+          translatedTags,
+          latestImagesRef.current,
+          latestCategoriesRef.current
+        );
         setImages(updatedImages);
       } catch (error) {
         console.error('Error orchestrating Chinese tag translation:', error);

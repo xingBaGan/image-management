@@ -169,6 +169,146 @@ describe('useTagTranslation', () => {
     });
   });
 
+  it('does not persist partial translation results', async () => {
+    const setImages = jest.fn();
+    mockRequestChineseTagTranslation.mockResolvedValue(['猫']);
+
+    renderHook(() =>
+      useTagTranslation({
+        image,
+        language: 'zh',
+        images: [image],
+        categories,
+        setImages,
+      })
+    );
+
+    await waitFor(() => {
+      expect(mockRequestChineseTagTranslation).toHaveBeenCalledWith(['cat', 'tree']);
+    });
+
+    expect(mockPersistTagTranslation).not.toHaveBeenCalled();
+    expect(setImages).not.toHaveBeenCalled();
+  });
+
+  it('persists using the latest images list after async translation completes', async () => {
+    const setImages = jest.fn();
+    const anotherImage: LocalImageData = {
+      ...image,
+      id: 'image-2',
+      name: 'another.jpg',
+      path: 'local-image://another.jpg',
+    };
+    let resolveTranslation: ((value: string[]) => void) | undefined;
+
+    mockRequestChineseTagTranslation.mockImplementation(
+      () =>
+        new Promise<string[]>((resolve) => {
+          resolveTranslation = resolve;
+        })
+    );
+
+    const { rerender } = renderHook(
+      ({
+        currentImage,
+        currentImages,
+      }: {
+        currentImage: LocalImageData | null;
+        currentImages: LocalImageData[];
+      }) =>
+        useTagTranslation({
+          image: currentImage,
+          language: 'zh',
+          images: currentImages,
+          categories,
+          setImages,
+        }),
+      {
+        initialProps: {
+          currentImage: image,
+          currentImages: [image],
+        },
+      }
+    );
+
+    await waitFor(() => {
+      expect(mockRequestChineseTagTranslation).toHaveBeenCalledTimes(1);
+    });
+
+    rerender({
+      currentImage: image,
+      currentImages: [image, anotherImage],
+    });
+
+    resolveTranslation?.(['猫', '树']);
+
+    await waitFor(() => {
+      expect(mockPersistTagTranslation).toHaveBeenCalledWith(
+        'image-1',
+        ['猫', '树'],
+        [image, anotherImage],
+        categories
+      );
+    });
+  });
+
+  it('skips persisting when the current image tags changed during translation', async () => {
+    const setImages = jest.fn();
+    const updatedImage: LocalImageData = {
+      ...image,
+      tags: ['cat', 'tree', 'sky'],
+    };
+    let resolveTranslation: ((value: string[]) => void) | undefined;
+
+    mockRequestChineseTagTranslation.mockImplementation(
+      () =>
+        new Promise<string[]>((resolve) => {
+          resolveTranslation = resolve;
+        })
+    );
+
+    const { rerender } = renderHook(
+      ({
+        currentImage,
+        currentImages,
+      }: {
+        currentImage: LocalImageData | null;
+        currentImages: LocalImageData[];
+      }) =>
+        useTagTranslation({
+          image: currentImage,
+          language: 'zh',
+          images: currentImages,
+          categories,
+          setImages,
+        }),
+      {
+        initialProps: {
+          currentImage: image,
+          currentImages: [image],
+        },
+      }
+    );
+
+    await waitFor(() => {
+      expect(mockRequestChineseTagTranslation).toHaveBeenCalledTimes(1);
+    });
+
+    rerender({
+      currentImage: updatedImage,
+      currentImages: [updatedImage],
+    });
+
+    resolveTranslation?.(['猫', '树']);
+
+    await waitFor(() => {
+      expect(mockRequestChineseTagTranslation).toHaveBeenCalledTimes(1);
+    });
+
+    expect(mockPersistTagTranslation).not.toHaveBeenCalled();
+    expect(setImages).not.toHaveBeenCalled();
+  });
+
   it('logs and continues when translation orchestration fails', async () => {
     const setImages = jest.fn();
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});

@@ -46,7 +46,10 @@ const AppContent = () => {
   } = state;
 
   const selectedDetailImage = useMemo(
-    () => filteredAndSortedImages.find(img => selectedImages.has(img.id)) || null,
+    () =>
+      selectedImages.size === 1
+        ? filteredAndSortedImages.find(img => selectedImages.has(img.id)) || null
+        : null,
     [filteredAndSortedImages, selectedImages]
   );
 
