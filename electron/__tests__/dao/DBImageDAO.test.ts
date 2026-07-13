@@ -81,6 +81,7 @@ describe('DBImageDAO', () => {
       });
       expect(result.find((img: LocalImageData) => img.id === '1')).toMatchObject({
         id: '1',
+        tags: ['tag1'],
         tagTranslations: {
           zh: translatedTags
         }

@@ -36,10 +36,10 @@ describe('FileSystemImageDAO', () => {
     categories: Category[];
     searchTags: string[];
     filterColors: string[];
-      multiFilter: FilterOptions;
-      sortBy: SortType;
-      sortDirection: SortDirection;
-      limit: number;
+    multiFilter: FilterOptions;
+    sortBy: SortType;
+    sortDirection: SortDirection;
+    limit: number;
   };
 
   beforeEach(() => {
@@ -212,7 +212,7 @@ describe('FileSystemImageDAO', () => {
     it('should perform hard delete of selected images', async () => {
       const selectedImages = new Set(['1']);
       const result = await dao.bulkDeleteHard(selectedImages, mockImages, mockCategories);
-      
+
       expect(result.updatedImages).toHaveLength(1);
       expect(result.updatedImages.find(img => img.id === '1')).toBeUndefined();
       expect(deletePhysicalFile).toHaveBeenCalledWith('local-image://path/to/test1.jpg');
@@ -286,6 +286,7 @@ describe('FileSystemImageDAO', () => {
 
       expect(result.find((img: LocalImageData) => img.id === '1')).toMatchObject({
         id: '1',
+        tags: ['tag1'],
         tagTranslations: {
           zh: translatedTags
         }
@@ -376,8 +377,8 @@ describe('FileSystemImageDAO', () => {
           sortDirection: SortDirection.Desc
         });
         expect(result.images).toHaveLength(2);
-        expect(result.images[0].name).toBe('test1.jpg');
-        expect(result.images[1].name).toBe('test2.jpg');
+        expect(result.images[0].name).toBe('test2.jpg');
+        expect(result.images[1].name).toBe('test1.jpg');
       });
 
       it('should sort by date in ascending order', async () => {
@@ -398,8 +399,8 @@ describe('FileSystemImageDAO', () => {
           sortDirection: SortDirection.Desc
         });
         expect(result.images).toHaveLength(2);
-        expect(result.images[0].dateModified).toBe('2024-01-01');
-        expect(result.images[1].dateModified).toBe('2024-01-02');
+        expect(result.images[0].dateModified).toBe('2024-01-02');
+        expect(result.images[1].dateModified).toBe('2024-01-01');
       });
     });
 
@@ -429,4 +430,4 @@ describe('FileSystemImageDAO', () => {
       expect(result.images).toHaveLength(0);
     });
   });
-}); 
+});

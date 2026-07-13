@@ -312,7 +312,7 @@ export default class DBImageDAO implements ImageDAO {
 
   async updateTagTranslation(
     mediaId: string,
-    lang: string,
+    lang: 'zh',
     translatedTags: string[],
     images: LocalImageData[],
     categories: Category[]
@@ -320,7 +320,7 @@ export default class DBImageDAO implements ImageDAO {
     try {
       await this.db.updateImage(mediaId, {
         tagTranslations: {
-          [lang]: translatedTags
+          zh: translatedTags
         }
       });
 
@@ -329,8 +329,7 @@ export default class DBImageDAO implements ImageDAO {
           ? {
               ...img,
               tagTranslations: {
-                ...img.tagTranslations,
-                [lang]: translatedTags
+                zh: translatedTags
               }
             }
           : img

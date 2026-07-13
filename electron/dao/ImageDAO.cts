@@ -40,7 +40,7 @@ export interface IPCImageService {
   ): Promise<LocalImageData[]>;
   updateTagTranslation(
     mediaId: string,
-    lang: string,
+    lang: 'zh',
     translatedTags: string[],
     images: LocalImageData[],
     categories: Category[]
