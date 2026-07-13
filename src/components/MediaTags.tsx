@@ -6,6 +6,7 @@ import { isArrayOfString } from '../utils';
 
 interface MediaTagsProps {
   tags: string[];
+  displayTags?: string[];
   mediaId: string;
   onTagsUpdate: (mediaId: string, newTags: string[]) => void;
   showCopyButton?: boolean;
@@ -14,6 +15,7 @@ interface MediaTagsProps {
 
 const MediaTags: React.FC<MediaTagsProps> = ({
   tags,
+  displayTags,
   mediaId,
   onTagsUpdate,
   showCopyButton = false,
@@ -80,7 +82,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
             key={index}
             className="flex gap-1 items-center px-2 py-1 h-7 text-sm text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200 group"
           >
-            <span>{tag}</span>
+            <span>{displayTags?.[index] ?? tag}</span>
             <button
               onClick={() => removeTag(tag)}
               className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-500 dark:hover:text-red-400 focus:outline-none"
