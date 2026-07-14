@@ -107,4 +107,32 @@ describe('MediaTags', () => {
     expect(screen.queryByText('dog')).not.toBeInTheDocument();
     expect(screen.queryByText('cat')).not.toBeInTheDocument();
   });
+
+  it('ignores a stale async Enter submission after the component rerenders for a different mediaId', async () => {
+    const deferred = createDeferred<string>();
+    mockResolveCanonicalTagInput.mockReturnValue(deferred.promise);
+    const onTagsUpdate = jest.fn();
+
+    const { rerender } = render(
+      <MediaTags tags={['dog']} mediaId="media-a" onTagsUpdate={onTagsUpdate} />
+    );
+
+    const input = screen.getByPlaceholderText('tagInput');
+    fireEvent.change(input, { target: { value: '猫' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', charCode: 13 });
+
+    rerender(<MediaTags tags={['bird']} mediaId="media-b" onTagsUpdate={onTagsUpdate} />);
+    expect(screen.getByText('bird')).toBeInTheDocument();
+    expect(screen.queryByText('dog')).not.toBeInTheDocument();
+
+    deferred.resolve('cat');
+
+    await waitFor(() => {
+      expect(mockResolveCanonicalTagInput).toHaveBeenCalledWith('猫');
+    });
+
+    expect(onTagsUpdate).not.toHaveBeenCalled();
+    expect(screen.getByText('bird')).toBeInTheDocument();
+    expect(screen.queryByText('cat')).not.toBeInTheDocument();
+  });
 });

@@ -26,8 +26,17 @@ const MediaTags: React.FC<MediaTagsProps> = ({
   const [selectedTags, setSelectedTags] = useState<string[]>(tags);
   const [inputValue, setInputValue] = useState('');
   const selectedTagsRef = useRef<string[]>(tags);
+  const mediaIdRef = useRef(mediaId);
   const submitRequestIdRef = useRef(0);
   const isSubmittingRef = useRef(false);
+
+  useEffect(() => {
+    if (mediaIdRef.current !== mediaId) {
+      mediaIdRef.current = mediaId;
+      submitRequestIdRef.current += 1;
+      isSubmittingRef.current = false;
+    }
+  }, [mediaId]);
 
   useEffect(() => {
     setSelectedTags(tags);
@@ -57,19 +66,28 @@ const MediaTags: React.FC<MediaTagsProps> = ({
       }
       const submittedInput = inputValue.trim();
       const requestId = submitRequestIdRef.current + 1;
+      const submittedMediaId = mediaIdRef.current;
       submitRequestIdRef.current = requestId;
       isSubmittingRef.current = true;
       setInputValue('');
 
-      const newTag = await resolveCanonicalTagInput(submittedInput);
-      if (submitRequestIdRef.current !== requestId) {
-        return;
-      }
+      try {
+        const newTag = await resolveCanonicalTagInput(submittedInput);
+        if (
+          submitRequestIdRef.current !== requestId ||
+          mediaIdRef.current !== submittedMediaId
+        ) {
+          return;
+        }
 
-      isSubmittingRef.current = false;
-      if (newTag && !selectedTagsRef.current.includes(newTag)) {
-        const newTags = Array.from(new Set([...selectedTagsRef.current, newTag]));
-        persistTags(newTags);
+        if (newTag && !selectedTagsRef.current.includes(newTag)) {
+          const newTags = Array.from(new Set([...selectedTagsRef.current, newTag]));
+          persistTags(newTags);
+        }
+      } finally {
+        if (submitRequestIdRef.current === requestId) {
+          isSubmittingRef.current = false;
+        }
       }
     } else if (e.key === 'Backspace' && !inputValue && selectedTags.length > 0) {
       // 当输入框为空且按下退格键时，删除最后一个标签
