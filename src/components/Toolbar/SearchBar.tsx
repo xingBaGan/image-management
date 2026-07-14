@@ -67,6 +67,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       }
 
       const submittedInput = inputValue;
+      setInputValue('');
       submitRequestIdRef.current += 1;
       const requestId = submitRequestIdRef.current;
       isSubmittingRef.current = true;
@@ -78,13 +79,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
         }
 
         if (!newTag) {
-          setInputValue('');
           return;
         }
 
         const nextTags = Array.from(new Set([...latestTagsRef.current, newTag]));
         setTagsState(nextTags);
-        setInputValue('');
         onSearch(nextTags);
         setSelectedTagsState(nextTags);
       } finally {
@@ -116,9 +115,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
     if (newSelectedTags.includes(tag)) {
       newSelectedTags = newSelectedTags.filter(t => t !== tag);
+      const nextTags = currentTags.filter(t => t !== tag);
       setSelectedTagsState(newSelectedTags);
-      onSearch(Array.from(new Set([...newSelectedTags, ...currentTags])));
-      setTagsState(currentTags.filter(t => t !== tag));
+      setTagsState(nextTags);
+      onSearch(nextTags);
     } else {
       newSelectedTags = Array.from(new Set([...currentSelectedTags, tag]));
       setSelectedTagsState(newSelectedTags);

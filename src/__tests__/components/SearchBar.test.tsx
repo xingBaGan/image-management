@@ -45,6 +45,30 @@ function getSuggestionItem(text: string) {
     .find((element): element is HTMLLIElement => element instanceof HTMLLIElement);
 }
 
+function renderStatefulSearchBar(
+  initialTags: string[] = [],
+  onSearch = jest.fn(),
+  searchButtonRef = React.createRef<HTMLElement>()
+) {
+  const StatefulSearchBar = () => {
+    const [tags, setTags] = React.useState(initialTags);
+    return (
+      <SearchBar
+        onSearch={onSearch}
+        searchButtonRef={searchButtonRef}
+        tags={tags}
+        setTags={setTags}
+      />
+    );
+  };
+
+  return {
+    ...render(<StatefulSearchBar />),
+    onSearch,
+    searchButtonRef,
+  };
+}
+
 describe('SearchBar', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -148,5 +172,57 @@ describe('SearchBar', () => {
     expect(setTags).toHaveBeenCalledTimes(1);
     expect(onSearch).toHaveBeenCalledTimes(1);
     expect(onSearch).toHaveBeenLastCalledWith([]);
+  });
+
+  it('drops the filter from both tag state and onSearch when deselecting a selected suggestion', async () => {
+    mockGetTagFrequency.mockResolvedValue([{ name: 'cat', times: 8 }]);
+    mockResolveCanonicalTagInput.mockResolvedValue('cat');
+    const onSearch = jest.fn();
+
+    renderStatefulSearchBar([], onSearch);
+
+    fireEvent.click(screen.getByTitle('search(Ctrl+F)'));
+
+    const input = screen.getByPlaceholderText('searchImages');
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: '猫' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', charCode: 13 });
+
+    await waitFor(() => {
+      expect(onSearch).toHaveBeenCalledWith(['cat']);
+      expect(getSuggestionItem('cat')).toHaveClass('selected');
+    });
+
+    fireEvent.mouseDown(getSuggestionItem('cat')!);
+
+    await waitFor(() => {
+      expect(onSearch).toHaveBeenLastCalledWith([]);
+    });
+
+    expect(getSuggestionItem('cat')).not.toHaveClass('selected');
+  });
+
+  it('does not clear newer typed input when an older async Enter submit resolves', async () => {
+    const deferred = createDeferred<string>();
+    mockResolveCanonicalTagInput.mockReturnValue(deferred.promise);
+
+    renderStatefulSearchBar();
+
+    fireEvent.click(screen.getByTitle('search(Ctrl+F)'));
+
+    const input = screen.getByPlaceholderText('searchImages') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '猫' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', charCode: 13 });
+
+    fireEvent.change(input, { target: { value: 'bird' } });
+    expect(input.value).toBe('bird');
+
+    deferred.resolve('cat');
+
+    await waitFor(() => {
+      expect(mockResolveCanonicalTagInput).toHaveBeenCalledWith('猫');
+    });
+
+    expect(input.value).toBe('bird');
   });
 });
