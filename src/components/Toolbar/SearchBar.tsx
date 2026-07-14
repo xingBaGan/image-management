@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
 import { useLocale } from '../../contexts/LanguageContext';
 import { getTagFrequency, TagFrequency } from '../../services/tagService';
+import { resolveCanonicalTagInput } from '../../services/tagTranslationService';
 
 interface SearchBarProps {
   onSearch: (tags: string[]) => void;
@@ -36,14 +37,19 @@ const SearchBar: React.FC<SearchBarProps> = ({
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleInputKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && inputValue.trim()) {
-      const newTag = inputValue.trim();
-      const newTags = new Set([...tags, newTag]);
-      setTags(Array.from(newTags));
+      const newTag = await resolveCanonicalTagInput(inputValue);
+      if (!newTag) {
+        setInputValue('');
+        return;
+      }
+
+      const nextTags = Array.from(new Set([...tags, newTag]));
+      setTags(nextTags);
       setInputValue('');
-      onSearch(Array.from(newTags));
-      setSelectedTags([...newTags, ...selectedTags]);
+      onSearch(nextTags);
+      setSelectedTags(Array.from(new Set([...selectedTags, newTag])));
     } else if (e.key === 'Escape') {
       setIsSearchOpen(false);
       setInputValue('');
