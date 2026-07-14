@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Copy, Trash } from 'lucide-react';
 import { useLocale } from '../contexts/LanguageContext';
 import { toast } from 'react-toastify';
@@ -25,10 +25,25 @@ const MediaTags: React.FC<MediaTagsProps> = ({
   const { t, language } = useLocale();
   const [selectedTags, setSelectedTags] = useState<string[]>(tags);
   const [inputValue, setInputValue] = useState('');
+  const selectedTagsRef = useRef<string[]>(tags);
+  const submitRequestIdRef = useRef(0);
+  const isSubmittingRef = useRef(false);
 
   useEffect(() => {
     setSelectedTags(tags);
+    selectedTagsRef.current = tags;
   }, [tags]);
+
+  const persistTags = (newTags: string[]) => {
+    selectedTagsRef.current = newTags;
+    setSelectedTags(newTags);
+    onTagsUpdate(mediaId, newTags);
+  };
+
+  const invalidatePendingSubmit = () => {
+    submitRequestIdRef.current += 1;
+    isSubmittingRef.current = false;
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -37,25 +52,37 @@ const MediaTags: React.FC<MediaTagsProps> = ({
   const handleInputKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && inputValue.trim()) {
       e.preventDefault();
-      const newTag = await resolveCanonicalTagInput(inputValue);
-      if (!selectedTags.includes(newTag)) {
-        const newTags = Array.from(new Set([...selectedTags, newTag]));
-        setSelectedTags(newTags);
-        onTagsUpdate(mediaId, newTags);
+      if (isSubmittingRef.current) {
+        return;
       }
+      const submittedInput = inputValue.trim();
+      const requestId = submitRequestIdRef.current + 1;
+      submitRequestIdRef.current = requestId;
+      isSubmittingRef.current = true;
       setInputValue('');
+
+      const newTag = await resolveCanonicalTagInput(submittedInput);
+      if (submitRequestIdRef.current !== requestId) {
+        return;
+      }
+
+      isSubmittingRef.current = false;
+      if (newTag && !selectedTagsRef.current.includes(newTag)) {
+        const newTags = Array.from(new Set([...selectedTagsRef.current, newTag]));
+        persistTags(newTags);
+      }
     } else if (e.key === 'Backspace' && !inputValue && selectedTags.length > 0) {
       // 当输入框为空且按下退格键时，删除最后一个标签
+      invalidatePendingSubmit();
       const newTags = selectedTags.slice(0, -1);
-      setSelectedTags(newTags);
-      onTagsUpdate(mediaId, newTags);
+      persistTags(newTags);
     }
   };
 
   const removeTag = (tagToRemove: string) => {
+    invalidatePendingSubmit();
     const newTags = selectedTags.filter(tag => tag !== tagToRemove);
-    setSelectedTags(newTags);
-    onTagsUpdate(mediaId, newTags);
+    persistTags(newTags);
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -64,8 +91,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
       const parsedTags = JSON.parse(pastedText);
       if (isArrayOfString(parsedTags)) {
         const newTags = new Set([...selectedTags, ...parsedTags]);
-        setSelectedTags(Array.from(newTags));
-        onTagsUpdate(mediaId, Array.from(newTags));
+        persistTags(Array.from(newTags));
         toast.info(t('pasteTagsSuccess'), {
           position: 'bottom-right',
         });
@@ -113,8 +139,8 @@ const MediaTags: React.FC<MediaTagsProps> = ({
       {showClearButton && (
         <button
           onClick={() => {
-            setSelectedTags([]);
-            onTagsUpdate(mediaId, []);
+            invalidatePendingSubmit();
+            persistTags([]);
           }}
           className="fixed right-1 bottom-1 p-1 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
           aria-label={t('clearTags')}

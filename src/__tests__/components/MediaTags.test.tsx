@@ -28,6 +28,14 @@ jest.mock('@/contexts/LanguageContext', () => ({
 const mockResolveCanonicalTagInput =
   resolveCanonicalTagInput as jest.MockedFunction<typeof resolveCanonicalTagInput>;
 
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>(res => {
+    resolve = res;
+  });
+  return { promise, resolve };
+}
+
 describe('MediaTags', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -65,5 +73,38 @@ describe('MediaTags', () => {
     expect(screen.getByText('cat')).toBeInTheDocument();
     expect(screen.queryByText('猫')).not.toBeInTheDocument();
     expect(screen.getByText('cat').closest('div')).toHaveAttribute('title', '猫');
+  });
+
+  it('ignores a stale async Enter submission after clear removes all tags', async () => {
+    const deferred = createDeferred<string>();
+    mockResolveCanonicalTagInput.mockReturnValue(deferred.promise);
+    const onTagsUpdate = jest.fn();
+
+    render(
+      <MediaTags
+        tags={['dog']}
+        mediaId="media-1"
+        onTagsUpdate={onTagsUpdate}
+        showClearButton
+      />
+    );
+
+    const input = screen.getByPlaceholderText('tagInput');
+    fireEvent.change(input, { target: { value: '猫' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', charCode: 13 });
+
+    fireEvent.click(screen.getByLabelText('clearTags'));
+    expect(onTagsUpdate).toHaveBeenLastCalledWith('media-1', []);
+
+    deferred.resolve('cat');
+
+    await waitFor(() => {
+      expect(mockResolveCanonicalTagInput).toHaveBeenCalledWith('猫');
+    });
+
+    expect(onTagsUpdate).toHaveBeenCalledTimes(1);
+    expect(onTagsUpdate).toHaveBeenLastCalledWith('media-1', []);
+    expect(screen.queryByText('dog')).not.toBeInTheDocument();
+    expect(screen.queryByText('cat')).not.toBeInTheDocument();
   });
 });
