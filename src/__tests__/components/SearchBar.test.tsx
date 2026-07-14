@@ -30,6 +30,14 @@ const mockResolveCanonicalTagInput =
 const mockGetTagFrequency =
   getTagFrequency as jest.MockedFunction<typeof getTagFrequency>;
 
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>(res => {
+    resolve = res;
+  });
+  return { promise, resolve };
+}
+
 function getSuggestionItem(text: string) {
   return screen
     .getAllByText(text)
@@ -104,5 +112,41 @@ describe('SearchBar', () => {
       expect(getSuggestionItem('dog')).toHaveClass('selected');
       expect(getSuggestionItem('cat')).toHaveClass('selected');
     });
+  });
+
+  it('ignores a stale async Enter submission after Escape clears the filters', async () => {
+    const deferred = createDeferred<string>();
+    mockResolveCanonicalTagInput.mockReturnValue(deferred.promise);
+    const onSearch = jest.fn();
+    const setTags = jest.fn();
+    const searchButtonRef = React.createRef<HTMLElement>();
+
+    render(
+      <SearchBar
+        onSearch={onSearch}
+        searchButtonRef={searchButtonRef}
+        tags={['dog']}
+        setTags={setTags}
+      />
+    );
+
+    const input = screen.getByPlaceholderText('pressEnterToAddTag');
+    fireEvent.change(input, { target: { value: '猫' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', charCode: 13 });
+
+    fireEvent.keyDown(input, { key: 'Escape', code: 'Escape', charCode: 27 });
+
+    expect(setTags).toHaveBeenCalledWith([]);
+    expect(onSearch).toHaveBeenLastCalledWith([]);
+
+    deferred.resolve('cat');
+
+    await waitFor(() => {
+      expect(mockResolveCanonicalTagInput).toHaveBeenCalledWith('猫');
+    });
+
+    expect(setTags).toHaveBeenCalledTimes(1);
+    expect(onSearch).toHaveBeenCalledTimes(1);
+    expect(onSearch).toHaveBeenLastCalledWith([]);
   });
 });
