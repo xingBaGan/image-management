@@ -21,7 +21,8 @@ import {
 import { tagImage, translateTags, getMainColor, getModelDownloadStatus, ensureModelDownloaded, checkEnvironment, installEnvironment, readImageMetadata } from '../../script/script.cjs';
 import { tagQueue, colorQueue } from './queueService.cjs';
 import { logger } from './logService.cjs';
-import { resolveTagInputPipeline, translateTagsPipeline } from './tagTranslate.cjs';
+import { handleResolveTagInput } from './resolveTagInput.cjs';
+import { translateTagsPipeline } from './tagTranslate.cjs';
 import { MAX_IMAGE_COUNT } from '../services/checkImageCount.cjs';
 import { Category } from '../dao/type.cjs';
 
@@ -222,7 +223,7 @@ const init = (): void => {
 
   ipcMain.handle('resolve-tag-input', async (_event, input: string, targetLang: string) => {
     try {
-      return await resolveTagInputPipeline(input, targetLang, (missing, lang) => translateTags([missing], lang));
+      return await handleResolveTagInput(input, targetLang);
     } catch (error) {
       logger.error('标签输入规范化失败:', { error, targetLang } as LogMeta);
       throw error;

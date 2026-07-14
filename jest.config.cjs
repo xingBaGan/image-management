@@ -7,6 +7,9 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1'
   },
   transform: {
+    '^.+\\.cts$': ['ts-jest', {
+      tsconfig: 'electron/tsconfig.json'
+    }],
     '^.+\\.(ts|tsx)$': ['ts-jest', {
       useESM: true,
       tsconfig: 'tsconfig.json'
@@ -21,5 +24,5 @@ module.exports = {
     "!**/dist/**",
     "!**/dist-electron/**"
   ],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node','cjs']
-}; 
+  moduleFileExtensions: ['ts', 'tsx', 'cts', 'js', 'jsx', 'json', 'node','cjs']
+};

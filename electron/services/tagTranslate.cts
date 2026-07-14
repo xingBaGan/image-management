@@ -18,6 +18,11 @@ interface SplitTag {
 
 type Translations = Record<string, string>;
 
+interface DictionaryData {
+  forward: Map<string, string>;
+  reverse: Map<string, string>;
+}
+
 const BRACKET_PAIRS: Array<[string, string]> = [
   ['(', ')'],
   ['[', ']'],
@@ -53,6 +58,22 @@ function isSpecialTag(raw: string): boolean {
   return LORA_RE.test(t) || EMBEDDING_RE.test(t);
 }
 
+function canonicalizeEnglishTag(raw: string): string {
+  return raw.trim().toLowerCase().replace(/[\s-]+/g, '_').replace(/_+/g, '_');
+}
+
+function normalizedTranslationKey(raw: string): string {
+  return raw.trim().toLowerCase();
+}
+
+function reversePreferenceScore(raw: string): number {
+  let score = 0;
+  if (raw.includes('_')) score += 2;
+  if (!raw.includes(' ')) score += 1;
+  if (!raw.includes('-')) score += 1;
+  return score;
+}
+
 // Underscore/space/hyphen variants used to look up a tag in the dictionary.
 function lookupKeys(raw: string): string[] {
   const trimmed = raw.trim().toLowerCase();
@@ -85,10 +106,14 @@ function getDictionaryPath(): string {
 //         tags:
 //           <english>: <translation>
 // We simply harvest every string->string pair we find under any `tags:` key.
-function harvestPairs(node: unknown, out: Map<string, string>): void {
+function harvestPairs(
+  node: unknown,
+  out: DictionaryData,
+  reverseScores: Map<string, number>
+): void {
   if (!node) return;
   if (Array.isArray(node)) {
-    for (const item of node) harvestPairs(item, out);
+    for (const item of node) harvestPairs(item, out, reverseScores);
     return;
   }
   if (typeof node !== 'object') return;
@@ -99,25 +124,39 @@ function harvestPairs(node: unknown, out: Map<string, string>): void {
         if (typeof en !== 'string' || !en.trim()) continue;
         if (typeof tr !== 'string' || !tr.trim()) continue; // skip empty (embedding placeholders)
         for (const k of lookupKeys(en)) {
-          if (!out.has(k)) out.set(k, tr);
+          if (!out.forward.has(k)) out.forward.set(k, tr);
+        }
+
+        const reverseKey = normalizedTranslationKey(tr);
+        const canonicalEnglish = canonicalizeEnglishTag(en);
+        if (!reverseKey || !canonicalEnglish) continue;
+
+        const currentScore = reverseScores.get(reverseKey) ?? -1;
+        const candidateScore = reversePreferenceScore(en);
+        if (!out.reverse.has(reverseKey) || candidateScore > currentScore) {
+          out.reverse.set(reverseKey, canonicalEnglish);
+          reverseScores.set(reverseKey, candidateScore);
         }
       }
       continue;
     }
-    harvestPairs(value, out);
+    harvestPairs(value, out, reverseScores);
   }
 }
 
-let dictionary: Map<string, string> | null = null;
-function loadDictionary(): Map<string, string> {
+let dictionary: DictionaryData | null = null;
+function loadDictionary(): DictionaryData {
   if (dictionary) return dictionary;
   const yamlPath = getDictionaryPath();
-  const map = new Map<string, string>();
+  const map: DictionaryData = {
+    forward: new Map<string, string>(),
+    reverse: new Map<string, string>(),
+  };
   try {
     const text = fs.readFileSync(yamlPath, 'utf8');
     const parsed = YAML.parse(text);
-    harvestPairs(parsed, map);
-    logger.info('已加载标签词典', { entries: map.size, path: yamlPath } as LogMeta);
+    harvestPairs(parsed, map, new Map<string, number>());
+    logger.info('已加载标签词典', { entries: map.forward.size, path: yamlPath } as LogMeta);
   } catch (err) {
     logger.error('加载标签词典失败:', { error: err, path: yamlPath } as LogMeta);
   }
@@ -163,22 +202,20 @@ async function flushCache(): Promise<void> {
 }
 
 function scheduleFlush(): void {
-  cacheWriteQueue = cacheWriteQueue.then(flushCache, flushCache);
+  cacheWriteQueue = cacheWriteQueue
+    .then(() => flushCache())
+    .catch(err => {
+      logger.error('写入标签翻译缓存失败:', { error: err } as LogMeta);
+    });
 }
 
 export type ArgosFallback = (tags: string[], targetLang: string) => Promise<string[]>;
 
 function reverseDictionaryLookup(raw: string): string | null {
-  const normalized = raw.trim().toLowerCase();
+  const normalized = normalizedTranslationKey(raw);
   if (!normalized) return null;
 
-  for (const [candidate, translated] of loadDictionary().entries()) {
-    if (translated.trim().toLowerCase() === normalized) {
-      return candidate;
-    }
-  }
-
-  return null;
+  return loadDictionary().reverse.get(normalized) ?? null;
 }
 
 // Public entrypoint: translate an array of English tags into the target
@@ -190,7 +227,7 @@ export async function translateTagsPipeline(
 ): Promise<string[]> {
   if (!Array.isArray(tags) || tags.length === 0) return [];
 
-  const dict = loadDictionary();
+  const { forward: dict } = loadDictionary();
   const cache = loadCacheSync();
   const fromLang = 'en';
 
@@ -277,5 +314,8 @@ export async function resolveTagInputPipeline(
   if (reverseHit) return reverseHit;
 
   const translated = await fallback(trimmed, targetLang);
-  return translated[0]?.trim() || trimmed;
+  const resolved = translated[0]?.trim();
+  if (!resolved) return trimmed;
+
+  return targetLang === 'en' ? canonicalizeEnglishTag(resolved) || trimmed : resolved;
 }
