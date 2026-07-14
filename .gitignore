@@ -47,3 +47,4 @@ images.json
 src/config.js
 !electron/pouchDB/database.performance.cjs
 .env
+.worktrees/
