@@ -1,13 +1,16 @@
 import {
   getDisplayTags,
+  getTagHoverText,
   hasLikelyEnglishTags,
   needsChineseTagTranslation,
   persistTagTranslation,
+  resolveCanonicalTagInput,
   requestChineseTagTranslation,
 } from '@/services/tagTranslationService';
 import { Category, ElectronAPI, LocalImageData } from '@/types/index';
 
 const mockTranslateTags = jest.fn() as jest.MockedFunction<ElectronAPI['translateTags']>;
+const mockResolveTagInput = jest.fn() as jest.MockedFunction<ElectronAPI['resolveTagInput']>;
 const mockUpdateTagTranslation = jest.fn() as jest.MockedFunction<ElectronAPI['imageAPI']['updateTagTranslation']>;
 
 describe('tagTranslationService', () => {
@@ -36,6 +39,7 @@ describe('tagTranslationService', () => {
   beforeEach(() => {
     window.electron = {
       translateTags: mockTranslateTags,
+      resolveTagInput: mockResolveTagInput,
       imageAPI: {
         updateTagTranslation: mockUpdateTagTranslation,
       },
@@ -139,6 +143,30 @@ describe('tagTranslationService', () => {
 
     await expect(requestChineseTagTranslation(baseImage.tags)).resolves.toEqual(['猫', '树']);
     expect(mockTranslateTags).toHaveBeenCalledWith(['cat', 'tree'], 'zh');
+  });
+
+  it('returns canonical English input unchanged without invoking Electron', async () => {
+    await expect(resolveCanonicalTagInput('blue_eyes')).resolves.toBe('blue_eyes');
+    expect(mockResolveTagInput).not.toHaveBeenCalled();
+  });
+
+  it('resolves Chinese input through the Electron canonicalization bridge', async () => {
+    mockResolveTagInput.mockResolvedValue('cat');
+
+    await expect(resolveCanonicalTagInput('猫')).resolves.toBe('cat');
+    expect(mockResolveTagInput).toHaveBeenCalledWith('猫', 'en');
+  });
+
+  it('falls back to the original text when canonicalization fails', async () => {
+    mockResolveTagInput.mockRejectedValue(new Error('bridge failed'));
+
+    await expect(resolveCanonicalTagInput('猫')).resolves.toBe('猫');
+  });
+
+  it('returns translated hover text only in Chinese mode when it differs from the canonical tag', () => {
+    expect(getTagHoverText('cat', '猫', 'zh')).toBe('猫');
+    expect(getTagHoverText('cat', 'cat', 'zh')).toBeUndefined();
+    expect(getTagHoverText('cat', '猫', 'en')).toBeUndefined();
   });
 
   it('returns an empty list when translation fails', async () => {

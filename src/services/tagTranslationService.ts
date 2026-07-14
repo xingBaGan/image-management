@@ -11,6 +11,11 @@ export function hasLikelyEnglishTags(tags: string[]): boolean {
   return tags.length > 0 && tags.every(tag => englishTagPattern.test(tag.trim()));
 }
 
+export function looksCanonicalEnglishTag(input: string): boolean {
+  const trimmed = input.trim();
+  return !!trimmed && englishTagPattern.test(trimmed);
+}
+
 export function needsChineseTagTranslation(media: LocalImageData, language: string): boolean {
   return (
     isChineseLanguage(language) &&
@@ -25,6 +30,35 @@ export function getDisplayTags(media: LocalImageData, language: string): string[
   }
 
   return media.tags;
+}
+
+export async function resolveCanonicalTagInput(input: string): Promise<string> {
+  const trimmed = input.trim();
+  if (!trimmed || looksCanonicalEnglishTag(trimmed)) {
+    return trimmed;
+  }
+
+  try {
+    const resolved = await window.electron.resolveTagInput(trimmed, 'en');
+    return resolved.trim() || trimmed;
+  } catch (error) {
+    console.error('Error resolving canonical tag input:', error);
+    return trimmed;
+  }
+}
+
+export function getTagHoverText(
+  tag: string,
+  translatedTag: string | undefined,
+  language: string
+): string | undefined {
+  if (!isChineseLanguage(language)) {
+    return undefined;
+  }
+  if (!translatedTag || translatedTag === tag) {
+    return undefined;
+  }
+  return translatedTag;
 }
 
 export async function requestChineseTagTranslation(tags: string[]): Promise<string[]> {
