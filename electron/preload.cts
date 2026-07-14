@@ -32,6 +32,8 @@ contextBridge.exposeInMainWorld('electron', {
   saveImageToLocal: (imageBuffer: Buffer, fileName: string, ext: string) => 
     ipcRenderer.invoke('save-image-to-local', imageBuffer, fileName, ext),
   tagImage: (imagePath: string, modelName: string) => ipcRenderer.invoke('tag-image', imagePath, modelName),
+  translateTags: (tags: string[], targetLang: 'zh') => ipcRenderer.invoke('translate-tags', tags, targetLang),
+  resolveTagInput: (input: string, targetLang: 'en') => ipcRenderer.invoke('resolve-tag-input', input, targetLang),
   getMainColor: (imagePath: string) => ipcRenderer.invoke('get-main-color', imagePath),
   readImageMetadata: (imagePath: string) => ipcRenderer.invoke('read-image-metadata', imagePath),
   downloadUrlImage: (url: string) => ipcRenderer.invoke('download-url-image', url),
@@ -71,6 +73,8 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.invoke('bulk-delete-from-category', selectedImages, categories, currentSelectedCategory),
     updateTags: (mediaId: string, newTags: string[], images: LocalImageData[], categories: Category[]) => 
       ipcRenderer.invoke('update-tags', mediaId, newTags, images, categories),
+    updateTagTranslation: (mediaId: string, lang: 'zh', translatedTags: string[], images: LocalImageData[], categories: Category[]) =>
+      ipcRenderer.invoke('update-tag-translation', mediaId, lang, translatedTags, images, categories),
     updateRating: (mediaId: string, rate: number, images: LocalImageData[], categories: Category[]) => 
       ipcRenderer.invoke('update-rating', mediaId, rate, images, categories),
     filterAndSortImages: (mediaList: LocalImageData[], options: any) => 
@@ -143,6 +147,14 @@ contextBridge.exposeInMainWorld('electron', {
   // =============== 环境检查相关 ===============
   checkEnvironment: () => ipcRenderer.invoke('check-environment'),
   installEnvironment: () => ipcRenderer.invoke('install-environment'),
+  getModelDownloadStatus: (modelName: string) => ipcRenderer.invoke('get-model-download-status', modelName),
+  ensureModelDownloaded: (modelName: string) => ipcRenderer.invoke('ensure-model-downloaded', modelName),
+  onModelDownloadProgress: (callback: (status: any) => void) => {
+    ipcRenderer.on('model-download-progress', (event, status) => callback(status));
+  },
+  removeModelDownloadProgressListener: (callback: (status: any) => void) => {
+    ipcRenderer.removeListener('model-download-progress', callback);
+  },
 
   // 添加 openExternal 方法，在默认浏览器中打开链接
   openExternal: (url: string) => ipcRenderer.invoke('open-external', url)

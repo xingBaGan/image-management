@@ -1,6 +1,7 @@
 import { FetchDataResult } from 'electron/dao/type.cts';
 import { LocalImageData, Category, ImportFile, ImportStatus, SortDirection, FilterType, SortType, FilterOptions } from '../types/index.ts';
 import { processMedia, addImagesToCategory } from '../utils';
+import type { EnsureModelReady } from '../utils';
 export const toggleFavorite = async (
   id: string,
   images: LocalImageData[],
@@ -14,6 +15,7 @@ export const importImages = async (
   currentImages: LocalImageData[],
   currentSelectedCategory?: Category,
   setImportState?: (state: ImportStatus) => void,
+  ensureModelReady?: EnsureModelReady,
 ): Promise<LocalImageData[]> => {
   const newImages = await window.electron.showOpenDialog();
   if (newImages.length === 0) {
@@ -38,7 +40,9 @@ export const importImages = async (
     currentImages,
     categories,
     setImportState,
-    currentSelectedCategory
+    currentSelectedCategory,
+    true,
+    ensureModelReady
   );
   
   updatedImages = await addImagesToCategory(updatedImages, categories, currentSelectedCategory);
@@ -133,4 +137,3 @@ export const filterAndSortImages = async (
 export const bulkDeleteFromCategory = async (selectedImages: Set<string>, categories: Category[], currentSelectedCategory?: Category) => {
   return await window.electron.imageAPI.bulkDeleteFromCategory(selectedImages, categories, currentSelectedCategory);
 };
-

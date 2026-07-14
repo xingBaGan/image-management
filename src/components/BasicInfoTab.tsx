@@ -5,6 +5,7 @@ import MediaTags from './MediaTags';
 import Rating from './Rating';
 import ColorPalette from './ColorPalette';
 import { useLocale } from '../contexts/LanguageContext';
+import { getDisplayTags } from '@/services/tagTranslationService';
 
 interface BasicInfoTabProps {
     image: LocalImageData;
@@ -21,7 +22,8 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
     setFilterColors,
     setSelectedImages,
 }) => {
-    const { t } = useLocale();
+    const { t, language } = useLocale();
+    const displayTags = getDisplayTags(image, language);
 
     return (
         <div className="space-y-4">
@@ -89,6 +91,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
                     </span>
                     <MediaTags
                         tags={image.tags || []}
+                        displayTags={displayTags}
                         mediaId={image.id}
                         onTagsUpdate={onTagsUpdate}
                         showCopyButton={true}

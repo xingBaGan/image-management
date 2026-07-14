@@ -14,6 +14,7 @@ import {
   AppendButtonsProps,
   InstallStatus
 } from '../types/index.ts';
+import type { EnsureModelReady } from '../utils';
 
 interface MainContentProps {
   viewMode: ViewMode;
@@ -82,6 +83,7 @@ interface MainContentProps {
   setIsServerStarted: (isServerStarted: boolean) => void;
   tunnelUrl: string;
   setTunnelUrl: (tunnelUrl: string) => void;
+  ensureModelReady?: EnsureModelReady;
 }
 
 export const MainContent: React.FC<MainContentProps> = ({
@@ -135,7 +137,8 @@ export const MainContent: React.FC<MainContentProps> = ({
   isServerStarted,
   setIsServerStarted,
   tunnelUrl,
-  setTunnelUrl
+  setTunnelUrl,
+  ensureModelReady
 }) => {
   // 获取当前选中的图片
   const selectedImage = React.useMemo(() => 
@@ -201,6 +204,7 @@ export const MainContent: React.FC<MainContentProps> = ({
             isDragging={isDragging}
             setIsDragging={setIsDragging}
             columnCount={columnCount}
+            ensureModelReady={ensureModelReady}
           />
         </div>
         <div className="fixed right-0 bottom-0 top-[3rem]">

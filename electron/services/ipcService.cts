@@ -1,6 +1,6 @@
 import { ipcMain, dialog, shell } from 'electron';
 import { promises as fsPromises } from 'fs';
-import { generateHashId } from '../utils/index.cjs';
+import { generateHashId, notifyAllWindows } from '../utils/index.cjs';
 import { getComfyURL } from './settingService.cjs';
 import { isReadFromDB } from './checkImageCount.cjs';
 import { 
@@ -18,9 +18,11 @@ import {
   generateVideoThumbnail,
   processDirectoryFiles 
 } from './mediaService.cjs';
-import { tagImage, getMainColor, checkEnvironment, installEnvironment, readImageMetadata } from '../../script/script.cjs';
+import { tagImage, translateTags, getMainColor, getModelDownloadStatus, ensureModelDownloaded, checkEnvironment, installEnvironment, readImageMetadata } from '../../script/script.cjs';
 import { tagQueue, colorQueue } from './queueService.cjs';
 import { logger } from './logService.cjs';
+import { handleResolveTagInput } from './resolveTagInput.cjs';
+import { translateTagsPipeline } from './tagTranslate.cjs';
 import { MAX_IMAGE_COUNT } from '../services/checkImageCount.cjs';
 import { Category } from '../dao/type.cjs';
 
@@ -205,6 +207,29 @@ const init = (): void => {
     }
   });
 
+  ipcMain.handle('translate-tags', async (event, tags: string[], targetLang: string) => {
+    if (targetLang !== 'zh') {
+      logger.error('不支持的标签翻译目标语言:', { targetLang } as LogMeta);
+      return [];
+    }
+
+    try {
+      return await translateTagsPipeline(tags, targetLang, (missing, lang) => translateTags(missing, lang));
+    } catch (error) {
+      logger.error('标签翻译失败:', { error } as LogMeta);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('resolve-tag-input', async (_event, input: string, targetLang: string) => {
+    try {
+      return await handleResolveTagInput(input, targetLang);
+    } catch (error) {
+      logger.error('标签输入规范化失败:', { error, targetLang } as LogMeta);
+      throw error;
+    }
+  });
+
   ipcMain.handle("read-image-metadata", async (event, imagePath: string) => {
     try {
       imagePath = decodeURIComponent(imagePath);
@@ -238,6 +263,17 @@ const init = (): void => {
   ipcMain.handle('install-environment', async () => {
     return await installEnvironment();
   });
+
+  ipcMain.handle('get-model-download-status', async (event, modelName: string) => {
+    return await (getModelDownloadStatus as any)(modelName);
+  });
+
+  ipcMain.handle('ensure-model-downloaded', async (event, modelName: string) => {
+    return await (ensureModelDownloaded as any)(modelName, (progress: any) => {
+      notifyAllWindows('model-download-progress', progress);
+    });
+  });
+
   // =============== 队列 ===============
   ipcMain.handle('get-queue-status', async () => {
     return {

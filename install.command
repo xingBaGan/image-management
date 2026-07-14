@@ -161,20 +161,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-python script/download_models.py wd-v1-4-convnext-tagger-v2
-if [ $? -ne 0 ]; then
-    echo "Model download failed!"
-    read -p "Press any key to continue..."
-    exit 1
-fi
-
-python script/download_models.py wd-v1-4-convnextv2-tagger-v2
-if [ $? -ne 0 ]; then
-    echo "Model download failed!"
-    read -p "Press any key to continue..."
-    exit 1
-fi
-
 # --------------------------------------------------------
 # 5. Done
 # --------------------------------------------------------

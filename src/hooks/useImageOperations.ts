@@ -3,6 +3,7 @@ import { LocalImageData, Category, ImportStatus } from '../types/index.ts';
 import { useLocale } from '../contexts/LanguageContext';
 import * as imageOperations from '../services/imageOperations';
 import { DeleteType } from '../types/index.ts';
+import type { EnsureModelReady } from '../utils';
 
 export const useImageOperations = (state: ReturnType<typeof import('./useAppState').useAppState> ) => {
   const { t } = useLocale();
@@ -22,13 +23,18 @@ export const useImageOperations = (state: ReturnType<typeof import('./useAppStat
     }
   };
 
-  const handleImportImages = async (categories: Category[], currentSelectedCategory?: Category) => {
+  const handleImportImages = async (
+    categories: Category[],
+    currentSelectedCategory?: Category,
+    ensureModelReady?: EnsureModelReady
+  ) => {
     try {
       const updatedImages = await imageOperations.importImages(
         categories,
         images,
         currentSelectedCategory,
-        setImportState
+        setImportState,
+        ensureModelReady
       );
       setImages(updatedImages);
     } catch (error) {

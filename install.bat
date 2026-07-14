@@ -129,20 +129,6 @@ if errorlevel 1 (
     exit /b 1
 )
 
-python script\download_models.py wd-v1-4-convnext-tagger-v2
-if errorlevel 1 (
-    echo Model download failed!
-    pause
-    exit /b 1
-)
-
-python script\download_models.py wd-v1-4-convnextv2-tagger-v2
-if errorlevel 1 (
-    echo Model download failed!
-    pause
-    exit /b 1
-)
-
 REM --------------------------------------------------------
 REM --- 5. Done ---
 REM --------------------------------------------------------

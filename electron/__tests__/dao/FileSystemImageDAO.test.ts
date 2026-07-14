@@ -1,6 +1,7 @@
 import FileSystemImageDAO from '../../dao/impl/FileSystemImageDAO.cjs';
 import { loadImagesData, saveImagesAndCategories, deletePhysicalFile, getJsonFilePath } from '../../services/FileService.cjs';
-import { LocalImageData, Category, FilterType, FilterOptions, SortType, SortDirection } from '../../dao/type.cjs';
+import { FilterType, SortType, SortDirection } from '../../dao/type.cjs';
+import type { LocalImageData, Category, FilterOptions } from '../../dao/type.cts';
 
 jest.mock('../../services/mediaService.cjs', () => ({
   getVideoDuration: jest.fn(),
@@ -17,6 +18,13 @@ jest.mock('../../services/FileService.cjs', () => ({
   getJsonFilePath: jest.fn(),
 }));
 
+jest.mock('../../services/tagFrequencyCache.cjs', () => ({
+  tagFrequencyCache: {
+    invalidateCache: jest.fn(),
+    getTagFrequency: jest.fn(),
+  }
+}));
+
 
 describe('FileSystemImageDAO', () => {
   let dao: FileSystemImageDAO;
@@ -31,6 +39,7 @@ describe('FileSystemImageDAO', () => {
     multiFilter: FilterOptions;
     sortBy: SortType;
     sortDirection: SortDirection;
+    limit: number;
   };
 
   beforeEach(() => {
@@ -96,7 +105,8 @@ describe('FileSystemImageDAO', () => {
         colors: []
       },
       sortBy: SortType.Name,
-      sortDirection: SortDirection.Asc
+      sortDirection: SortDirection.Asc,
+      limit: 100
     };
 
     (loadImagesData as jest.Mock).mockResolvedValue({
@@ -202,7 +212,7 @@ describe('FileSystemImageDAO', () => {
     it('should perform hard delete of selected images', async () => {
       const selectedImages = new Set(['1']);
       const result = await dao.bulkDeleteHard(selectedImages, mockImages, mockCategories);
-      
+
       expect(result.updatedImages).toHaveLength(1);
       expect(result.updatedImages.find(img => img.id === '1')).toBeUndefined();
       expect(deletePhysicalFile).toHaveBeenCalledWith('local-image://path/to/test1.jpg');
@@ -232,11 +242,66 @@ describe('FileSystemImageDAO', () => {
       expect(saveImagesAndCategories).toHaveBeenCalled();
     });
 
+    it('should clear zh tag translations when English tags are updated', async () => {
+      mockImages[0] = {
+        ...mockImages[0],
+        tagTranslations: {
+          zh: ['标签1']
+        }
+      };
+
+      const newTags = ['newTag1', 'newTag2'];
+      const result = await dao.updateTags('1', newTags, mockImages, mockCategories);
+
+      expect(result.find(img => img.id === '1')).toMatchObject({
+        id: '1',
+        tags: newTags,
+        tagTranslations: undefined
+      });
+      expect(saveImagesAndCategories).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: '1',
+            tags: newTags,
+            tagTranslations: undefined
+          })
+        ]),
+        mockCategories
+      );
+    });
+
     it('should handle updating tags for non-existent image', async () => {
       const newTags = ['newTag1', 'newTag2'];
       const result = await dao.updateTags('invalid-id', newTags, mockImages, mockCategories);
       expect(result).toEqual(mockImages);
       expect(saveImagesAndCategories).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('updateTagTranslation', () => {
+    it('should persist translated tags for an image', async () => {
+      const translatedTags = ['标签1', '标签2'];
+
+      const result = await dao.updateTagTranslation('1', 'zh', translatedTags, mockImages, mockCategories);
+
+      expect(result.find((img: LocalImageData) => img.id === '1')).toMatchObject({
+        id: '1',
+        tags: ['tag1'],
+        tagTranslations: {
+          zh: translatedTags
+        }
+      });
+      expect(saveImagesAndCategories).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: '1',
+            tagTranslations: {
+              zh: translatedTags
+            }
+          })
+        ]),
+        mockCategories
+      );
     });
   });
 
@@ -261,8 +326,8 @@ describe('FileSystemImageDAO', () => {
           ...filterOptions,
           selectedCategory: 'cat1'
         });
-        expect(result).toHaveLength(1);
-        expect(result[0].id).toBe('1');
+        expect(result.images).toHaveLength(1);
+        expect(result.images[0].id).toBe('1');
       });
 
       it('should filter by favorites', async () => {
@@ -270,8 +335,8 @@ describe('FileSystemImageDAO', () => {
           ...filterOptions,
           filter: FilterType.Favorites
         });
-        expect(result).toHaveLength(1);
-        expect(result[0].id).toBe('2');
+        expect(result.images).toHaveLength(1);
+        expect(result.images[0].id).toBe('2');
       });
 
       it('should filter by search tags', async () => {
@@ -279,8 +344,8 @@ describe('FileSystemImageDAO', () => {
           ...filterOptions,
           searchTags: ['tag1']
         });
-        expect(result).toHaveLength(1);
-        expect(result[0].id).toBe('1');
+        expect(result.images).toHaveLength(1);
+        expect(result.images[0].id).toBe('1');
       });
 
       it('should filter by colors', async () => {
@@ -288,8 +353,8 @@ describe('FileSystemImageDAO', () => {
           ...filterOptions,
           filterColors: ['#FF0000']
         });
-        expect(result).toHaveLength(1);
-        expect(result[0].id).toBe('1');
+        expect(result.images).toHaveLength(1);
+        expect(result.images[0].id).toBe('1');
       });
     });
 
@@ -300,9 +365,9 @@ describe('FileSystemImageDAO', () => {
           sortBy: SortType.Name,
           sortDirection: SortDirection.Asc
         });
-        expect(result).toHaveLength(2);
-        expect(result[0].name).toBe('test1.jpg');
-        expect(result[1].name).toBe('test2.jpg');
+        expect(result.images).toHaveLength(2);
+        expect(result.images[0].name).toBe('test1.jpg');
+        expect(result.images[1].name).toBe('test2.jpg');
       });
 
       it('should sort by name in descending order', async () => {
@@ -311,9 +376,9 @@ describe('FileSystemImageDAO', () => {
           sortBy: SortType.Name,
           sortDirection: SortDirection.Desc
         });
-        expect(result).toHaveLength(2);
-        expect(result[0].name).toBe('test2.jpg');
-        expect(result[1].name).toBe('test1.jpg');
+        expect(result.images).toHaveLength(2);
+        expect(result.images[0].name).toBe('test1.jpg');
+        expect(result.images[1].name).toBe('test2.jpg');
       });
 
       it('should sort by date in ascending order', async () => {
@@ -322,9 +387,9 @@ describe('FileSystemImageDAO', () => {
           sortBy: SortType.Date,
           sortDirection: SortDirection.Asc
         });
-        expect(result).toHaveLength(2);
-        expect(result[0].dateModified).toBe('2024-01-01');
-        expect(result[1].dateModified).toBe('2024-01-02');
+        expect(result.images).toHaveLength(2);
+        expect(result.images[0].dateModified).toBe('2024-01-01');
+        expect(result.images[1].dateModified).toBe('2024-01-02');
       });
 
       it('should sort by date in descending order', async () => {
@@ -333,15 +398,15 @@ describe('FileSystemImageDAO', () => {
           sortBy: SortType.Date,
           sortDirection: SortDirection.Desc
         });
-        expect(result).toHaveLength(2);
-        expect(result[0].dateModified).toBe('2024-01-02');
-        expect(result[1].dateModified).toBe('2024-01-01');
+        expect(result.images).toHaveLength(2);
+        expect(result.images[0].dateModified).toBe('2024-01-01');
+        expect(result.images[1].dateModified).toBe('2024-01-02');
       });
     });
 
     it('should handle empty media list', async () => {
       const result = await dao.filterAndSortImages([], filterOptions);
-      expect(result).toHaveLength(0);
+      expect(result.images).toHaveLength(0);
     });
   });
 
@@ -352,8 +417,8 @@ describe('FileSystemImageDAO', () => {
         selectedCategory: FilterType.Photos,
         filterColors: ['#FF0001']
       });
-      expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('1');
+      expect(result.images).toHaveLength(1);
+      expect(result.images[0].id).toBe('1');
     });
 
     it('should return false for different colors', async () => {
@@ -362,7 +427,7 @@ describe('FileSystemImageDAO', () => {
         selectedCategory: FilterType.Photos,
         filterColors: ['#0000FF']
       });
-      expect(result).toHaveLength(0);
+      expect(result.images).toHaveLength(0);
     });
   });
-}); 
+});

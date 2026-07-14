@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Copy, Trash } from 'lucide-react';
 import { useLocale } from '../contexts/LanguageContext';
 import { toast } from 'react-toastify';
 import { isArrayOfString } from '../utils';
+import { getTagHoverText, resolveCanonicalTagInput } from '../services/tagTranslationService';
 
 interface MediaTagsProps {
   tags: string[];
+  displayTags?: string[];
   mediaId: string;
   onTagsUpdate: (mediaId: string, newTags: string[]) => void;
   showCopyButton?: boolean;
@@ -14,45 +16,91 @@ interface MediaTagsProps {
 
 const MediaTags: React.FC<MediaTagsProps> = ({
   tags,
+  displayTags,
   mediaId,
   onTagsUpdate,
   showCopyButton = false,
   showClearButton = false,
 }) => {
-  const { t } = useLocale();
+  const { t, language } = useLocale();
   const [selectedTags, setSelectedTags] = useState<string[]>(tags);
   const [inputValue, setInputValue] = useState('');
+  const selectedTagsRef = useRef<string[]>(tags);
+  const mediaIdRef = useRef(mediaId);
+  const submitRequestIdRef = useRef(0);
+  const isSubmittingRef = useRef(false);
+
+  useEffect(() => {
+    if (mediaIdRef.current !== mediaId) {
+      mediaIdRef.current = mediaId;
+      submitRequestIdRef.current += 1;
+      isSubmittingRef.current = false;
+    }
+  }, [mediaId]);
 
   useEffect(() => {
     setSelectedTags(tags);
+    selectedTagsRef.current = tags;
   }, [tags]);
+
+  const persistTags = (newTags: string[]) => {
+    selectedTagsRef.current = newTags;
+    setSelectedTags(newTags);
+    onTagsUpdate(mediaId, newTags);
+  };
+
+  const invalidatePendingSubmit = () => {
+    submitRequestIdRef.current += 1;
+    isSubmittingRef.current = false;
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
   };
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleInputKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && inputValue.trim()) {
       e.preventDefault();
-      const newTag = inputValue.trim();
-      if (!selectedTags.includes(newTag)) {
-        const newTags = new Set([...selectedTags, newTag]);
-        setSelectedTags(Array.from(newTags));
-        onTagsUpdate(mediaId, Array.from(newTags));
+      if (isSubmittingRef.current) {
+        return;
       }
+      const submittedInput = inputValue.trim();
+      const requestId = submitRequestIdRef.current + 1;
+      const submittedMediaId = mediaIdRef.current;
+      submitRequestIdRef.current = requestId;
+      isSubmittingRef.current = true;
       setInputValue('');
+
+      try {
+        const newTag = await resolveCanonicalTagInput(submittedInput);
+        if (
+          submitRequestIdRef.current !== requestId ||
+          mediaIdRef.current !== submittedMediaId
+        ) {
+          return;
+        }
+
+        if (newTag && !selectedTagsRef.current.includes(newTag)) {
+          const newTags = Array.from(new Set([...selectedTagsRef.current, newTag]));
+          persistTags(newTags);
+        }
+      } finally {
+        if (submitRequestIdRef.current === requestId) {
+          isSubmittingRef.current = false;
+        }
+      }
     } else if (e.key === 'Backspace' && !inputValue && selectedTags.length > 0) {
       // 当输入框为空且按下退格键时，删除最后一个标签
+      invalidatePendingSubmit();
       const newTags = selectedTags.slice(0, -1);
-      setSelectedTags(newTags);
-      onTagsUpdate(mediaId, newTags);
+      persistTags(newTags);
     }
   };
 
   const removeTag = (tagToRemove: string) => {
+    invalidatePendingSubmit();
     const newTags = selectedTags.filter(tag => tag !== tagToRemove);
-    setSelectedTags(newTags);
-    onTagsUpdate(mediaId, newTags);
+    persistTags(newTags);
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -61,8 +109,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
       const parsedTags = JSON.parse(pastedText);
       if (isArrayOfString(parsedTags)) {
         const newTags = new Set([...selectedTags, ...parsedTags]);
-        setSelectedTags(Array.from(newTags));
-        onTagsUpdate(mediaId, Array.from(newTags));
+        persistTags(Array.from(newTags));
         toast.info(t('pasteTagsSuccess'), {
           position: 'bottom-right',
         });
@@ -71,14 +118,15 @@ const MediaTags: React.FC<MediaTagsProps> = ({
     } catch (error) {
       // Invalid JSON, do nothing
     }
-  }
+  };
   return (
-    <div className="w-full p-2 bg-gray-50 dark:bg-gray-800 rounded-lg min-h-[8rem] bg-white/30 backdrop-blur-md dark:bg-gray-800/30 " onPaste={handlePaste}>
+    <div className="w-full p-2 bg-gray-50 rounded-lg min-h-[8rem] bg-white/30 backdrop-blur-md dark:bg-gray-800 dark:bg-gray-800/30" onPaste={handlePaste}>
       <div className="flex overflow-y-auto relative flex-wrap gap-2 mb-2 h-40 tags-container">
         {selectedTags.map((tag, index) => (
           <div
             key={index}
             className="flex gap-1 items-center px-2 py-1 h-7 text-sm text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200 group"
+            title={getTagHoverText(tag, displayTags?.[index], language)}
           >
             <span>{tag}</span>
             <button
@@ -109,8 +157,8 @@ const MediaTags: React.FC<MediaTagsProps> = ({
       {showClearButton && (
         <button
           onClick={() => {
-            setSelectedTags([]);
-            onTagsUpdate(mediaId, []);
+            invalidatePendingSubmit();
+            persistTags([]);
           }}
           className="fixed right-1 bottom-1 p-1 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
           aria-label={t('clearTags')}
@@ -119,7 +167,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
           <Trash size={16} />
         </button>
       )}
-     <input
+      <input
         type="text"
         value={inputValue}
         onChange={handleInputChange}
@@ -131,4 +179,4 @@ const MediaTags: React.FC<MediaTagsProps> = ({
   );
 };
 
-export default MediaTags; 
+export default MediaTags;

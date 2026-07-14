@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
 import { useLocale } from '../../contexts/LanguageContext';
 import { getTagFrequency, TagFrequency } from '../../services/tagService';
+import { resolveCanonicalTagInput } from '../../services/tagTranslationService';
 
 interface SearchBarProps {
   onSearch: (tags: string[]) => void;
@@ -24,10 +25,33 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const latestTagsRef = useRef(tags);
+  const latestSelectedTagsRef = useRef<string[]>([]);
+  const submitRequestIdRef = useRef(0);
+  const isSubmittingRef = useRef(false);
 
   useEffect(() => {
     getTagFrequency({ sortDirection: 'desc', limit: 30 }).then(setTagOptions);
   }, []);
+
+  useEffect(() => {
+    latestTagsRef.current = tags;
+  }, [tags]);
+
+  const setSelectedTagsState = (nextSelectedTags: string[]) => {
+    latestSelectedTagsRef.current = nextSelectedTags;
+    setSelectedTags(nextSelectedTags);
+  };
+
+  const setTagsState = (nextTags: string[]) => {
+    latestTagsRef.current = nextTags;
+    setTags(nextTags);
+  };
+
+  const invalidatePendingSubmit = () => {
+    submitRequestIdRef.current += 1;
+    isSubmittingRef.current = false;
+  };
 
   // 只展示未被选中的全部 tagOptions
   const filteredOptions = tagOptions;
@@ -36,21 +60,45 @@ const SearchBar: React.FC<SearchBarProps> = ({
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleInputKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && inputValue.trim()) {
-      const newTag = inputValue.trim();
-      const newTags = new Set([...tags, newTag]);
-      setTags(Array.from(newTags));
+      if (isSubmittingRef.current) {
+        return;
+      }
+
+      const submittedInput = inputValue;
       setInputValue('');
-      onSearch(Array.from(newTags));
-      setSelectedTags([...newTags, ...selectedTags]);
+      submitRequestIdRef.current += 1;
+      const requestId = submitRequestIdRef.current;
+      isSubmittingRef.current = true;
+
+      try {
+        const newTag = await resolveCanonicalTagInput(submittedInput);
+        if (submitRequestIdRef.current !== requestId) {
+          return;
+        }
+
+        if (!newTag) {
+          return;
+        }
+
+        const nextTags = Array.from(new Set([...latestTagsRef.current, newTag]));
+        setTagsState(nextTags);
+        onSearch(nextTags);
+        setSelectedTagsState(nextTags);
+      } finally {
+        if (submitRequestIdRef.current === requestId) {
+          isSubmittingRef.current = false;
+        }
+      }
     } else if (e.key === 'Escape') {
+      invalidatePendingSubmit();
       setIsSearchOpen(false);
       setInputValue('');
-      setTags([]);
+      setTagsState([]);
       setShowSuggestions(false);
       onSearch([]);
-      setSelectedTags([]);
+      setSelectedTagsState([]);
     }
   };
 
@@ -60,24 +108,32 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const handleSuggestionClick = (tag: string) => {
-    let newSelectedTags = selectedTags;
+    invalidatePendingSubmit();
+    const currentSelectedTags = latestSelectedTagsRef.current;
+    const currentTags = latestTagsRef.current;
+    let newSelectedTags = currentSelectedTags;
+
     if (newSelectedTags.includes(tag)) {
       newSelectedTags = newSelectedTags.filter(t => t !== tag);
-      setSelectedTags(newSelectedTags);
-      onSearch(Array.from(new Set([...newSelectedTags, ...tags])));
-      setTags(tags.filter(t => t !== tag));
+      const nextTags = currentTags.filter(t => t !== tag);
+      setSelectedTagsState(newSelectedTags);
+      setTagsState(nextTags);
+      onSearch(nextTags);
     } else {
-      newSelectedTags = Array.from(new Set([...selectedTags, tag]));
-      setSelectedTags(newSelectedTags);
-      onSearch(Array.from(new Set([...newSelectedTags, ...tags])));
+      newSelectedTags = Array.from(new Set([...currentSelectedTags, tag]));
+      setSelectedTagsState(newSelectedTags);
+      onSearch(Array.from(new Set([...newSelectedTags, ...currentTags])));
     }
   };
 
   const removeTag = (tag: string) => {
-    const newTags = tags.filter(t => t !== tag);
-    setTags(newTags);
+    invalidatePendingSubmit();
+    const currentTags = latestTagsRef.current;
+    const currentSelectedTags = latestSelectedTagsRef.current;
+    const newTags = currentTags.filter(t => t !== tag);
+    setTagsState(newTags);
     onSearch(newTags);
-    setSelectedTags(selectedTags.filter(t => t !== tag));
+    setSelectedTagsState(currentSelectedTags.filter(t => t !== tag));
   };
 
   const hiddenOthers = tags.length >= 2;

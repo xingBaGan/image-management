@@ -11,6 +11,7 @@ import DeleteImagesConfirmDialog from './DeleteImagesConfirmDialog';
 import BatchTagDialog from './BatchTagDialog';
 import ConfirmTagDialog from './ConfirmTagDialog';
 import InstallConfirmDialog from './InstallConfirmDialog';
+import ModelDownloadConfirmDialog from './ModelDownloadConfirmDialog';
 import { ToastContainer } from 'react-toastify';
 import { Category, LocalImageData } from '../types';
 
@@ -118,6 +119,12 @@ export const AppUI = ({
     handleInstallConfirm,
     handleCancelTagging,
     handleCancelColor,
+    modelDownloadConfirm,
+    modelDownloadProgress,
+    isModelDownloading,
+    handleConfirmModelDownload,
+    handleCancelModelDownload,
+    ensureModelForTagging,
     setBatchTagNames,
     messageBoxClose
   } = eventHandlers;
@@ -235,6 +242,7 @@ export const AppUI = ({
           setIsServerStarted={setIsServerStarted}
           tunnelUrl={tunnelUrl}
           setTunnelUrl={setTunnelUrl}
+          ensureModelReady={ensureModelForTagging}
         />
       </div>
 
@@ -330,6 +338,18 @@ export const AppUI = ({
           onCancel={() => state.setShowInstallConfirm(null)}
           onConfirm={handleInstallConfirm}
           checkResult={showInstallConfirm.checkResult}
+        />
+      )}
+
+      {modelDownloadConfirm && (
+        <ModelDownloadConfirmDialog
+          isOpen={modelDownloadConfirm.isOpen}
+          modelName={modelDownloadConfirm.modelName}
+          progress={modelDownloadProgress?.percentage || 0}
+          file={modelDownloadProgress?.file}
+          isDownloading={isModelDownloading}
+          onConfirm={handleConfirmModelDownload}
+          onCancel={handleCancelModelDownload}
         />
       )}
 

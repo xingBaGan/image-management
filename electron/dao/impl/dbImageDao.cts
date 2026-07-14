@@ -55,6 +55,7 @@ const convertToLocalImageData = (image: Image): LocalImageData => {
     dateCreated: image.dateCreated,
     dateModified: image.dateModified,
     tags: image.tags || [],
+    tagTranslations: image.tagTranslations,
     favorite: image.favorite,
     categories: image.categories || [],
     type: image.type,
@@ -81,6 +82,7 @@ const convertToPouchDBImage = (image: LocalImageData): Image => {
     dateCreated: image.dateCreated,
     dateModified: image.dateModified,
     tags: image.tags || [],
+    tagTranslations: image.tagTranslations,
     favorite: image.favorite || false,
     categories: image.categories || [],
     type: image.type as 'video' | 'image',
@@ -294,16 +296,46 @@ export default class DBImageDAO implements ImageDAO {
     categories: Category[]
   ): Promise<LocalImageData[]> {
     try {
-      await this.db.updateImage(mediaId, { tags: newTags });
+      await this.db.updateImage(mediaId, { tags: newTags, tagTranslations: undefined });
 
       // Invalidate cache when tags are updated
       tagFrequencyCache.invalidateCache();
 
       return images.map(img =>
-        img.id === mediaId ? { ...img, tags: newTags } : img
+        img.id === mediaId ? { ...img, tags: newTags, tagTranslations: undefined } : img
       );
     } catch (error) {
       console.error('Error updating tags:', error);
+      return images;
+    }
+  }
+
+  async updateTagTranslation(
+    mediaId: string,
+    lang: 'zh',
+    translatedTags: string[],
+    images: LocalImageData[],
+    categories: Category[]
+  ): Promise<LocalImageData[]> {
+    try {
+      await this.db.updateImage(mediaId, {
+        tagTranslations: {
+          zh: translatedTags
+        }
+      });
+
+      return images.map(img =>
+        img.id === mediaId
+          ? {
+              ...img,
+              tagTranslations: {
+                zh: translatedTags
+              }
+            }
+          : img
+      );
+    } catch (error) {
+      console.error('Error updating tag translation:', error);
       return images;
     }
   }

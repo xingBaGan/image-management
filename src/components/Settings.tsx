@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { Download, X } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { supportModes } from '../config.mts';
 import { useLocale } from '../contexts/LanguageContext';
+import ModelDownloadProgressDialog from './ModelDownloadProgressDialog';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -33,15 +34,51 @@ const Settings: React.FC<SettingsProps> = ({
   const [modelName, setModelName] = useState('');
   const [autoColor, setAutoColor] = useState(false);
   const [startImageServer, setStartImageServer] = useState(false);
+  const [modelDownload, setModelDownload] = useState<{
+    modelName: string;
+    percentage: number;
+    status: string;
+    file?: string;
+  } | null>(null);
+  const [modelStatuses, setModelStatuses] = useState<Record<string, boolean>>({});
+
+  const loadModelStatuses = async () => {
+    const statuses = await Promise.all(
+      supportModes.map(async (mode) => {
+        const status = await window.electron.getModelDownloadStatus(mode);
+        return [mode, status.downloaded] as const;
+      })
+    );
+    setModelStatuses(Object.fromEntries(statuses));
+  };
+
   useEffect(() => {
     if (isOpen) {
       setComfyUrl(settings.ComfyUI_URL);
       setAutoTagging(settings.autoTagging);
       setBackgroundUrl(settings.backgroundUrl);
+      setModelName(settings.modelName);
       setAutoColor(settings.autoColor);
       setStartImageServer(settings.startImageServer);
+      loadModelStatuses();
     }
   }, [isOpen, settings]);
+
+  useEffect(() => {
+    const handleProgress = (status: {
+      modelName: string;
+      file?: string;
+      percentage: number;
+      status: string;
+    }) => {
+      setModelDownload(status);
+    };
+
+    window.electron.onModelDownloadProgress(handleProgress);
+    return () => {
+      window.electron.removeModelDownloadProgressListener(handleProgress);
+    };
+  }, []);
 
   const handleSave = async () => {
     try {
@@ -59,9 +96,38 @@ const Settings: React.FC<SettingsProps> = ({
         message: t('configSaved'),
         type: 'success'
       });
+      setModelDownload(null);
       onClose();
     } catch (error) {
+      setModelDownload(null);
       console.error(t('saveFailed', { error: String(error) }));
+      setMessageBox({
+        ...messageBox,
+        isOpen: true,
+        message: t('saveFailed', { error: String(error) }),
+        type: 'error'
+      });
+    }
+  };
+
+  const handleDownloadModel = async () => {
+    try {
+      setModelDownload({
+        modelName,
+        percentage: 0,
+        status: 'checking'
+      });
+      await window.electron.ensureModelDownloaded(modelName);
+      await loadModelStatuses();
+      setModelDownload(null);
+    } catch (error) {
+      setModelDownload(null);
+      setMessageBox({
+        ...messageBox,
+        isOpen: true,
+        message: t('modelDownloadFailed', { error: String(error) }),
+        type: 'error'
+      });
     }
   };
 
@@ -148,26 +214,44 @@ const Settings: React.FC<SettingsProps> = ({
               <label className="block mb-1 text-sm font-medium text-gray-700dark:text-blue-300">
                 {t('modelName')}
               </label>
-              <select
-                title={t('modelName')}
-                value={modelName}
-                onChange={(e) => setModelName(e.target.value)}
-                className="px-3 py-2 w-full rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              >
-                {supportModes.map((mode) => (
-                  <option key={mode} value={mode}>{mode}</option>
-                ))}
-              </select>
+              <div className="flex gap-2">
+                <select
+                  title={t('modelName')}
+                  value={modelName}
+                  onChange={(e) => setModelName(e.target.value)}
+                  className="min-w-0 px-3 py-2 w-full rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                >
+                  {supportModes.map((mode) => (
+                    <option key={mode} value={mode}>
+                      {mode}
+                    </option>
+                  ))}
+                </select>
+                {(
+                  <button
+                    type="button"
+                    onClick={handleDownloadModel}
+                    disabled={!!modelDownload || modelStatuses[modelName]}
+                    className="flex flex-none gap-1 items-center justify-center px-3 py-2 min-w-24 whitespace-nowrap text-white bg-blue-500 rounded-lg hover:bg-blue-600 disabled:opacity-60"
+                    title={t('downloadModel')}
+                  >
+                    <Download size={16} />
+                    { !modelStatuses[modelName]?t('download'):t('downloaded')}
+                  </button>
+                )}
+              </div>
             </div>
             <div className="flex justify-end mt-6 space-x-3">
               <button
                 onClick={onClose}
+                disabled={!!modelDownload}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-700dark:text-blue-300 dark:hover:bg-gray-600"
               >
                 {t('cancel')}
               </button>
               <button
                 onClick={handleSave}
+                disabled={!!modelDownload}
                 className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
               >
                 {t('save')}
@@ -176,6 +260,14 @@ const Settings: React.FC<SettingsProps> = ({
           </div>
         </div>
       </div>
+      {modelDownload && (
+        <ModelDownloadProgressDialog
+          isOpen={!!modelDownload}
+          modelName={modelDownload.modelName}
+          progress={modelDownload.percentage}
+          file={modelDownload.file}
+        />
+      )}
     </>
   );
 }

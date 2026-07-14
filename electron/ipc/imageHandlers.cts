@@ -26,6 +26,10 @@ export const registerImageHandlers = () => {
     return await imageService.updateTags(mediaId, newTags, images, categories);
   });
 
+  ipcMain.handle('update-tag-translation', async (_, mediaId: string, lang: 'zh', translatedTags: string[], images: any[], categories: any[]) => {
+    return await imageService.updateTagTranslation(mediaId, lang, translatedTags, images, categories);
+  });
+
   ipcMain.handle('update-rating', async (_, mediaId: string, rate: number, images: any[], categories: any[]) => {
     return await imageService.updateRating(mediaId, rate, images, categories);
   });

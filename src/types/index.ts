@@ -41,10 +41,15 @@ export interface ColorInfo {
   percentage: number;
 }
 
+export interface TagTranslations {
+  zh?: string[];
+}
+
 export interface BaseMediaData extends MediaInfo {
   url?: string;
   favorite?: boolean;
   tags: string[];
+  tagTranslations?: TagTranslations;
   categories?: string[];
   colors: (string | ColorInfo)[];
   isBindInFolder?: boolean | Category;
@@ -296,6 +301,13 @@ export interface IPCImageService {
     images: LocalImageData[],
     categories: Category[]
   ): Promise<LocalImageData[]>;
+  updateTagTranslation(
+    mediaId: string,
+    lang: 'zh',
+    translatedTags: string[],
+    images: LocalImageData[],
+    categories: Category[]
+  ): Promise<LocalImageData[]>;
   updateRating(
     mediaId: string,
     rate: number,
@@ -346,6 +358,8 @@ export interface ElectronAPI {
   isRemoteComfyUI: () => Promise<boolean>;
   readFile: (filePath: string) => Promise<Buffer>;
   tagImage: (imagePath: string, modelName: string) => Promise<string[]>;
+  translateTags: (tags: string[], targetLang: 'zh') => Promise<string[]>;
+  resolveTagInput: (input: string, targetLang: 'en') => Promise<string>;
   readImageMetadata: (imagePath: string) => Promise<ImageMetadata>;
   processDirectoryFiles: (dirPath: string| string[],currentCategory?: null | Category) => Promise<[LocalImageData[], Category]>;
   openInEditor: (filePath: string) => Promise<{ success: boolean; error?: string }>;
@@ -373,6 +387,20 @@ export interface ElectronAPI {
     needsInstall: boolean;
   }>;
   installEnvironment: () => Promise<boolean>;
+  getModelDownloadStatus: (modelName: string) => Promise<{ modelName: string; downloaded: boolean }>;
+  ensureModelDownloaded: (modelName: string) => Promise<{ success: boolean; alreadyInstalled: boolean }>;
+  onModelDownloadProgress: (callback: (status: {
+    modelName: string;
+    file?: string;
+    percentage: number;
+    status: string;
+  }) => void) => void;
+  removeModelDownloadProgressListener: (callback: (status: {
+    modelName: string;
+    file?: string;
+    percentage: number;
+    status: string;
+  }) => void) => void;
   onImageServerStatusChange: (callback: (status: { success: boolean, tunnelUrl: string | null }) => void) => void;
   removeImageServerStartedListener: (callback: (status: { success: boolean, tunnelUrl: string | null }) => void) => void;
   openExternal: (url: string) => Promise<void>;

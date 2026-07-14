@@ -10,6 +10,7 @@ import { useAppDialogs } from './hooks/useAppDialogs';
 import { useAppUI } from './hooks/useAppUI';
 import { AppUI } from './components/AppUI';
 import { AppProvider } from './contexts/AppContext';
+import { useTagTranslation } from './hooks/useTagTranslation';
 
 // Define BulkAction interface
 interface BulkAction {
@@ -30,7 +31,7 @@ if (isDev) {
 const AppContent = () => {
   // Call hooks at the top level of the component
   const state = useAppContext();
-  const { t } = useLocale();
+  const { t, language } = useLocale();
   const eventHandlers = useAppEventHandlers(state);
   const dialogs = useAppDialogs(state, eventHandlers);
   const ui = useAppUI(state);
@@ -43,6 +44,19 @@ const AppContent = () => {
     importState,
     filteredAndSortedImages
   } = state;
+
+  const selectedDetailImage = useMemo(
+    () => filteredAndSortedImages.find(img => selectedImages.has(img.id)) || null,
+    [filteredAndSortedImages, selectedImages]
+  );
+
+  useTagTranslation({
+    image: selectedDetailImage,
+    language,
+    images: mediaList,
+    categories,
+    setImages: state.setMediaList,
+  });
 
   const {
     handleSelectSubfolder,

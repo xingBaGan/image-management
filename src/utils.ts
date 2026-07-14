@@ -1,6 +1,8 @@
 import { LocalImageData, Category, ImportFile, ImportStatus, ImageMetadata } from './types/index.ts';
 import { defaultModel } from './config.mts';
 
+export type EnsureModelReady = (modelName: string) => Promise<boolean>;
+
 export const generateHashId = (filePath: string, fileSize: number): string => {
   const str = `${filePath}-${fileSize}`;
   let hash = 0;
@@ -88,6 +90,7 @@ export const processMedia = async (
   setImportState?: (importState: ImportStatus) => void,
   currentSelectedCategory?: Category | string,
   shouldSaveToLocal: boolean = true,
+  ensureModelReady?: EnsureModelReady,
 ): Promise<LocalImageData[]> => {
   const existingIds = new Set((existingImages || []).map(img => img.id));
   const filteredNewImages = files.filter(file => {
@@ -100,17 +103,24 @@ export const processMedia = async (
     return [];
   }
 
-  const autoTaggingEnabled = (await window.electron.loadSettings()).autoTagging;
-  const autoColorEnabled = (await window.electron.loadSettings()).autoColor;
+  const settings = await window.electron.loadSettings();
+  const autoColorEnabled = settings.autoColor;
+  const modelName = settings.modelName || defaultModel;
+  let canAutoTag = settings.autoTagging && filteredNewImages.some(file => file.type.startsWith('image'));
+
+  if (canAutoTag && ensureModelReady) {
+    canAutoTag = await ensureModelReady(modelName);
+  }
+
   const updatedImages = await Promise.all(filteredNewImages.map(async file => {
     const newId = generateHashId(file.path, file.size);
     const type = file.type.startsWith('video') ? 'video' : 'image';
     const isVideo = type === 'video';
     const isImage = type === 'image';
     let tags: string[] = [];
-    if (autoTaggingEnabled && isImage) {
+    if (canAutoTag && isImage) {
       setImportState?.(ImportStatus.Tagging);
-      tags = await window.electron.tagImage(file.path, defaultModel);
+      tags = await window.electron.tagImage(file.path, modelName);
       // 按照字母顺序排序
       tags = tags.map(tag => tag.trim()).sort((a, b) => a.localeCompare(b));
     }
@@ -204,14 +214,15 @@ export const handleDrop = async (
   existingImages: LocalImageData[],
   categories: Category[],
   setImportState: (importState: ImportStatus) => void,
-  currentSelectedCategory?: Category | string
+  currentSelectedCategory?: Category | string,
+  ensureModelReady?: EnsureModelReady
 ) => {
   e.preventDefault();
   const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'));
   const dirPaths = Array.from(e.dataTransfer.files).filter(files => files.type === "");
   let images: LocalImageData[] = [];
   if (files.length > 0) {
-    let newImages = await processMedia(files as ImportFile[], existingImages, categories, setImportState, currentSelectedCategory, false);
+    let newImages = await processMedia(files as ImportFile[], existingImages, categories, setImportState, currentSelectedCategory, false, ensureModelReady);
     if (typeof currentSelectedCategory !== 'string') {
       newImages = await addImagesToCategory(newImages, categories, currentSelectedCategory);
     }
