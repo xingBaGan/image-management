@@ -4,7 +4,7 @@ import sys
 import argostranslate.package
 import argostranslate.translate
 
-SUPPORTED_TARGET_LANGUAGE = "zh"
+SUPPORTED_LANGUAGE_CODES = {"en", "zh"}
 
 
 def get_installed_language(language_code: str):
@@ -19,7 +19,9 @@ def get_installed_language(language_code: str):
 
 
 def ensure_package_available(from_code: str, to_code: str) -> None:
-    if to_code != SUPPORTED_TARGET_LANGUAGE:
+    if from_code not in SUPPORTED_LANGUAGE_CODES:
+        raise RuntimeError(f"Unsupported source language: {from_code}")
+    if to_code not in SUPPORTED_LANGUAGE_CODES:
         raise RuntimeError(f"Unsupported target language: {to_code}")
 
     from_language = get_installed_language(from_code)
@@ -56,11 +58,12 @@ def ensure_package_available(from_code: str, to_code: str) -> None:
 def main() -> None:
     tags = json.loads(sys.argv[1])
     target_language = sys.argv[2]
+    source_language = "zh" if target_language == "en" else "en"
 
-    ensure_package_available("en", target_language)
+    ensure_package_available(source_language, target_language)
 
     translated_tags = [
-        argostranslate.translate.translate(tag, "en", target_language)
+        argostranslate.translate.translate(tag, source_language, target_language)
         for tag in tags
     ]
 
