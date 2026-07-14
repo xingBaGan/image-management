@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import SearchBar from '@/components/Toolbar/SearchBar';
+import { getTagFrequency } from '@/services/tagService';
 import { resolveCanonicalTagInput } from '@/services/tagTranslationService';
 
 jest.mock('lucide-react', () => ({
@@ -26,6 +27,15 @@ jest.mock('@/contexts/LanguageContext', () => ({
 
 const mockResolveCanonicalTagInput =
   resolveCanonicalTagInput as jest.MockedFunction<typeof resolveCanonicalTagInput>;
+const mockGetTagFrequency =
+  getTagFrequency as jest.MockedFunction<typeof getTagFrequency>;
+
+function getSuggestionItem(text: string) {
+  return screen
+    .getAllByText(text)
+    .map(element => element.closest('li'))
+    .find((element): element is HTMLLIElement => element instanceof HTMLLIElement);
+}
 
 describe('SearchBar', () => {
   beforeEach(() => {
@@ -57,6 +67,42 @@ describe('SearchBar', () => {
       expect(mockResolveCanonicalTagInput).toHaveBeenCalledWith('猫');
       expect(setTags).toHaveBeenCalledWith(['cat']);
       expect(onSearch).toHaveBeenCalledWith(['cat']);
+    });
+  });
+
+  it('keeps selected suggestions aligned with existing and newly submitted tags on Enter', async () => {
+    mockGetTagFrequency.mockResolvedValue([
+      { name: 'dog', times: 10 },
+      { name: 'cat', times: 8 },
+    ]);
+    mockResolveCanonicalTagInput.mockResolvedValue('cat');
+    const onSearch = jest.fn();
+    const setTags = jest.fn();
+    const searchButtonRef = React.createRef<HTMLElement>();
+
+    render(
+      <SearchBar
+        onSearch={onSearch}
+        searchButtonRef={searchButtonRef}
+        tags={['dog']}
+        setTags={setTags}
+      />
+    );
+
+    const input = screen.getByPlaceholderText('pressEnterToAddTag');
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: '猫' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', charCode: 13 });
+
+    await waitFor(() => {
+      expect(mockResolveCanonicalTagInput).toHaveBeenCalledWith('猫');
+      expect(setTags).toHaveBeenCalledWith(['dog', 'cat']);
+      expect(onSearch).toHaveBeenCalledWith(['dog', 'cat']);
+    });
+
+    await waitFor(() => {
+      expect(getSuggestionItem('dog')).toHaveClass('selected');
+      expect(getSuggestionItem('cat')).toHaveClass('selected');
     });
   });
 });

@@ -49,7 +49,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       setTags(nextTags);
       setInputValue('');
       onSearch(nextTags);
-      setSelectedTags(Array.from(new Set([...selectedTags, newTag])));
+      setSelectedTags(nextTags);
     } else if (e.key === 'Escape') {
       setIsSearchOpen(false);
       setInputValue('');
