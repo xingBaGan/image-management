@@ -74,7 +74,8 @@
     "relational-pouch": "^4.1.1",
     "sharp": "^0.34.2",
     "uuid": "^11.1.0",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@electron/remote": "^2.0.10",
