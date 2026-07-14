@@ -3,6 +3,7 @@ import { X, Copy, Trash } from 'lucide-react';
 import { useLocale } from '../contexts/LanguageContext';
 import { toast } from 'react-toastify';
 import { isArrayOfString } from '../utils';
+import { getTagHoverText, resolveCanonicalTagInput } from '../services/tagTranslationService';
 
 interface MediaTagsProps {
   tags: string[];
@@ -21,7 +22,7 @@ const MediaTags: React.FC<MediaTagsProps> = ({
   showCopyButton = false,
   showClearButton = false,
 }) => {
-  const { t } = useLocale();
+  const { t, language } = useLocale();
   const [selectedTags, setSelectedTags] = useState<string[]>(tags);
   const [inputValue, setInputValue] = useState('');
 
@@ -33,14 +34,14 @@ const MediaTags: React.FC<MediaTagsProps> = ({
     setInputValue(e.target.value);
   };
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleInputKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && inputValue.trim()) {
       e.preventDefault();
-      const newTag = inputValue.trim();
+      const newTag = await resolveCanonicalTagInput(inputValue);
       if (!selectedTags.includes(newTag)) {
-        const newTags = new Set([...selectedTags, newTag]);
-        setSelectedTags(Array.from(newTags));
-        onTagsUpdate(mediaId, Array.from(newTags));
+        const newTags = Array.from(new Set([...selectedTags, newTag]));
+        setSelectedTags(newTags);
+        onTagsUpdate(mediaId, newTags);
       }
       setInputValue('');
     } else if (e.key === 'Backspace' && !inputValue && selectedTags.length > 0) {
@@ -81,8 +82,9 @@ const MediaTags: React.FC<MediaTagsProps> = ({
           <div
             key={index}
             className="flex gap-1 items-center px-2 py-1 h-7 text-sm text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200 group"
+            title={getTagHoverText(tag, displayTags?.[index], language)}
           >
-            <span>{displayTags?.[index] ?? tag}</span>
+            <span>{tag}</span>
             <button
               onClick={() => removeTag(tag)}
               className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-500 dark:hover:text-red-400 focus:outline-none"
