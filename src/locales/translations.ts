@@ -67,6 +67,9 @@ export const translations = {
     removeTag: 'Remove tag',
     removeColor: 'Remove color',
     escapeToExit: 'Press ESC to exit search',
+    clearAllTags: 'Clear all',
+    suggestedTags: 'Suggested tags',
+    searchPaletteHint: 'Enter to add tag · Esc to close',
 
     // Messages
     deleteConfirm: 'Are you sure you want to delete?',
@@ -193,7 +196,7 @@ export const translations = {
       escape: 'ESC - Deselect all images',
       delete: 'Delete - Delete selected images',
       ctrlA: 'Ctrl+A - Select all images',
-      ctrlS: 'Ctrl+S - Open search',
+      searchShortcut: '⌘+K (macOS) / Ctrl+Space - Open search',
       ctrlG: 'Ctrl+G - Toggle view mode',
       ctrlE: 'Ctrl+E - Open in editor',
       ctrlH: 'Ctrl+H - Add to favorites',
@@ -331,6 +334,9 @@ export const translations = {
     removeTag: '删除标签',
     removeColor: '移除颜色',
     escapeToExit: '按ESC退出搜索',
+    clearAllTags: '清除全部',
+    suggestedTags: '推荐标签',
+    searchPaletteHint: 'Enter 添加标签 · Esc 关闭',
 
     // 消息
     deleteConfirm: '确定要删除吗？',
@@ -448,7 +454,7 @@ export const translations = {
       escape: 'ESC - 取消选择所有图片',
       delete: 'Delete - 删除选中的图片',
       ctrlA: 'Ctrl+A - 选择所有图片',
-      ctrlS: 'Ctrl+S - 打开搜索',
+      searchShortcut: '⌘+K (macOS) / Ctrl+Space - 打开搜索',
       ctrlG: 'Ctrl+G - 切换视图模式',
       ctrlE: 'Ctrl+E - 在编辑器中打开',
       ctrlH: 'Ctrl+H - 添加到收藏',

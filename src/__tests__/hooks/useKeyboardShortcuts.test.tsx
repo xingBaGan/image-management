@@ -64,11 +64,12 @@ describe('useKeyboardShortcuts', () => {
     jest.clearAllMocks();
   });
 
-  const simulateKeyDown = (key: string, ctrlKey = false, shiftKey = false) => {
+  const simulateKeyDown = (key: string, ctrlKey = false, shiftKey = false, metaKey = false) => {
     const event = new KeyboardEvent('keydown', {
       key,
       ctrlKey,
       shiftKey,
+      metaKey,
       bubbles: true,
     });
     window.dispatchEvent(event);
@@ -123,13 +124,33 @@ describe('useKeyboardShortcuts', () => {
     });
   });
 
-  it('应该在按下 Ctrl+S 时触发搜索按钮点击', () => {
+  it('应该在按下 Ctrl+Space 时触发搜索按钮点击', () => {
     const mockClick = jest.fn();
     mockProps.searchButtonRef.current.click = mockClick;
     renderHook(() => useKeyboardShortcuts(mockProps));
 
-    simulateKeyDown('s', true);
+    simulateKeyDown(' ', true);
     expect(mockClick).toHaveBeenCalled();
+  });
+
+  it('应该在 macOS 上按下 Meta+K 时触发搜索按钮点击', () => {
+    const originalUserAgent = navigator.userAgent;
+    Object.defineProperty(navigator, 'userAgent', {
+      value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+      configurable: true,
+    });
+
+    const mockClick = jest.fn();
+    mockProps.searchButtonRef.current.click = mockClick;
+    renderHook(() => useKeyboardShortcuts(mockProps));
+
+    simulateKeyDown('k', false, false, true);
+    expect(mockClick).toHaveBeenCalled();
+
+    Object.defineProperty(navigator, 'userAgent', {
+      value: originalUserAgent,
+      configurable: true,
+    });
   });
 
   it('应该在按下 Ctrl+G 时切换视图模式', () => {

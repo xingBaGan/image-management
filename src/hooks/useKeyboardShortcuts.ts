@@ -38,7 +38,22 @@ export const useKeyboardShortcuts = ({
   setSortDirection
 }: UseKeyboardShortcutsProps) => {
   useEffect(() => {
+    const isMac = /Mac|iPhone|iPad/.test(navigator.userAgent);
+
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Search palette toggle — always available, even when an input is focused
+      if (isMac) {
+        if (e.key.toLowerCase() === 'k' && e.metaKey && !e.shiftKey && !e.altKey && !e.ctrlKey) {
+          e.preventDefault();
+          searchButtonRef.current?.click();
+          return;
+        }
+      } else if (e.key === ' ' && e.ctrlKey && !e.shiftKey && !e.altKey) {
+        e.preventDefault();
+        searchButtonRef.current?.click();
+        return;
+      }
+
       // 如果正在编辑标签或者有对话框打开,不处理快捷键
       if (
         document.activeElement?.tagName === 'INPUT' ||
@@ -85,13 +100,6 @@ export const useKeyboardShortcuts = ({
             // 全选当前显示的图片
             const newSelected = new Set(filteredImages.map(img => img.id));
             setSelectedImages(newSelected);
-          }
-          break;
-        case 's':
-          if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            // 打开搜索
-            searchButtonRef.current?.click();
           }
           break;
         case 'f':

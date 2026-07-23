@@ -45,6 +45,10 @@ function getSuggestionItem(text: string) {
     .find((element): element is HTMLLIElement => element instanceof HTMLLIElement);
 }
 
+function openSearchPalette() {
+  fireEvent.click(screen.getByTitle(/search/i));
+}
+
 function renderStatefulSearchBar(
   initialTags: string[] = [],
   onSearch = jest.fn(),
@@ -89,7 +93,7 @@ describe('SearchBar', () => {
       />
     );
 
-    fireEvent.click(screen.getByTitle('search(Ctrl+F)'));
+    openSearchPalette();
 
     const input = screen.getByPlaceholderText('searchImages');
     fireEvent.change(input, { target: { value: '猫' } });
@@ -121,6 +125,8 @@ describe('SearchBar', () => {
       />
     );
 
+    openSearchPalette();
+
     const input = screen.getByPlaceholderText('pressEnterToAddTag');
     fireEvent.focus(input);
     fireEvent.change(input, { target: { value: '猫' } });
@@ -138,7 +144,7 @@ describe('SearchBar', () => {
     });
   });
 
-  it('ignores a stale async Enter submission after Escape clears the filters', async () => {
+  it('ignores a stale async Enter submission after Escape closes the palette', async () => {
     const deferred = createDeferred<string>();
     mockResolveCanonicalTagInput.mockReturnValue(deferred.promise);
     const onSearch = jest.fn();
@@ -154,14 +160,16 @@ describe('SearchBar', () => {
       />
     );
 
+    openSearchPalette();
+
     const input = screen.getByPlaceholderText('pressEnterToAddTag');
     fireEvent.change(input, { target: { value: '猫' } });
     fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', charCode: 13 });
 
     fireEvent.keyDown(input, { key: 'Escape', code: 'Escape', charCode: 27 });
 
-    expect(setTags).toHaveBeenCalledWith([]);
-    expect(onSearch).toHaveBeenLastCalledWith([]);
+    expect(setTags).not.toHaveBeenCalledWith([]);
+    expect(onSearch).not.toHaveBeenCalledWith([]);
 
     deferred.resolve('cat');
 
@@ -169,9 +177,8 @@ describe('SearchBar', () => {
       expect(mockResolveCanonicalTagInput).toHaveBeenCalledWith('猫');
     });
 
-    expect(setTags).toHaveBeenCalledTimes(1);
-    expect(onSearch).toHaveBeenCalledTimes(1);
-    expect(onSearch).toHaveBeenLastCalledWith([]);
+    expect(setTags).not.toHaveBeenCalled();
+    expect(onSearch).not.toHaveBeenCalled();
   });
 
   it('drops the filter from both tag state and onSearch when deselecting a selected suggestion', async () => {
@@ -181,7 +188,7 @@ describe('SearchBar', () => {
 
     renderStatefulSearchBar([], onSearch);
 
-    fireEvent.click(screen.getByTitle('search(Ctrl+F)'));
+    openSearchPalette();
 
     const input = screen.getByPlaceholderText('searchImages');
     fireEvent.focus(input);
@@ -208,7 +215,7 @@ describe('SearchBar', () => {
 
     renderStatefulSearchBar();
 
-    fireEvent.click(screen.getByTitle('search(Ctrl+F)'));
+    openSearchPalette();
 
     const input = screen.getByPlaceholderText('searchImages') as HTMLInputElement;
     fireEvent.change(input, { target: { value: '猫' } });
@@ -224,5 +231,28 @@ describe('SearchBar', () => {
     });
 
     expect(input.value).toBe('bird');
+  });
+
+  it('preserves active tags when closing the palette with Escape', async () => {
+    const onSearch = jest.fn();
+    const setTags = jest.fn();
+
+    render(
+      <SearchBar
+        onSearch={onSearch}
+        searchButtonRef={React.createRef<HTMLElement>()}
+        tags={['dog']}
+        setTags={setTags}
+      />
+    );
+
+    openSearchPalette();
+
+    const input = screen.getByPlaceholderText('pressEnterToAddTag');
+    fireEvent.keyDown(input, { key: 'Escape', code: 'Escape', charCode: 27 });
+
+    expect(setTags).not.toHaveBeenCalled();
+    expect(onSearch).not.toHaveBeenCalledWith([]);
+    expect(screen.queryByPlaceholderText('pressEnterToAddTag')).not.toBeInTheDocument();
   });
 });

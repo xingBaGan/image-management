@@ -1,8 +1,9 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { Search, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search } from 'lucide-react';
 import { useLocale } from '../../contexts/LanguageContext';
-import { getTagFrequency, TagFrequency } from '../../services/tagService';
-import { resolveCanonicalTagInput } from '../../services/tagTranslationService';
+import SearchPalette from './SearchPalette';
+
+const isMac = /Mac|iPhone|iPad/.test(navigator.userAgent);
 
 interface SearchBarProps {
   onSearch: (tags: string[]) => void;
@@ -18,221 +19,38 @@ const SearchBar: React.FC<SearchBarProps> = ({
   setTags,
 }) => {
   const { t } = useLocale();
-  const [isSearchOpen, setIsSearchOpen] = useState(false || tags.length > 0);
-  const [inputValue, setInputValue] = useState('');
-  const [tagOptions, setTagOptions] = useState<TagFrequency[]>([]);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const latestTagsRef = useRef(tags);
-  const latestSelectedTagsRef = useRef<string[]>([]);
-  const submitRequestIdRef = useRef(0);
-  const isSubmittingRef = useRef(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    getTagFrequency({ sortDirection: 'desc', limit: 30 }).then(setTagOptions);
-  }, []);
+  const searchShortcut = isMac ? '⌘+K' : 'Ctrl+Space';
 
-  useEffect(() => {
-    latestTagsRef.current = tags;
-  }, [tags]);
-
-  const setSelectedTagsState = (nextSelectedTags: string[]) => {
-    latestSelectedTagsRef.current = nextSelectedTags;
-    setSelectedTags(nextSelectedTags);
+  const handleToggle = () => {
+    setIsOpen(prev => !prev);
   };
 
-  const setTagsState = (nextTags: string[]) => {
-    latestTagsRef.current = nextTags;
-    setTags(nextTags);
-  };
-
-  const invalidatePendingSubmit = () => {
-    submitRequestIdRef.current += 1;
-    isSubmittingRef.current = false;
-  };
-
-  // 只展示未被选中的全部 tagOptions
-  const filteredOptions = tagOptions;
-  const handleSearchClick = () => {
-    setIsSearchOpen(true);
-    setTimeout(() => inputRef.current?.focus(), 100);
-  };
-
-  const handleInputKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && inputValue.trim()) {
-      if (isSubmittingRef.current) {
-        return;
-      }
-
-      const submittedInput = inputValue;
-      setInputValue('');
-      submitRequestIdRef.current += 1;
-      const requestId = submitRequestIdRef.current;
-      isSubmittingRef.current = true;
-
-      try {
-        const newTag = await resolveCanonicalTagInput(submittedInput);
-        if (submitRequestIdRef.current !== requestId) {
-          return;
-        }
-
-        if (!newTag) {
-          return;
-        }
-
-        const nextTags = Array.from(new Set([...latestTagsRef.current, newTag]));
-        setTagsState(nextTags);
-        onSearch(nextTags);
-        setSelectedTagsState(nextTags);
-      } finally {
-        if (submitRequestIdRef.current === requestId) {
-          isSubmittingRef.current = false;
-        }
-      }
-    } else if (e.key === 'Escape') {
-      invalidatePendingSubmit();
-      setIsSearchOpen(false);
-      setInputValue('');
-      setTagsState([]);
-      setShowSuggestions(false);
-      onSearch([]);
-      setSelectedTagsState([]);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-    setShowSuggestions(true);
-  };
-
-  const handleSuggestionClick = (tag: string) => {
-    invalidatePendingSubmit();
-    const currentSelectedTags = latestSelectedTagsRef.current;
-    const currentTags = latestTagsRef.current;
-    let newSelectedTags = currentSelectedTags;
-
-    if (newSelectedTags.includes(tag)) {
-      newSelectedTags = newSelectedTags.filter(t => t !== tag);
-      const nextTags = currentTags.filter(t => t !== tag);
-      setSelectedTagsState(newSelectedTags);
-      setTagsState(nextTags);
-      onSearch(nextTags);
-    } else {
-      newSelectedTags = Array.from(new Set([...currentSelectedTags, tag]));
-      setSelectedTagsState(newSelectedTags);
-      onSearch(Array.from(new Set([...newSelectedTags, ...currentTags])));
-    }
-  };
-
-  const removeTag = (tag: string) => {
-    invalidatePendingSubmit();
-    const currentTags = latestTagsRef.current;
-    const currentSelectedTags = latestSelectedTagsRef.current;
-    const newTags = currentTags.filter(t => t !== tag);
-    setTagsState(newTags);
-    onSearch(newTags);
-    setSelectedTagsState(currentSelectedTags.filter(t => t !== tag));
-  };
-
-  const hiddenOthers = tags.length >= 2;
   return (
-    <div ref={searchRef} className="relative">
-      {isSearchOpen ? (
-        <div className="flex items-center bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600 p-2 min-w-[300px]">
-          <div
-            className="no-scrollbar flex overflow-y-hidden overflow-x-auto flex-1 gap-2 max-h-[30px] max-w-[300px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-700 dark:scrollbar-track-transparent"
-            onWheel={e => {
-              e.preventDefault();
-              const container = e.currentTarget;
-              const scrollAmount = e.deltaY > 0 ? 100 : -100;
-              container.scrollLeft += scrollAmount;
-            }}
-          >
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center px-2 py-1 text-sm text-blue-800 bg-blue-100 rounded-md dark:bg-blue-900 dark:text-blue-200"
-              >
-                {tag}
-                <button
-                  title={t("removeTag")}
-                  onClick={() => removeTag(tag)}
-                  className="ml-1 hover:text-blue-600 dark:hover:text-blue-400"
-                >
-                  <X size={14} />
-                </button>
-              </span>
-            ))}
-            <div className={`flex-1 min-w-[100px]`}>
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputValue}
-                onChange={handleInputChange}
-                onKeyDown={handleInputKeyDown}
-                placeholder={tags.length ? t("pressEnterToAddTag") : t("searchImages")}
-                className="w-full bg-transparent border-none outline-none dark:text-white"
-                onFocus={() => setShowSuggestions(true)}
-                autoComplete="off"
-              />
-            </div>
-            <div className={`flex items-center ${hiddenOthers ? 'hidden' : ''}`}>
-              <span className="mr-2 text-xs text-gray-400 dark:text-gray-500">{t("escapeToExit")}</span>
-              <Search className="flex-shrink-0 text-gray-400" size={20} />
-            </div>
-          </div>
-          {/* flex流式布局建议列表，每行约4个，无横向滚动条 */}
-          {showSuggestions && filteredOptions.length > 0 && (
-            <ul
-              className="flex flex-wrap gap-2 overflow-y-auto absolute top-8 z-10 mt-1 p-2 w-[40vw] h-auto rounded-xl border-none shadow-none bg-white/70 dark:bg-gray-800/70 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent dark:scrollbar-thumb-gray-700 dark:scrollbar-track-transparent"
-              style={{ minWidth: 200 }}
-              tabIndex={-1}
-              onMouseDown={e => e.preventDefault()}
-            >
-              {filteredOptions.map((option) => (
-                <li
-                  key={option.name}
-                  className={`
-                      flex
-                      justify-between 
-                      items-center
-                      px-3
-                      py-1 whitespace-nowrap rounded-full border border-gray-200 transition cursor-pointer
-                     hover:bg-blue-100 dark:hover:bg-blue-900 dark:border-gray-700 ${selectedTags.includes(option.name) ? "selected bg-blue-100 dark:bg-blue-900" : ""}`}
-                  style={{ flex: "1 1 4%", maxWidth: "14%" }}
-                  onMouseDown={() => handleSuggestionClick(option.name)}
-                >
-                  <span className="overflow-hidden text-sm text-ellipsis">{option.name}</span>
-                  <span className="ml-2 text-xs text-gray-400">{option.times}</span>
-                </li>
-              ))}
-              <span
-                title="Close"
-                onMouseDown={() => {
-                  setShowSuggestions(false)
-                  inputRef.current?.blur()
-                }}
-                className="absolute right-0 bottom-0 p-1 m-2 text-gray-600 rounded-full border border-gray-200 bg-white/80 dark:bg-gray-800/80 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-700 dark:text-gray-300"
-              >
-                <X size={14} />
-              </span>
-            </ul>
-          )}
-        </div>
-      ) : (
-        <button
-          ref={searchButtonRef as React.RefObject<HTMLButtonElement>}
-          className="p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-blue-400"
-          title={`${t("search")}(Ctrl+F)`}
-          onClick={handleSearchClick}
-        >
-          <Search size={20} />
-        </button>
-      )}
-    </div>
+    <>
+      <button
+        ref={searchButtonRef as React.RefObject<HTMLButtonElement>}
+        className="relative p-2 text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-blue-400"
+        title={`${t('search')} (${searchShortcut})`}
+        onClick={handleToggle}
+        aria-pressed={isOpen}
+      >
+        <Search size={20} />
+        {tags.length > 0 && (
+          <span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full" />
+        )}
+      </button>
+
+      <SearchPalette
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        onSearch={onSearch}
+        tags={tags}
+        setTags={setTags}
+      />
+    </>
   );
 };
 
-export default SearchBar; 
+export default SearchBar;
